@@ -189,7 +189,6 @@ CMD ["otree", "prodserver", "0.0.0.0:8000"]
 ### Related Documentation
 
 - [System Functions and Operating Logic](docs/系統功能與運作邏輯說明.md)
-- [Test Mode Switching Instructions](docs/測試模式切換說明.md)
 - [Development Work Log](docs/工作日誌_碳排放交易實驗平台.md)
 - [Data Codebook](docs/codebook.md)
 - [Database Cleaner Tool Instructions](docs/資料庫清理工具.md)
@@ -385,7 +384,6 @@ CMD ["otree", "prodserver", "0.0.0.0:8000"]
 ### 相關文檔
 
 - [系統功能與運作邏輯說明](docs/系統功能與運作邏輯說明.md)
-- [測試模式切換說明](docs/測試模式切換說明.md)
 - [開發工作日誌](docs/工作日誌_碳排放交易實驗平台.md)
 - [數據編碼簿](docs/codebook.md)
 - [資料庫清理工具說明](docs/資料庫清理工具.md)
