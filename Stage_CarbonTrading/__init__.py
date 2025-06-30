@@ -5,7 +5,7 @@ import math
 import time
 import sys
 import os
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Tuple, Optional, Union
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.shared_utils import (
     update_price_history,
@@ -18,8 +18,12 @@ from utils.trading_utils import (
     validate_order,
     find_matching_orders,
     execute_trade,
+    process_new_order,
+    process_accept_offer,
+    calculate_locked_resources,
     TradingError,
-    InsufficientResourcesError
+    InsufficientResourcesError,
+    InvalidOrderError
 )
 from configs.config import config
 
@@ -29,16 +33,16 @@ doc = """
 """
 
 class C(BaseConstants):
-    NAME_IN_URL = config.get_stage_name_in_url('carbon_trading')
-    PLAYERS_PER_GROUP = config.players_per_group
-    NUM_ROUNDS = config.num_rounds
-    TRADING_TIME = config.carbon_trading_time
-    INITIAL_CAPITAL = config.get_stage_initial_capital('carbon_trading')
-    MAX_PRODUCTION = config.max_production
+    NAME_IN_URL: str = config.get_stage_name_in_url('carbon_trading')
+    PLAYERS_PER_GROUP: int = config.players_per_group
+    NUM_ROUNDS: int = config.num_rounds
+    TRADING_TIME: int = config.carbon_trading_time
+    INITIAL_CAPITAL: int = config.get_stage_initial_capital('carbon_trading')
+    MAX_PRODUCTION: int = config.max_production
     # 控制是否每輪重置現金
-    RESET_CASH_EACH_ROUND = config.carbon_trading_reset_cash_each_round
+    RESET_CASH_EACH_ROUND: bool = config.carbon_trading_reset_cash_each_round
     # 碳權配置
-    CARBON_ALLOWANCE_PER_PLAYER = config.carbon_allowance_per_player
+    CARBON_ALLOWANCE_PER_PLAYER: int = config.carbon_allowance_per_player
 
 class Subsession(BaseSubsession):
     market_price = models.CurrencyField()
@@ -770,7 +774,7 @@ class TradingMarket(Page):
                         for p in group.get_players()}
             else:
                 return result
-        
+
         # 處理取消訂單
         elif data.get('type') == 'cancel_offer':
             direction = data.get('direction')
@@ -795,7 +799,7 @@ class TradingMarket(Page):
         """獲取市場狀態"""
         group = player.group
         
-        # 解析訂單
+            # 解析訂單
         buy_orders, sell_orders = parse_orders(group)
             
         # 排序訂單
@@ -947,7 +951,7 @@ class ProductionDecision(Page):
         required_permits = values['production'] * player.carbon_emission_per_unit
         if required_permits > player.current_permits:
             return f'生產{values["production"]}單位需要{required_permits}單位碳權，但您只有{player.current_permits}單位碳權'
-        
+
     @staticmethod
     def vars_for_template(player):
         # 計算基於現金的最大產量 (解方程: a*q^2/2 = cash, 得到 q = sqrt(2*cash/a))

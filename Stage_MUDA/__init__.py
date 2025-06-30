@@ -59,10 +59,10 @@ def _initialize_player(player: BasePlayer) -> None:
         player.current_cash = C.INITIAL_CAPITAL
     else:
         player.current_cash = player.in_round(player.round_number - 1).final_cash
-    
+        
     player.initial_capital = player.current_cash
     player.current_items = random.randint(3, 8)
-    
+        
     # 設定個人碳權價值
     player.personal_item_value = random.choice(config.muda_item_price_options)
     print(f"玩家 {player.id_in_group} 的碳權價值: {player.personal_item_value} "
@@ -214,7 +214,7 @@ class TradingMarket(Page):
                 player, group, offer_type, target_id, price, quantity,
                 C.ITEM_NAME, 'current_items'
             )
-            
+                    
             # 處理通知
             if result.get('notifications'):
                 market_states = {}
@@ -428,4 +428,4 @@ def _calculate_final_payoff_info(player: Player) -> Dict[str, Any]:
         'total_value_formatted': f"{int(round(total_value))}",
     }
 
-page_sequence = [Introduction, ReadyWaitPage, TradingMarket, ResultsWaitPage, Results] 
+page_sequence = [Introduction, ReadyWaitPage, TradingMarket, ResultsWaitPage, Results]
