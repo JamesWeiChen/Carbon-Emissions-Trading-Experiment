@@ -23,19 +23,23 @@
 
 ### 實驗設計
 - **處理組數**：4 組（對照組、碳稅組、MUDA 訓練組、碳交易組）
-- **參與者**：每組 2 人
-- **回合數**：2 回合
-- **貨幣單位**：法幣（oTree Points）
+- **參與者**：
+  - 正式模式：每組 15 人
+  - 測試模式：每組 2 人
+- **回合數**：
+  - 正式模式：15 回合
+  - 測試模式：3 回合
+- **貨幣單位**：實驗幣（oTree Points）
 - **數據收集**：全自動化，包含決策、交易、結果數據
 
 ### 資料表結構
 實驗數據儲存在以下主要資料表中：
-- `stage_control_player` - 對照組玩家數據
-- `stage_carbontax_player` - 碳稅組玩家數據  
-- `stage_muda_player` - MUDA 訓練組玩家數據
-- `stage_carbontrading_player` - 碳交易組玩家數據
-- `stage_*_subsession` - 各組會話層級數據
-- `stage_*_group` - 各組群組層級數據
+- `Stage_Control_Player` - 對照組玩家數據
+- `Stage_CarbonTax_Player` - 碳稅組玩家數據  
+- `Stage_MUDA_Player` - MUDA 訓練組玩家數據
+- `Stage_CarbonTrading_Player` - 碳交易組玩家數據
+- `Stage_*_Subsession` - 各組會話層級數據
+- `Stage_*_Group` - 各組群組層級數據
 
 ---
 
@@ -47,9 +51,9 @@
 |--------|------|------|----------|------|
 | `participant_id` | Integer | 參與者唯一識別碼 | 1-N | 跨組別唯一 |
 | `session_id` | Integer | 會話識別碼 | 1-N | 實驗場次 |
-| `group_id` | Integer | 群組識別碼 | 1-N | 每組 2 人 |
-| `id_in_group` | Integer | 組內玩家編號 | 1-2 | 1 = 玩家 1, 2 = 玩家 2 |
-| `round_number` | Integer | 回合數 | 1-2 | 當前回合 |
+| `group_id` | Integer | 群組識別碼 | 1-N | 正式：每組 15 人；測試：每組 2 人 |
+| `id_in_group` | Integer | 組內玩家編號 | 1-15 | 正式：1-15；測試：1-2 |
+| `round_number` | Integer | 回合數 | 1-15 | 正式：1-15；測試：1-3 |
 
 ### 角色與能力變數
 
@@ -57,7 +61,7 @@
 |--------|------|------|----------|------|
 | `is_dominant` | Boolean | 是否為主導廠商 | 0/1 | 1 = 主導廠商, 0 = 非主導廠商 |
 | `marginal_cost_coefficient` | Integer | 邊際成本係數 | 1-7 | 主導廠商：1-5, 非主導：2-7 |
-| `carbon_emission_per_unit` | Float | 每單位碳排放量 | 1.0/2.0 | 主導廠商：2.0, 非主導：1.0 |
+| `carbon_emission_per_unit` | Float/Integer | 每單位碳排放量 | 1/2 | 主導廠商：2, 非主導：1（碳交易組為 Integer） |
 | `max_production` | Integer | 最大生產能力 | 8/20 | 主導廠商：20, 非主導：8 |
 | `market_price` | Currency | 市場價格 | 23-42 | 隨機分配，基礎價格 ± 變動 |
 
@@ -88,18 +92,24 @@
 
 | 變數名 | 類型 | 說明 | 取值範圍 | 備註 |
 |--------|------|------|----------|------|
-| `selected_round` | Integer | 選中回合 | 1-2 | 隨機選擇用於最終報酬 |
+| `selected_round` | Integer | 選中回合 | 1-15 | 隨機選擇用於最終報酬（正式：1-15；測試：1-3） |
 
 ---
 
 ## 對照組變數
 
-### 資料表：`stage_control_player`
+### 資料表：`Stage_Control_Player`
 
 對照組為基準組，不受碳排放政策限制。
 
-#### 特有變數
-*對照組使用通用變數，無特有變數*
+#### 會話層級變數（`Stage_Control_Subsession`）
+
+| 變數名 | 類型 | 說明 | 取值範圍 | 備註 |
+|--------|------|------|----------|------|
+| `market_price` | Currency | 市場價格 | 23-42 | 隨機分配，基礎價格 ± 變動 |
+
+#### 玩家層級特有變數
+*對照組玩家使用通用變數，無特有變數*
 
 #### 成本計算公式
 ```
@@ -117,14 +127,15 @@
 
 ## 碳稅組變數
 
-### 資料表：`stage_carbontax_player`
+### 資料表：`Stage_CarbonTax_Player`
 
 碳稅組需要為碳排放繳納稅金。
 
-#### 會話層級變數（`stage_carbontax_subsession`）
+#### 會話層級變數（`Stage_CarbonTax_Subsession`）
 
 | 變數名 | 類型 | 說明 | 取值範圍 | 備註 |
 |--------|------|------|----------|------|
+| `market_price` | Currency | 市場價格 | 23-42 | 隨機分配，基礎價格 ± 變動 |
 | `tax_rate` | Currency | 碳稅率 | 1-3 | 每回合隨機選擇 |
 
 #### 玩家層級特有變數
@@ -144,17 +155,25 @@
 
 ## MUDA 訓練組變數
 
-### 資料表：`stage_muda_player`
+### 資料表：`Stage_MUDA_Player`
 
 MUDA 組為純交易練習，不涉及生產決策。
 
-#### 會話層級變數（`stage_muda_subsession`）
+#### 會話層級變數（`Stage_MUDA_Subsession`）
 
 | 變數名 | 類型 | 說明 | 取值範圍 | 備註 |
 |--------|------|------|----------|------|
 | `item_market_price` | Currency | 碳權市場價格 | 25-40 | 隨機選擇 |
 | `price_history` | LongString | 價格歷史 | JSON 格式 | 記錄價格變動 |
 | `start_time` | Integer | 交易開始時間 | Unix 時間戳 | 用於計算交易時間 |
+
+#### 群組層級變數（`Stage_MUDA_Group`）
+
+| 變數名 | 類型 | 說明 | 取值範圍 | 備註 |
+|--------|------|------|----------|------|
+| `buy_orders` | LongString | 買單列表 | JSON 格式 | 即時買單 |
+| `sell_orders` | LongString | 賣單列表 | JSON 格式 | 即時賣單 |
+| `trade_history` | LongString | 交易歷史 | JSON 格式 | 所有成交記錄 |
 
 #### 玩家層級變數
 
@@ -209,20 +228,23 @@ MUDA 組為純交易練習，不涉及生產決策。
 
 ## 碳交易組變數
 
-### 資料表：`stage_carbontrading_player`
+### 資料表：`Stage_CarbonTrading_Player`
 
 碳交易組結合交易和生產決策，最為複雜。
 
-#### 會話層級變數（`stage_carbontrading_subsession`）
+#### 會話層級變數（`Stage_CarbonTrading_Subsession`）
 
 | 變數名 | 類型 | 說明 | 取值範圍 | 備註 |
 |--------|------|------|----------|------|
+| `market_price` | Currency | 市場價格 | 23-42 | 隨機分配，基礎價格 ± 變動 |
+| `price_history` | LongString | 價格歷史 | JSON 格式 | 記錄價格變動 |
+| `start_time` | Integer | 交易開始時間 | Unix 時間戳 | 用於計算交易時間 |
 | `total_optimal_emissions` | Float | 社會最適排放總量 | 0-∞ | 理論最適值 |
 | `cap_multiplier` | Float | 配額倍率 | 0.8/1.0/1.2 | 隨機選擇 |
 | `cap_total` | Integer | 總配額 | 0-∞ | 四捨五入後的整數 |
 | `allocation_details` | LongString | 分配詳情 | JSON 格式 | 配額分配過程 |
 
-#### 群組層級變數（`stage_carbontrading_group`）
+#### 群組層級變數（`Stage_CarbonTrading_Group`）
 
 | 變數名 | 類型 | 說明 | 取值範圍 | 備註 |
 |--------|------|------|----------|------|
@@ -315,7 +337,7 @@ MUDA 組為純交易練習，不涉及生產決策。
 |--------|------|------|
 | `trade_timestamp` | 交易時間戳 | "MM:SS" |
 | `decision_time` | 決策用時 | 秒數 |
-| `trading_duration` | 交易持續時間 | 30 秒 |
+| `trading_duration` | 交易持續時間 | MUDA：180秒（測試：60秒）；碳交易：120秒（測試：60秒） |
 
 ---
 
