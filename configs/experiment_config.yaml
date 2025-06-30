@@ -2,18 +2,30 @@
 # 統一管理各階段的常數和設定
 
 # ====================================
-# 正式實驗模式設定 (Production Mode)
+# 實驗模式切換（主開關）
+# ====================================
+experiment_mode:
+  # 主開關：true = 測試模式, false = 正式模式
+  test_mode_enabled: true
+  
+  # 模式說明
+  # - 測試模式：2人一組，3回合，簡化參數，方便快速測試
+  # - 正式模式：15人一組，15回合，完整參數，用於正式實驗
+
+# ====================================
+# 通用設定（根據模式自動選擇）
 # ====================================
 general:
+  # 基本參數（正式模式）
   players_per_group: 15  # 正式實驗：15人一組
   num_rounds: 15
   max_production: 50
   
-  # 市場價格隨機抽取設定 (所有組別共用)
+  # 市場價格隨機抽取設定
   market_price_random_draw:
     base_prices: [25, 30, 35, 40]  # 基礎價格選項
     variations: [-2, -1, 1, 2]  # 變動幅度選項
-    min_price: 1  # 最低價格（確保不為負或太小）
+    min_price: 1  # 最低價格
   
   # 廠商角色參數
   dominant_firm:
@@ -26,10 +38,8 @@ general:
     emission_per_unit: 1  # 每單位碳排放
     max_production: 8     # 最大生產量
   
-  # 角色分配設定（正式實驗）
+  # 角色分配設定（正式模式）
   role_assignment:
-    test_mode: false  # 正式模式
-    production_mode: true  # 正式模式：3個主導廠商，12個其他廠商
     dominant_firm_count: 3  # 主導廠商數量
     non_dominant_firm_count: 12  # 其他廠商數量
     ensure_player1_dominant: false  # 正式實驗不需要確保1號玩家為主導廠商
@@ -38,7 +48,55 @@ general:
   random_disturbance:
     range: [-1, 1]  # 生產成本隨機擾動範圍
 
-# 各階段特定設定
+# ====================================
+# 測試模式覆蓋設定
+# ====================================
+test_mode_overrides:
+  # 測試模式下的基本參數
+  general:
+    players_per_group: 2  # 測試模式：2人一組
+    num_rounds: 3  # 測試模式：3回合
+    max_production: 10  # 測試模式：最大生產量10
+    
+    # 角色分配設定（測試模式）
+    role_assignment:
+      dominant_firm_count: 1  # 測試模式：1個主導廠商
+      non_dominant_firm_count: 1  # 測試模式：1個其他廠商
+      ensure_player1_dominant: true  # 測試模式確保1號玩家為主導廠商
+    
+    # 市場價格（測試模式簡化）
+    market_price_random_draw:
+      base_prices: [30, 35]  # 簡化的基礎價格選項
+      variations: [-1, 1]  # 簡化的變動幅度
+      min_price: 1
+  
+  # 測試模式下的階段設定覆蓋
+  stages:
+    control:
+      initial_capital: 1000  # 測試模式較高初始資金
+      
+    carbon_tax:
+      initial_capital: 1000
+      tax_random_selection:
+        rates: [2, 3]  # 測試模式簡化稅率選項
+        
+    muda:
+      initial_capital: 99999  # 測試模式大量資金
+      trading_time: 60  # 測試模式縮短交易時間
+      item_price_options: [30, 35]  # 測試模式簡化價格選項
+      
+    carbon_trading:
+      initial_capital: 99999
+      trading_time: 60  # 測試模式縮短交易時間
+      carbon_allowance_per_player: 5  # 測試模式較少碳權
+      
+      # 測試模式的碳權分配設定
+      optimal_allocation:
+        cap_multipliers: [1.0]  # 測試模式只用標準倍率
+
+# ====================================
+# 各階段設定（正式模式）
+# ====================================
 stages:
   control:
     name_in_url: 'Stage_Control'
@@ -94,63 +152,17 @@ stages:
       console_output_format: "detailed"  # 控制台輸出格式: "simple" 或 "detailed"
 
 # ====================================
-# 測試模式設定 (Test Mode)
-# ====================================
-test_mode:
-  enabled: true  # 是否啟用測試模式
-  
-  # 測試模式下的通用設定
-  general:
-    players_per_group: 2  # 測試模式：2人一組
-    num_rounds: 3  # 測試模式：3回合
-    max_production: 10  # 測試模式：最大生產量10
-    
-    # 角色分配設定（測試模式）
-    role_assignment:
-      ensure_player1_dominant: true  # 測試模式確保1號玩家為主導廠商
-      dominant_firm_ratio: 0.5  # 測試模式：50%為主導廠商（1/2）
-    
-    # 市場價格（測試模式可使用簡化價格）
-    market_price_random_draw:
-      base_prices: [30, 35]  # 簡化的基礎價格選項
-      variations: [-1, 1]  # 簡化的變動幅度
-      min_price: 1
-  
-  # 測試模式下的階段設定
-  stages:
-    control:
-      initial_capital: 1000  # 測試模式較高初始資金
-      
-    carbon_tax:
-      initial_capital: 1000
-      tax_random_selection:
-        rates: [2, 3]  # 測試模式簡化稅率選項
-        
-    muda:
-      initial_capital: 99999  # 測試模式大量資金
-      trading_time: 60  # 測試模式縮短交易時間
-      item_price_options: [30, 35]  # 測試模式簡化價格選項
-      
-    carbon_trading:
-      initial_capital: 99999
-      trading_time: 60  # 測試模式縮短交易時間
-      carbon_allowance_per_player: 5  # 測試模式較少碳權
-      
-      # 測試模式的碳權分配設定
-      optimal_allocation:
-        use_fixed_price: true
-        fixed_market_price: 10
-        social_cost_per_unit_carbon: 2
-        cap_multipliers: [1.0]  # 測試模式只用標準倍率
-
 # 頁面流程配置
+# ====================================
 page_sequences:
   control: ['Introduction', 'ReadyWaitPage', 'ProductionDecision', 'ResultsWaitPage', 'Results']
   carbon_tax: ['Introduction', 'ReadyWaitPage', 'ProductionDecision', 'ResultsWaitPage', 'Results']
   muda: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ResultsWaitPage', 'Results']
   carbon_trading: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ProductionDecision', 'ResultsWaitPage', 'Results']
 
+# ====================================
 # 實驗設定
+# ====================================
 experiment_settings:
   # 最終報酬計算
   final_payoff:
@@ -161,7 +173,9 @@ experiment_settings:
     show_debug_info: false  # 是否顯示調試信息
     console_logging: true   # 是否輸出控制台日誌
 
+# ====================================
 # 國際化設定
+# ====================================
 ui_text:
   zh_tw:
     treatment_names:

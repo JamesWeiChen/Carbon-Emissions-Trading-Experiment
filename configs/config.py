@@ -25,28 +25,27 @@ class ExperimentConfig:
     
     def _get_default_config(self):
         return {
+            'experiment_mode': {
+                'test_mode_enabled': False
+            },
             'general': {
                 'players_per_group': 15,
                 'num_rounds': 15,
                 'max_production': 50,
                 'role_assignment': {
-                    'test_mode': False,
-                    'production_mode': True,
                     'dominant_firm_count': 3,
-                    'non_dominant_firm_count': 12
+                    'non_dominant_firm_count': 12,
+                    'ensure_player1_dominant': False
                 }
-            },
-            'test_mode': {
-                'enabled': False
             }
         }
     
     def get(self, key_path, default=None):
         """獲取配置值，優先從測試模式配置獲取（如果啟用）"""
         # 檢查是否啟用測試模式
-        if self.is_test_mode_enabled() and not key_path.startswith('test_mode'):
-            # 嘗試從測試模式配置獲取
-            test_mode_path = f'test_mode.{key_path}'
+        if self.is_test_mode_enabled() and not key_path.startswith('experiment_mode'):
+            # 嘗試從測試模式覆蓋配置獲取
+            test_mode_path = f'test_mode_overrides.{key_path}'
             test_value = self._get_value(test_mode_path)
             if test_value is not None:
                 return test_value
@@ -68,7 +67,8 @@ class ExperimentConfig:
     def is_test_mode_enabled(self):
         """檢查是否啟用測試模式"""
         if self._test_mode_enabled is None:
-            self._test_mode_enabled = self._get_value('test_mode.enabled', False)
+            # 使用新的統一開關路徑
+            self._test_mode_enabled = self._get_value('experiment_mode.test_mode_enabled', False)
         return self._test_mode_enabled
     
     def set_test_mode(self, enabled):
@@ -100,18 +100,12 @@ class ExperimentConfig:
     @property
     def dominant_firm_count(self):
         """獲取主導廠商數量"""
-        if self.is_test_mode_enabled():
-            # 測試模式根據比例計算
-            ratio = self.get('general.role_assignment.dominant_firm_ratio', 0.5)
-            return max(1, int(self.players_per_group * ratio))
-        else:
-            # 正式模式使用固定數量
-            return self.get('general.role_assignment.dominant_firm_count', 3)
+        return self.get('general.role_assignment.dominant_firm_count', 3)
     
     @property
     def non_dominant_firm_count(self):
         """獲取非主導廠商數量"""
-        return self.players_per_group - self.dominant_firm_count
+        return self.get('general.role_assignment.non_dominant_firm_count', 12)
     
     def get_stage_initial_capital(self, stage):
         from otree.api import cu
