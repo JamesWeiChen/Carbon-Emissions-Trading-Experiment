@@ -393,10 +393,3 @@ CMD ["otree", "prodserver", "0.0.0.0:8000"]
 ### 技術支援
 
 如有技術問題或研究合作需求，請透過 GitHub Issues 提出。
-
----
-
-**Developer / 開發者**: Levi  
-**Last Updated / 最後更新**: June 30, 2025 / 2025 年 6 月 30 日
-**Version / 版本**: 3.1  
-**License / 授權**: See [LICENSE](LICENSE) / 請見 [LICENSE](LICENSE)
