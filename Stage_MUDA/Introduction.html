@@ -1,0 +1,140 @@
+{% extends 'global/Page.html' %}
+{% load otree static %}
+
+{% block title %}實驗說明{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-info text-white text-center">
+            <h2><i class="fas fa-graduation-cap"></i> 實驗說明</h2>
+        </div>
+        <div class="card-body">
+            
+            <!-- 簡單的實驗說明 -->
+            <div class="alert alert-info text-center">
+                <h4>歡迎參加練習回合！</h4>
+                <p class="lead">在在練習回合中，您將練習碳排放權的交易。</p>
+                <p>每位參與者初始會持有一定數量的碳排放權，您可以在交易畫面中自由出價（買入）或叫價（賣出）來進行交易。每筆交易可以超過一單位，也可同時進行多筆交易，價格與數量皆由您自行決定。</p>
+                <p>本回合的目標是讓您熟悉雙邊多單位拍賣的交易流程。回合結束後，您所持有的碳排放權將被兌換為報酬。請自由嘗試各種操作方式，熟悉系統介面與交易節奏。</p>    
+                <p>請注意練習回合賺的報酬不列入最終報酬計算，請您自由嘗試各種操作方式，熟悉交易流程與介面。</p>
+            </div>
+
+            <!-- 練習目的說明 -->
+            <!-- <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fas fa-target"></i> 練習目的</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-mouse text-info"></i> 熟悉介面操作</h5>
+                            <ul class="list-unstyled">
+                                <li>• 學習如何提交買單和賣單</li>
+                                <li>• 了解如何接受他人的掛單</li>
+                                <li>• 練習取消自己的掛單</li>
+                                <li>• 熟悉交易介面的各種功能</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-handshake text-success"></i> 理解交易機制</h5>
+                            <ul class="list-unstyled">
+                                <li>• 體驗即時交易的運作方式</li>
+                                <li>• 理解買賣價格的匹配邏輯</li>
+                                <li>• 學習如何判斷交易時機</li>
+                                <li>• 準備正式實驗的交易策略</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success mt-3 mb-0">
+                        <h6><i class="fas fa-lightbulb"></i> 練習重點：</h6>
+                        <p class="mb-1"><strong>交易技巧：</strong>嘗試不同的價格策略，觀察其他人的反應</p>
+                        <p class="mb-0"><strong>介面熟悉：</strong>多使用各種功能按鈕，確保在正式實驗時操作順暢</p>
+                    </div>
+                </div>
+            </div> -->
+
+            <!-- 實驗流程 -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-step-forward"></i> 練習步驟</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="card h-100 border-info">
+                                <div class="card-body">
+                                    <h1 class="text-info">1</h1>
+                                    <h5>進入交易市場</h5>
+                                    <p class="small">熟悉交易介面，查看您的現金和{{ item_name }}數量</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-warning">
+                                <div class="card-body">
+                                    <h1 class="text-warning">2</h1>
+                                    <h5>嘗試交易操作</h5>
+                                    <p class="small">練習提交掛單、接受他人掛單、取消掛單等操作</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-success">
+                                <div class="card-body">
+                                    <h1 class="text-success">3</h1>
+                                    <h5>查看練習結果</h5>
+                                    <p class="small">了解如何計算{{ item_name }}的最終價值</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- <div class="alert alert-info mt-3 mb-0">
+                        <strong><i class="fas fa-clock"></i> 時間限制：</strong>
+                        練習交易時間為60秒，請充分利用時間熟悉各項操作！
+                    </div> -->
+                </div>
+            </div>
+
+            <!-- 計算說明 -->
+            <div class="alert alert-info">
+                <strong><i class="fas fa-calculator"></i> 計算說明：</strong>
+                結果頁面的淨利計算會進行四捨五入處理，以便清楚顯示您的收益。練習回合的結果僅供學習參考。
+            </div>
+
+            <!-- 基本資訊 -->
+            <!-- <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5><i class="fas fa-info"></i> 練習資訊</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h3 class="text-primary">{{ num_rounds }}</h3>
+                            <p>練習輪數</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-success">{{ initial_capital }}</h3>
+                            <p>起始資金</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-info">3-8</h3>
+                            <p>起始{{ item_name }}數量</p>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+
+        </div>
+    </div>
+
+    <!-- 開始按鈕 -->
+    <div class="text-center mt-4">
+        <p class="text-primary font-weight-bold">準備開始練習了嗎？放輕鬆，盡情嘗試各種操作！</p>
+        {{ next_button }}
+    </div>
+</div>
+
+{% endblock %}

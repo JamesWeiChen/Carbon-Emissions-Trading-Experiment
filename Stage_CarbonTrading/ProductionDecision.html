@@ -1,0 +1,372 @@
+{% extends "global/Page.html" %}
+{% load static %}
+
+{% block title %}生產決策{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2>生產決策</h2>
+        </div>
+        <div class="card-body">
+            <!-- 處理組別指示 -->
+            <div class="alert 
+                {% if treatment == 'trading' %}alert-info{% elif treatment == 'tax' %}alert-warning{% else %}alert-success{% endif %}">
+                <!-- <h4>
+                    您屬於 <strong>{{ treatment_text }} 組</strong>
+                </h4> -->
+                <p>您可以自由決定生產量，但生產會受到您擁有的碳權限制。</p>
+            </div>
+
+            <!-- 將模板變數轉為JavaScript變數 -->
+            <script>
+                // 確保變數在全域範圍內可用
+                var marginalCostCoefficient = {{ marginal_cost_coefficient }};
+                var carbonEmissionPerUnit = {{ carbon_emission_per_unit }};
+                var maxProduction = {{ max_production }};
+                var currentCash = {{ current_cash }};
+                var unitIncome = {{ unit_income }};
+                var currentPermits = {{ current_permits }};
+                var disturbanceValues = {{ disturbance_values|safe }};
+                {% if treatment == 'tax' %}
+                var taxRate = {{ tax_rate }};
+                {% else %}
+                var taxRate = 0;
+                {% endif %}
+                
+                // 將它們同時設置到 window 對象上
+                window.marginalCostCoefficient = marginalCostCoefficient;
+                window.carbonEmissionPerUnit = carbonEmissionPerUnit;
+                window.maxProduction = maxProduction;
+                window.currentCash = currentCash;
+                window.unitIncome = unitIncome;
+                window.currentPermits = currentPermits;
+                window.taxRate = taxRate;
+                window.disturbanceValues = disturbanceValues;
+            </script>
+
+            <!-- 玩家基本信息 -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-warning text-white">
+                            <h5>生產表</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm" id="emissions-table" 
+                                   data-marginal-cost="{{ marginal_cost_coefficient }}"
+                                   data-carbon-emission="{{ carbon_emission_per_unit }}"
+                                   data-max-production="{{ max_production }}"
+                                   data-current-permits="{{ current_permits }}">
+                                <thead>
+                                    <tr>
+                                        <th>生產數量 (q)</th><th>每單位生產成本</th><th>每單位碳排放</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 碳排放數據會在JS中填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5>收益與成本</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>單位市場價格：</strong> {{ unit_income }}</p>
+                            <p><strong>總成本：</strong> <span id="mc-display2">0.00</span></p>
+                            <p><strong>可用碳權：</strong> {{ current_permits }} 單位</p>
+                            <p><strong>淨利潤：</strong> <span id="net-profit">0</span></p>
+                            <p><strong>總碳排放：</strong> <span id="card-emissions">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 生產決策表單 -->
+            <form method="post" onsubmit="return validateAndSubmit()">
+                <div class="form-group">
+                    <label for="production" class="font-weight-bold">輸入您的生產量：
+                        <span id="production-value" class="badge badge-primary">
+                            {% if player.field_maybe_none('production') %}
+                                {{ player.production }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </span> 單位
+                    </label>
+                    
+                    <div class="input-group mb-3">
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="production-input"
+                            name="production"
+                            min="0"
+                            max="{{ max_production }}"
+                            step="1"
+                            value="{% if player.field_maybe_none('production') %}{{ player.production }}{% else %}0{% endif %}"
+                            oninput="updateProductionDisplay()"
+                        >
+                        <div class="input-group-append">
+                            <span class="input-group-text">單位</span>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small>可輸入範圍: 0 - {{ max_production }} 單位</small>
+                    </div>
+                </div>
+
+                <div class="form-group mt-4 text-center">
+                    <button class="btn btn-primary btn-lg" type="submit">
+                        確認生產量
+                    </button>
+                </div>
+            </form>
+
+            <!-- 調試按鈕 -->
+            <div class="text-center mt-4">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('debug-container').style.display='block';">
+                    顯示調試信息
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加調試信息區域 -->
+<div class="container mt-3" id="debug-container" style="display: none;">
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5>調試信息</h5>
+            <button onclick="document.getElementById('debug-container').style.display='none';" class="btn btn-sm btn-light">關閉</button>
+        </div>
+        <div class="card-body">
+            <div id="debug-info"></div>
+            <button onclick="testTableGeneration()" class="btn btn-info mt-2">測試表格生成</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// 更新生產量顯示
+function updateProductionDisplay() {
+    const qtyInput = document.getElementById('production-input');
+    let qty = parseInt(qtyInput.value) || 0;
+    
+    // 確保生產量在合法範圍內
+    const maxProd = {{ max_production }};
+    if (qty < 0) {
+        qty = 0;
+        qtyInput.value = 0;
+    } else if (qty > maxProd) {
+        qty = maxProd;
+        qtyInput.value = maxProd;
+    }
+    
+    // 更新顯示
+    document.getElementById('production-value').innerText = qty;
+    
+    // 更新利潤預估
+    updateProfitEstimate(qty);
+    
+    // 更新生產表
+    updateEmissionsTable();
+}
+
+// 更新利潤預估顯示
+function updateProfitEstimate(qty) {
+    // 計算各項費用
+    const totalRevenue = qty * unitIncome;
+    
+    // 總成本 = 累加每個單位的邊際成本和擾動
+    let totalCost = 0;
+    for (let i = 1; i <= qty; i++) {
+        const unitMarginalCost = marginalCostCoefficient * i;
+        const unitDisturbance = window.disturbanceValues && i <= window.disturbanceValues.length ? 
+                               window.disturbanceValues[i-1] : 0;
+        totalCost += unitMarginalCost + unitDisturbance;
+    }
+    
+    const totalEmissions = qty * carbonEmissionPerUnit;
+    const netProfit = totalRevenue - totalCost;
+    
+    // 更新顯示
+    document.getElementById('mc-display2').innerText = totalCost.toFixed(2);
+    document.getElementById('card-emissions').innerText = Math.round(totalEmissions);
+    
+    const profitElement = document.getElementById('net-profit');
+    profitElement.innerText = netProfit.toFixed(2);
+    
+    // 設定顏色
+    if (netProfit > 0) {
+        profitElement.className = 'text-success';
+    } else if (netProfit < 0) {
+        profitElement.className = 'text-danger';
+    } else {
+        profitElement.className = '';
+    }
+}
+
+// 表單提交前驗證
+function validateAndSubmit() {
+    const qtyInput = document.getElementById('production-input');
+    let qty = parseInt(qtyInput.value) || 0;
+    
+    // 確保生產量在合法範圍內
+    const maxProd = {{ max_production }};
+    if (qty < 0 || qty > maxProd) {
+        alert(`請輸入 0 - ${maxProd} 之間的生產量`);
+        return false;
+    }
+    
+    return true;
+}
+
+// 更新生產表
+function updateEmissionsTable() {
+    console.log('開始更新生產表');
+    
+    const emissionsTb = document.querySelector('#emissions-table tbody');
+    if (!emissionsTb) {
+        console.error('找不到emissions-table tbody元素');
+        return;
+    }
+    
+    // 清空表格
+    emissionsTb.innerHTML = '';
+    
+    // 直接使用變數，不再通過 window 對象
+    const marginalCostCoef = marginalCostCoefficient;
+    const carbonEmission = carbonEmissionPerUnit;
+    const maxProd = maxProduction;
+    
+    console.log('變數值:', {
+        marginalCostCoef,
+        carbonEmission,
+        maxProd
+    });
+    
+    // 強制轉換為數字類型，確保計算準確
+    for (let q = 1; q <= maxProd; q++) {
+        const row = document.createElement('tr');
+        
+        // 生產數量
+        const cell1 = document.createElement('td');
+        cell1.textContent = q;
+        row.appendChild(cell1);
+        
+        // 每單位生產成本（邊際成本加上固定隨機擾動）
+        const cell2 = document.createElement('td');
+        // 邊際成本 = marginal_cost_coefficient * q，再加上預先計算的固定擾動值
+        const disturbance = window.disturbanceValues ? window.disturbanceValues[q-1] : 0;
+        const marginalCost = parseFloat(marginalCostCoef) * q + disturbance;
+        cell2.textContent = marginalCost.toFixed(2);
+        row.appendChild(cell2);
+        
+        // 每單位碳排放
+        const cell3 = document.createElement('td');
+        const emissionsPerUnit = parseFloat(carbonEmission);
+        cell3.textContent = Math.round(emissionsPerUnit);
+        row.appendChild(cell3);
+        
+        emissionsTb.appendChild(row);
+    }
+    
+    console.log('表格更新完成，行數:', emissionsTb.children.length);
+}
+
+// 顯示調試信息
+function showDebug(message, data) {
+    const debugInfo = document.getElementById('debug-info');
+    const now = new Date().toLocaleTimeString();
+    const msgElement = document.createElement('div');
+    msgElement.innerHTML = `<strong>[${now}]</strong> ${message}`;
+    
+    if (data) {
+        const dataElement = document.createElement('pre');
+        dataElement.textContent = JSON.stringify(data, null, 2);
+        dataElement.style.background = '#f5f5f5';
+        dataElement.style.padding = '8px';
+        dataElement.style.marginTop = '4px';
+        msgElement.appendChild(dataElement);
+    }
+    
+    debugInfo.appendChild(msgElement);
+    document.getElementById('debug-container').style.display = 'block';
+}
+
+// 測試表格生成
+function testTableGeneration() {
+    const table = document.getElementById('emissions-table');
+    
+    try {
+        const marginalCostCoef = parseFloat(table.getAttribute('data-marginal-cost'));
+        const carbonEmission = parseFloat(table.getAttribute('data-carbon-emission'));
+        const maxProd = parseInt(table.getAttribute('data-max-production'));
+        
+        showDebug('從表格屬性讀取的值:', {
+            marginalCostCoef,
+            carbonEmission,
+            maxProd,
+            table_id: table.id,
+            has_tbody: !!table.querySelector('tbody')
+        });
+        
+        // 嘗試手動生成一行
+        const tbody = table.querySelector('tbody');
+        const row = document.createElement('tr');
+        
+        // 生產數量
+        const cell1 = document.createElement('td');
+        cell1.textContent = '測試數量';
+        row.appendChild(cell1);
+        
+        // 每單位生產成本
+        const cell2 = document.createElement('td');
+        cell2.textContent = '測試成本';
+        row.appendChild(cell2);
+        
+        // 碳排放
+        const cell3 = document.createElement('td');
+        cell3.textContent = '測試排放';
+        row.appendChild(cell3);
+        
+        tbody.appendChild(row);
+        
+        showDebug('測試行已添加到表格中');
+    } catch (error) {
+        showDebug('表格生成測試錯誤:', { error: error.message, stack: error.stack });
+    }
+}
+
+// 頁面加載後立即填充表格
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('頁面載入完成，開始初始化');
+    
+    // 確保變數都正確加載
+    console.log('變數值檢查:', {
+        marginalCostCoefficient,
+        carbonEmissionPerUnit,
+        maxProduction
+    });
+    
+    // 立即生成生產表
+    try {
+        updateEmissionsTable();
+        console.log('表格已初始化');
+    } catch (error) {
+        console.error('表格生成錯誤:', error);
+    }
+    
+    // 初始化其他顯示
+    updateProductionDisplay();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends 'global/Page.html' %}
+{% load otree static %}
+
+{% block title %}實驗結果{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>本輪結果</h2>
+        </div>
+        <div class="card-body">
+            <!-- 碳稅抽取結果 -->
+            <!-- <div class="alert alert-primary mb-4">
+                <strong><i class="fas fa-dice"></i> 第{{ current_round }}輪碳稅抽取結果：</strong>
+                碳稅率 = <strong>{{ tax_rate }}</strong> 法幣/單位碳排
+            </div> -->
+            
+            <!-- 簡化結果顯示 -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4>主要資訊</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header bg-warning text-dark text-center">
+                                    <h5>您的碳排放量</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <h2>{{ total_emissions|to0 }}</h2>
+                                    <small class="text-muted">單位</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header bg-danger text-white text-center">
+                                    <h5>全體玩家碳排放量</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <h2>{{ group_emissions|to0 }}</h2>
+                                    <small class="text-muted">單位</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header bg-success text-white text-center">
+                                    <h5>淨利計算</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-center"><strong>{{ market_price }} × {{ player.production }} - {{ production_cost_formatted }} - {{ carbon_tax_formatted }} = {{ net_profit_formatted }}</strong></p>
+                                    <p class="small text-muted text-center">市場價格 × 生產量 - 總成本 - 碳稅 = 淨利</p>
+                                    <p class="small text-muted text-center">碳稅 = {{ total_emissions|to0 }} × {{ tax_rate }} = {{ carbon_tax_formatted }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 進度指示 -->
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if is_last_round %}
+                        <div class="alert alert-success">
+                            <h4>恭喜！您已完成所有實驗輪次。</h4>
+                            <p>感謝您的參與！</p>
+                        </div>
+                        
+                        <!-- 最終報酬資訊 -->
+                        {% if final_payoff_info %}
+                        <div class="card mt-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h4>您的最終實驗報酬</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <h5>隨機選中第 <strong>{{ final_payoff_info.selected_round }}</strong> 輪的結果作為您的最終報酬</h5>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header bg-success text-white text-center">
+                                                <h5>經濟報酬</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-borderless">
+                                                    <tr>
+                                                        <td><strong>生產量：</strong></td>
+                                                        <td>{{ final_payoff_info.production }} 單位</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>市場價格：</strong></td>
+                                                        <td>{{ final_payoff_info.market_price }} 法幣</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>總收入：</strong></td>
+                                                        <td>{{ final_payoff_info.revenue_formatted }} 法幣</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>總成本：</strong></td>
+                                                        <td>{{ final_payoff_info.cost_formatted }} 法幣</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>碳稅：</strong></td>
+                                                        <td>{{ final_payoff_info.tax_formatted }} 法幣</td>
+                                                    </tr>
+                                                    <tr class="table-success">
+                                                        <td><strong>淨利潤：</strong></td>
+                                                        <td><strong>{{ final_payoff_info.profit_formatted }} 法幣</strong></td>
+                                                    </tr>
+                                                </table>
+                                                <small class="text-muted">
+                                                    碳稅 = {{ final_payoff_info.emissions_formatted }} × {{ final_payoff_info.tax_rate }} = {{ final_payoff_info.tax_formatted }} 法幣
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header bg-danger text-white text-center">
+                                                <h5>環境影響</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-6 text-center border-end">
+                                                        <h4 class="text-danger">{{ final_payoff_info.emissions_formatted }}</h4>
+                                                        <p class="text-muted small">您的碳排放量</p>
+                                                    </div>
+                                                    <div class="col-6 text-center">
+                                                        <h4 class="text-warning">{{ final_payoff_info.group_emissions_formatted }}</h4>
+                                                        <p class="text-muted small">全體玩家碳排放量</p>
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <small class="text-muted">
+                                                    這是第 {{ final_payoff_info.selected_round }} 回合（被抽取回合）的碳排放數據，
+                                                    代表您和全體玩家對環境的影響。
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-warning mt-3">
+                                    <h6><i class="fas fa-info-circle"></i> 報酬說明</h6>
+                                    <p class="mb-0">
+                                        您的最終經濟報酬為 <strong>{{ final_payoff_info.profit_formatted }} 法幣</strong>，
+                                        同時產生了 <strong>{{ final_payoff_info.emissions_formatted }} 單位</strong>的碳排放。
+                                                                                  在此回合中，您繳納了 <strong>{{ final_payoff_info.tax_formatted }} 法幣</strong>的碳稅。
+                                        這個結果將作為您本次實驗的最終成果。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <h5>實驗進度</h5>
+                            <p>還有 <strong>{{ remaining_rounds }}</strong> 輪實驗。</p>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ progress_percentage }}%;" 
+                                     aria-valuenow="{{ player.round_number }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="{{ total_rounds }}">
+                                    第 {{ player.round_number }} / {{ total_rounds }} 輪
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        {{ next_button }}
+    </div>
+</div>
+{% endblock %}

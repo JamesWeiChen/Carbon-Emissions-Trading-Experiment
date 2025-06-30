@@ -1,0 +1,1563 @@
+{% extends "global/Page.html" %}
+{% load static %}
+
+{% block title %}即時碳權交易市場{% endblock %}
+
+{% block content %}
+<style>
+    .otree-body {
+        max-width: 95vw !important;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    </style>
+
+<div class="container-fluid">
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="fas fa-exchange-alt"></i> 即時碳權交易市場</h2>
+        </div>
+        <!-- <div class="card-body">
+            <p id="timer" class="alert alert-warning"><b>剩餘時間：</b>
+               <span id="countdown" class="font-weight-bold">{{ timeout_seconds }}</span> 秒</p>
+            
+            <div class="alert alert-info">
+                <h5>您屬於 <strong>{{ treatment_text }} 組</strong></h5>
+                <p>您需要先交易碳權，然後再決定生產量。您的生產量將受到持有碳權數量的限制。</p>
+            </div> -->
+            
+            <!-- 調試信息區域 -->
+            <!-- <div id="debug-info" class="mb-3 small text-muted" style="display: none;"></div>
+        </div> -->
+    </div>
+    
+    <div class="row trading-main-area">
+        <!-- 左欄：個人資訊和交易紀錄 -->
+        <div class="col-md-3">
+            <!-- 您的資訊 -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>您的資訊</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        <li class="list-group-item">現金：<b id="cash" class="info-highlight text-success">{{ cash }}</b></li>
+                        <li class="list-group-item">碳權持有：<b id="permits" class="info-highlight text-primary">{{ permits }}</b></li>
+                        <li class="list-group-item">每單位碳排放：<b class="text-warning">{{ carbon_emission_per_unit|to0 }}</b></li>
+                        <li class="list-group-item">市場價格：<b class="text-info">{{ market_price }}</b></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 我的掛單 -->
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h4>我的掛單</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="myOrdersTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="my-buy-tab" data-toggle="tab" href="#my-buy-orders" role="tab">
+                                我的買單
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="my-sell-tab" data-toggle="tab" href="#my-sell-orders" role="tab">
+                                我的賣單
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="tab-content mt-2" id="myOrdersContent">
+                        <!-- 我的買單 -->
+                        <div class="tab-pane fade show active" id="my-buy-orders" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>單價</th><th>數量</th><th>總價格</th><th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="my-buy-orders-body">
+                                        <!-- 我的買單數據會在JS中填充 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- 我的賣單 -->
+                        <div class="tab-pane fade" id="my-sell-orders" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>單價</th><th>數量</th><th>總價格</th><th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="my-sell-orders-body">
+                                        <!-- 我的賣單數據會在JS中填充 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 最近交易記錄 -->
+            <div class="card mt-3">
+                <div class="card-header bg-secondary text-white">
+                    <h4>最近交易記錄</h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-sm mb-0">
+                            <thead class="bg-light sticky-top">
+                                <tr>
+                                    <th>時間</th><th>價格</th><th>數量</th><th>類型</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trade-history-body">
+                                <!-- 交易記錄會在JS中填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 中欄：提交掛單和買賣單列表 -->
+        <div class="col-md-6">
+            <!-- 提交掛單 -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-plus-circle"></i> 提交掛單</h4>
+                </div>
+                <div class="card-body submit-order-section">
+                    <!-- 使用標準按鈕而非按鈕組 -->
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">買入／賣出：</label>
+                        <div class="col-sm-9">
+                            <div class="btn-group-trading">
+                                <button type="button" id="buy-btn" class="btn btn-primary" onclick="selectDirection('buy'); return false;">
+                                    <i class="fas fa-cart-plus"></i> 買入
+                                </button>
+                                <button type="button" id="sell-btn" class="btn btn-outline-primary" onclick="selectDirection('sell'); return false;">
+                                    <i class="fas fa-hand-holding-usd"></i> 賣出
+                                </button>
+                                <input type="hidden" id="selected-direction" value="buy">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="price">價格：<span id="price-display">50</span> 法幣</label>
+                        <div class="input-group mb-3">
+                            <input type="number" id="price" class="form-control" min="1" step="1" value="50" 
+                                   oninput="validateAndUpdatePrice(this)" 
+                                   onkeypress="return isNumberKey(event)"
+                                   onpaste="return validatePaste(event, this)">
+                            <div class="input-group-append">
+                                <span class="input-group-text">法幣/單位</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quantity">數量：<span id="quantity-display">1</span> 單位</label>
+                        <div class="input-group mb-3">
+                            <input type="number" id="quantity" class="form-control" min="1" step="1" value="1" 
+                                   oninput="validateAndUpdateQuantity(this)" 
+                                   onkeypress="return isNumberKey(event)"
+                                   onpaste="return validatePaste(event, this)">
+                            <div class="input-group-append">
+                                <span class="input-group-text">單位</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 新增：總價格計算器 -->
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">總價格：</label>
+                        <div class="col-sm-9">
+                            <div class="alert alert-info mb-0">
+                                <span id="price-value-display">50</span> × <span id="quantity-value-display">1</span> = <strong id="total-price-display" class="text-success font-weight-bold">50</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-12 text-center">
+                            <button type="button" id="submit-btn" class="btn btn-primary btn-lg px-5" onclick="submitOffer(); return false;">
+                                <i class="fas fa-paper-plane"></i> 提交掛單
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 狀態通知區域 -->
+            <div id="status-container" class="mb-3 mt-3"></div>
+            
+            <!-- 買賣單列表 -->
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h4><i class="fas fa-shopping-cart"></i> 買單列表</h4>
+                            <small class="text-white-50">想要購買碳權的訂單</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover" id="buy-offers">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>單價</th><th>數量</th><th>總價格</th><th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- 買單數據會在JS中填充 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-danger text-white">
+                            <h4><i class="fas fa-tags"></i> 賣單列表</h4>
+                            <small class="text-white-50">想要出售碳權的訂單</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover" id="sell-offers">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>單價</th><th>數量</th><th>總價格</th><th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- 賣單數據會在JS中填充 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右欄：生產表 -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fas fa-industry"></i> 生產表</h4>
+                    <small>生產成本與碳排放參考</small>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm" id="emissions-table">
+                        <thead>
+                            <tr>
+                                <th>生產數量 (q)</th><th>每單位生產成本</th><th>每單位碳排放</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 碳排放數據會在JS中填充 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 開發調試按鈕 -->
+    <!-- <div class="row mt-3" id="debug-controls" style="display: none;">
+        <div class="col-md-12">
+            <button id="debug-toggle" class="btn btn-sm btn-secondary" onclick="toggleDebug(); return false;">顯示調試信息</button>
+            <button class="btn btn-sm btn-info ml-2" onclick="forceRefresh(); return false;">強制刷新</button>
+            <button class="btn btn-sm btn-warning ml-2" onclick="testDataProcessing(); return false;">測試數據處理</button>
+            <button class="btn btn-sm btn-danger ml-2" onclick="location.reload(); return false;">刷新頁面</button>
+        </div>
+    </div> -->
+    
+    <!-- 調試信息區域 -->
+    <!-- <div id="debug-info" class="mb-3 small text-muted" style="display: none;"></div>
+</div> -->
+
+<script>
+// 確保 Bootstrap 標籤頁正確運作
+document.addEventListener('DOMContentLoaded', function() {
+    // 手動綁定標籤頁點擊事件
+    document.querySelectorAll('#myOrdersTabs .nav-link').forEach(function(tab) {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // 移除所有標籤頁和內容區域的 active 狀態
+            document.querySelectorAll('#myOrdersTabs .nav-link').forEach(function(t) {
+                t.classList.remove('active');
+            });
+            document.querySelectorAll('#myOrdersContent .tab-pane').forEach(function(p) {
+                p.classList.remove('show', 'active');
+            });
+            
+            // 設置當前標籤頁和對應內容區域為 active
+            this.classList.add('active');
+            const target = this.getAttribute('href');
+            document.querySelector(target).classList.add('show', 'active');
+        });
+    });
+});
+
+// 除錯模式
+const DEBUG = true;
+
+// 預防頁面跳轉標誌
+let isProcessingAction = false;
+
+// 從模板傳入的參數
+const playerId = {{ player_id }};
+let countdown = {{ timeout_seconds }};
+let startTime = Math.floor(new Date().getTime() / 1000);  // 直接使用當前時間
+
+// 取得常用元素
+const cdDisplay = document.getElementById('countdown');
+const timerEl = document.getElementById('timer');
+const statusContainer = document.getElementById('status-container');
+const submitBtn = document.getElementById('submit-btn');
+
+/** 日誌函式 **/
+function log(message) {
+    if (DEBUG) {
+        console.log(`[${new Date().toLocaleTimeString()}] ${message}`);
+        // 添加到調試區域
+        const debugInfo = document.getElementById('debug-info');
+        if (debugInfo) {
+            const entry = document.createElement('div');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            debugInfo.appendChild(entry);
+            
+            // 限制顯示的日誌數量
+            while (debugInfo.children.length > 20) {
+                debugInfo.removeChild(debugInfo.firstChild);
+            }
+            
+            // 自動滾動到底部
+            debugInfo.scrollTop = debugInfo.scrollHeight;
+        }
+    }
+}
+
+/** 切換 Debug 面板 **/
+function toggleDebug() {
+    const debugInfo = document.getElementById('debug-info');
+    const btn = document.getElementById('debug-toggle');
+    if (debugInfo.style.display === 'none') {
+        debugInfo.style.display = 'block';
+        btn.textContent = '隱藏調試信息';
+    } else {
+        debugInfo.style.display = 'none';
+        btn.textContent = '顯示調試信息';
+    }
+    return false;
+}
+
+/** 強制刷新 **/
+function forceRefresh() {
+    if (isProcessingAction) return false;
+    isProcessingAction = true;
+    liveSend({ type: 'ping' });
+    showStatus('強制刷新中...', 'info', 2000);
+    log('發送強制刷新請求');
+    setTimeout(() => { isProcessingAction = false; }, 3000);
+    return false;
+}
+
+/** 切換買賣方向 **/
+function selectDirection(dir) {
+    document.getElementById('selected-direction').value = dir;
+    const buyBtn  = document.getElementById('buy-btn');
+    const sellBtn = document.getElementById('sell-btn');
+    
+    log(`切換交易方向: ${dir}`);
+    
+    if (dir === 'buy') {
+        buyBtn.className  = 'btn btn-primary mr-2';
+        sellBtn.className = 'btn btn-outline-primary';
+    } else {
+        buyBtn.className  = 'btn btn-outline-primary mr-2';
+        sellBtn.className = 'btn btn-primary';
+    }
+    updateTotalPrice();
+    return false;
+}
+
+/** 更新賣出按鈕狀態 **/
+function updateSellButtonState() {
+    const permits  = parseInt(document.getElementById('permits').innerText);
+    const sellBtn = document.getElementById('sell-btn');
+    if (permits <= 0) {
+        sellBtn.disabled = true;
+        sellBtn.className = 'btn btn-outline-secondary';
+        if (document.getElementById('selected-direction').value === 'sell') {
+            selectDirection('buy');
+        }
+    } else {
+        sellBtn.disabled = false;
+        sellBtn.className = document.getElementById('selected-direction').value === 'sell'
+            ? 'btn btn-primary' : 'btn btn-outline-primary';
+    }
+}
+
+/** 顯示狀態通知 **/
+function showStatus(message, type = 'info', duration = 0) {
+    statusContainer.innerHTML = '';
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="return false;">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    `;
+    statusContainer.appendChild(alert);
+    if (duration > 0) {
+        setTimeout(() => {
+            try {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 150);
+            } catch {}
+        }, duration);
+    }
+    log(`狀態通知: [${type}] ${message}`);
+}
+
+/** 輸入驗證函數 **/
+function isNumberKey(evt) {
+    var charCode = (evt.which) ? evt.which : evt.keyCode;
+    // 只允許數字鍵 (48-57)、退格鍵 (8)、刪除鍵 (46)、方向鍵 (37-40)、Tab鍵 (9)
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        return false;
+    }
+    return true;
+}
+
+function validatePaste(event, input) {
+    // 阻止預設貼上行為
+    event.preventDefault();
+    
+    // 取得剪貼簿內容
+    const pasteData = (event.clipboardData || window.clipboardData).getData('text');
+    
+    // 檢查是否為正整數
+    if (/^\d+$/.test(pasteData) && parseInt(pasteData) > 0) {
+        input.value = parseInt(pasteData);
+        // 觸發相應的更新函數
+        if (input.id === 'price') {
+            validateAndUpdatePrice(input);
+        } else if (input.id === 'quantity') {
+            validateAndUpdateQuantity(input);
+        }
+    }
+    return false;
+}
+
+function validateAndUpdatePrice(input) {
+    let value = input.value;
+    
+    // 移除所有非數字字符
+    value = value.replace(/[^\d]/g, '');
+    
+    // 如果只剩下0，清空讓用戶重新輸入
+    if (value === '0') {
+        value = '';
+    }
+    
+    // 如果不為空，確保是正整數
+    if (value !== '') {
+        const intValue = parseInt(value);
+        if (intValue < 1) {
+            value = '';
+        } else {
+            value = intValue.toString();
+        }
+    }
+    
+    input.value = value;
+    updatePriceDisplay();
+}
+
+function validateAndUpdateQuantity(input) {
+    let value = input.value;
+    
+    // 移除所有非數字字符
+    value = value.replace(/[^\d]/g, '');
+    
+    // 如果只剩下0，清空讓用戶重新輸入
+    if (value === '0') {
+        value = '';
+    }
+    
+    // 如果不為空，確保是正整數
+    if (value !== '') {
+        const intValue = parseInt(value);
+        if (intValue < 1) {
+            value = '';
+        } else {
+            value = intValue.toString();
+        }
+    }
+    
+    input.value = value;
+    updateQuantityDisplay();
+}
+
+/** 滑桿顯示與總價更新 **/
+function updatePriceDisplay() {
+    const priceInput = document.getElementById('price');
+    const price = priceInput.value === '' ? '' : parseInt(priceInput.value) || '';
+    
+    document.getElementById('price-display').innerText = price === '' ? '？' : price;
+    document.getElementById('price-value-display').innerText = price === '' ? '？' : price;
+    updateTotalPrice();
+}
+
+function updateQuantityDisplay() {
+    const quantityInput = document.getElementById('quantity');
+    const quantity = quantityInput.value === '' ? '' : parseInt(quantityInput.value) || '';
+    
+    document.getElementById('quantity-display').innerText = quantity === '' ? '？' : quantity;
+    document.getElementById('quantity-value-display').innerText = quantity === '' ? '？' : quantity;
+    updateTotalPrice();
+}
+
+function updateTotalPrice() {
+    const priceInput = document.getElementById('price');
+    const quantityInput = document.getElementById('quantity');
+    const price = priceInput.value === '' ? 0 : parseInt(priceInput.value) || 0;
+    const quantity = quantityInput.value === '' ? 0 : parseInt(quantityInput.value) || 0;
+    const total = price * quantity;
+    const el = document.getElementById('total-price-display');
+    
+    if (priceInput.value === '' || quantityInput.value === '') {
+        el.innerText = '？';
+        el.className = 'text-muted font-weight-bold';
+    } else {
+        el.innerText = total;
+        if (document.getElementById('selected-direction').value === 'buy') {
+            const cash = parseInt(document.getElementById('cash').innerText);
+            el.className = total > cash
+                ? 'text-danger font-weight-bold'
+                : 'text-success font-weight-bold';
+        } else {
+            el.className = 'text-success font-weight-bold';
+        }
+    }
+}
+
+/** 計算自己未成交掛單保留量 **/
+function reservedFromOffers(buyOffers, sellOffers) {
+    let cash = 0, permits = 0;
+    
+    // 計算買單佔用的現金
+    (buyOffers || []).forEach(o => {
+        cash += o.price * o.quantity;
+    });
+    
+    // 計算賣單佔用的碳權
+    (sellOffers || []).forEach(o => {
+        permits += o.quantity;
+    });
+    
+    return { cash, permits };
+}
+
+/** 更新市場數據 **/
+function updateMarket(data) {
+    try {
+        log(`更新市場數據: ${JSON.stringify(data)}`);
+        document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+        isProcessingAction = false;
+
+        if (typeof data.cash === 'undefined' || typeof data.permits === 'undefined') {
+            showStatus('資料格式錯誤，重新請求...', 'warning', 2000);
+            return setTimeout(() => liveSend({ type: 'ping' }), 1000);
+        }
+
+        // 計算已保留資源
+        const { cash: reservedCash, permits: reservedPermits } = reservedFromOffers(
+            data.my_buy_offers, 
+            data.my_sell_offers
+        );
+        
+        // 更新顯示可用資源 (總資源減去已保留的)
+        document.getElementById('cash').innerText = data.cash;
+        document.getElementById('permits').innerText = data.permits;
+        
+        // 賣單保留量顯示已移除 - 因為賣單邏輯改為無限制掛單
+
+        updateSellButtonState();
+
+        if (data.notification) {
+            showStatus(data.notification.message, data.notification.type, 5000);
+        }
+
+        // 更新我的買單列表
+        const myBuyTb = document.querySelector('#my-buy-orders-body');
+        myBuyTb.innerHTML = '';
+        if (data.my_buy_offers && data.my_buy_offers.length) {
+            data.my_buy_offers.forEach(o => {
+                const row = document.createElement('tr');
+                // 單價
+                const c1 = document.createElement('td');
+                c1.textContent = o.price;
+                c1.className = 'text-success font-weight-bold';
+                row.appendChild(c1);
+                // 數量
+                const c3 = document.createElement('td');
+                c3.textContent = o.quantity;
+                row.appendChild(c3);
+                // 總價
+                const tp = o.price * o.quantity;
+                const c2 = document.createElement('td');
+                c2.textContent = tp;
+                c2.className = 'text-primary';
+                row.appendChild(c2);
+                // 取消按鈕
+                const c4 = document.createElement('td');
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-danger btn-sm';
+                btn.textContent = '取消';
+                btn.onclick = e => { e.preventDefault(); cancelOffer('buy', o.price, o.quantity); };
+                c4.appendChild(btn);
+                row.appendChild(c4);
+                myBuyTb.appendChild(row);
+            });
+        } else {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = '目前沒有買單';
+            cell.className = 'text-center text-muted';
+            row.appendChild(cell);
+            myBuyTb.appendChild(row);
+        }
+
+        // 更新我的賣單列表
+        const mySellTb = document.querySelector('#my-sell-orders-body');
+        mySellTb.innerHTML = '';
+        if (data.my_sell_offers && data.my_sell_offers.length) {
+            data.my_sell_offers.forEach(o => {
+                const row = document.createElement('tr');
+                // 單價
+                const c1 = document.createElement('td');
+                c1.textContent = o.price;
+                c1.className = 'text-danger font-weight-bold';
+                row.appendChild(c1);
+                // 數量
+                const c3 = document.createElement('td');
+                c3.textContent = o.quantity;
+                row.appendChild(c3);
+                // 總價
+                const tp = o.price * o.quantity;
+                const c2 = document.createElement('td');
+                c2.textContent = tp;
+                c2.className = 'text-primary';
+                row.appendChild(c2);
+                // 取消按鈕
+                const c4 = document.createElement('td');
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-danger btn-sm';
+                btn.textContent = '取消';
+                btn.onclick = e => { e.preventDefault(); cancelOffer('sell', o.price, o.quantity); };
+                c4.appendChild(btn);
+                row.appendChild(c4);
+                mySellTb.appendChild(row);
+            });
+        } else {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = '目前沒有賣單';
+            cell.className = 'text-center text-muted';
+            row.appendChild(cell);
+            mySellTb.appendChild(row);
+        }
+
+        // 更新買單列表 (公共)
+        const buyTb = document.querySelector('#buy-offers tbody');
+        buyTb.innerHTML = '';
+        if (data.buy_offers && data.buy_offers.length) {
+            data.buy_offers.forEach(o => {
+                const row = document.createElement('tr');
+                // 單價
+                const c1 = document.createElement('td');
+                c1.textContent = o.price;
+                c1.className = 'text-success font-weight-bold';
+                row.appendChild(c1);
+                // 數量
+                const c3 = document.createElement('td');
+                c3.textContent = o.quantity;
+                row.appendChild(c3);
+                // 總價
+                const tp = o.price * o.quantity;
+                const c2 = document.createElement('td');
+                c2.textContent = tp;
+                c2.className = 'text-primary';
+                row.appendChild(c2);
+                // 操作
+                const c4 = document.createElement('td');
+                
+                // 只有當不是自己的掛單時，才顯示"接受"按鈕
+                if (o.player_id != playerId) {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-success btn-sm';
+                    btn.textContent = '賣出';
+                    btn.onclick = e => { e.preventDefault(); acceptOffer('buy', o.player_id, o.price, o.quantity); };
+                    c4.appendChild(btn);
+                } else {
+                    // 如果是自己的掛單，顯示"我的掛單"提示
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-secondary';
+                    badge.textContent = '我的掛單';
+                    c4.appendChild(badge);
+                }
+                
+                row.appendChild(c4);
+                buyTb.appendChild(row);
+            });
+        }
+        // 如果沒有買單顯示提示
+        if (!buyTb.hasChildNodes()) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = '目前沒有買單';
+            cell.className = 'text-center text-muted';
+            row.appendChild(cell);
+            buyTb.appendChild(row);
+        }
+
+        // 更新賣單列表 (公共)
+        const sellTb = document.querySelector('#sell-offers tbody');
+        sellTb.innerHTML = '';
+        if (data.sell_offers && data.sell_offers.length) {
+            data.sell_offers.forEach(o => {
+                const row = document.createElement('tr');
+                // 單價
+                const c1 = document.createElement('td');
+                c1.textContent = o.price;
+                c1.className = 'text-danger font-weight-bold';
+                row.appendChild(c1);
+                // 數量
+                const c3 = document.createElement('td');
+                c3.textContent = o.quantity;
+                row.appendChild(c3);
+                // 總價
+                const tp = o.price * o.quantity;
+                const c2 = document.createElement('td');
+                c2.textContent = tp;
+                c2.className = 'text-primary';
+                row.appendChild(c2);
+                // 操作
+                const c4 = document.createElement('td');
+                
+                // 只有當不是自己的掛單時，才顯示"接受"按鈕
+                if (o.player_id != playerId) {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-success btn-sm';
+                    btn.textContent = '買入';
+                    btn.onclick = e => { e.preventDefault(); acceptOffer('sell', o.player_id, o.price, o.quantity); };
+                    c4.appendChild(btn);
+                } else {
+                    // 如果是自己的掛單，顯示"我的掛單"提示
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-secondary';
+                    badge.textContent = '我的掛單';
+                    c4.appendChild(badge);
+                }
+                
+                row.appendChild(c4);
+                sellTb.appendChild(row);
+            });
+        }
+        // 如果沒有賣單顯示提示
+        if (!sellTb.hasChildNodes()) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = '目前沒有賣單';
+            cell.className = 'text-center text-muted';
+            row.appendChild(cell);
+            sellTb.appendChild(row);
+        }
+        
+        // 更新交易歷史
+        const historyTb = document.querySelector('#trade-history-body');
+        historyTb.innerHTML = '';
+        if (data.trade_history && data.trade_history.length) {
+            // 對交易歷史排序，最新的在最上面
+            const sortedHistory = [...data.trade_history].sort((a, b) => {
+                // 兼容不同格式的時間戳
+                const timeA = a.timestamp || a.time || 0;
+                const timeB = b.timestamp || b.time || 0;
+                return typeof timeB === 'string' ? timeB.localeCompare(timeA) : timeB - timeA;
+            });
+            
+            sortedHistory.forEach(trade => {
+                const row = document.createElement('tr');
+                
+                // 時間
+                const timeCell = document.createElement('td');
+                // 優先使用已格式化的時間，否則轉換時間戳
+                timeCell.textContent = trade.time || 
+                                      (typeof trade.timestamp === 'string' ? trade.timestamp : 
+                                       new Date(trade.timestamp * 1000).toLocaleTimeString());
+                row.appendChild(timeCell);
+                
+                // 價格
+                const priceCell = document.createElement('td');
+                priceCell.textContent = trade.price;
+                row.appendChild(priceCell);
+                
+                // 數量
+                const quantityCell = document.createElement('td');
+                quantityCell.textContent = trade.quantity;
+                row.appendChild(quantityCell);
+                
+                // 類型
+                const typeCell = document.createElement('td');
+                
+                // 簡化顯示：根據當前玩家角色顯示買入或賣出
+                if (trade.buyer_id == playerId) {
+                    typeCell.textContent = '買入';
+                    typeCell.className = 'text-success font-weight-bold';
+                    row.className = 'table-success';
+                } else if (trade.seller_id == playerId) {
+                    typeCell.textContent = '賣出';
+                    typeCell.className = 'text-danger font-weight-bold';
+                    row.className = 'table-danger';
+                } else {
+                    // 其他玩家交易顯示為其他交易，使用中性樣式
+                    typeCell.textContent = '其他交易';
+                    typeCell.className = 'text-muted';
+                    row.className = 'table-light';
+                }
+                row.appendChild(typeCell);
+                
+                historyTb.appendChild(row);
+            });
+        } else {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = '尚無交易記錄';
+            cell.className = 'text-center text-muted';
+            row.appendChild(cell);
+            historyTb.appendChild(row);
+        }
+        
+        // 更新生產表
+        const profitTb = document.querySelector('#emissions-table tbody');
+        profitTb.innerHTML = '';
+        if (data.profit_table && data.profit_table.length > 0) {
+            data.profit_table.forEach(item => {
+                let row = document.createElement('tr');
+                
+                // 生產數量
+                let cell1 = document.createElement('td');
+                cell1.textContent = item.quantity;
+                row.appendChild(cell1);
+                
+                // 邊際成本
+                let cell2 = document.createElement('td');
+                cell2.textContent = item.marginal_cost;
+                row.appendChild(cell2);
+                
+                // 碳排放
+                let cell3 = document.createElement('td');
+                const emissions = data.carbon_emission_per_unit || 1;
+                cell3.textContent = emissions;
+                row.appendChild(cell3);
+                
+                profitTb.appendChild(row);
+            });
+        }
+
+    } catch (error) {
+        log(`更新市場錯誤: ${error.message}`);
+        showStatus(`更新失敗: ${error.message}`, 'danger', 5000);
+        isProcessingAction = false;
+    }
+}
+
+/** 提交掛單 **/
+function submitOffer() {
+    if (isProcessingAction) return false;
+    
+    // 先檢查輸入值是否有效
+    const priceInput = document.getElementById('price');
+    const quantityInput = document.getElementById('quantity');
+    
+    if (priceInput.value === '' || parseInt(priceInput.value) < 1) {
+        showStatus('請輸入有效的價格（正整數）', 'warning', 3000);
+        priceInput.focus();
+        return false;
+    }
+    
+    if (quantityInput.value === '' || parseInt(quantityInput.value) < 1) {
+        showStatus('請輸入有效的數量（正整數）', 'warning', 3000);
+        quantityInput.focus();
+        return false;
+    }
+    
+    const dir = document.getElementById('selected-direction').value;
+    const price = parseInt(priceInput.value);
+    const quantity = parseInt(quantityInput.value);
+
+    // 詳細日誌輸出
+    log(`嘗試提交掛單: ${dir}, 價格 ${price}, 數量 ${quantity}`);
+    log(`當前資源: 現金=${document.getElementById('cash').innerText}, 物品=${document.getElementById('permits').innerText}`);
+
+    // 資源檢查 - 移除現金檢查，允許負債購買
+    if (dir === 'sell' && parseInt(document.getElementById('permits').innerText) < quantity) {
+        const currentPermits = parseInt(document.getElementById('permits').innerText);
+        showStatus(`碳權不足！您想要賣出 ${quantity} 個碳權，但目前只持有 ${currentPermits} 個碳權。請調整賣出數量。`, 'warning', 5000);
+        
+        // 自動調整數量輸入框為最大可用量
+        if (currentPermits > 0) {
+            document.getElementById('quantity').value = currentPermits;
+            updateQuantityDisplay();
+            showStatus(`已自動調整賣出數量為您的持有量：${currentPermits} 個碳權`, 'info', 3000);
+        }
+        return false;
+    }
+
+    log(`資源檢查通過，提交掛單: ${dir}, 價格 ${price}, 數量 ${quantity}`);
+    showStatus('處理掛單中...', 'info');
+    isProcessingAction = true;
+    submitBtn.disabled = true;
+
+    // 發送請求並設置超時
+    const requestData = { type:'submit_offer', direction: dir, price, quantity };
+    log(`發送請求: ${JSON.stringify(requestData)}`);
+    liveSend(requestData);
+    
+    // 設置超時處理
+    setTimeout(() => {
+        if (isProcessingAction) {
+            submitBtn.disabled = false;
+            isProcessingAction = false;
+            showStatus('伺服器無回應，請重試', 'warning', 3000);
+            log('提交掛單超時，重設狀態');
+        }
+    }, 5000);
+    return false;
+}
+
+/** 接受掛單 **/
+function acceptOffer(type, pid, price, qty) {
+    if (isProcessingAction) return false;
+    
+    // 確保不能與自己交易
+    if (pid == playerId) {
+        showStatus('不能與自己交易！', 'danger', 3000);
+        return false;
+    }
+    
+    log(`嘗試接受掛單: ${type}, 玩家 ${pid}, 價格 ${price}, 數量 ${qty}`);
+    log(`當前資源: 現金=${document.getElementById('cash').innerText}, 物品=${document.getElementById('permits').innerText}`);
+    
+    if (type === 'buy'  && parseInt(document.getElementById('permits').innerText) < qty) {
+        const currentPermits = parseInt(document.getElementById('permits').innerText);
+        showStatus(`碳權不足！您想要賣出 ${qty} 個碳權，但目前只持有 ${currentPermits} 個碳權。無法接受此買單。`, 'warning', 5000);
+        return false;
+    }
+    
+    log(`資源檢查通過，接受掛單: ${type}, 玩家 ${pid}, 價格 ${price}, 數量 ${qty}`);
+    showStatus('處理交易中...', 'info');
+    isProcessingAction = true;
+    document.querySelectorAll('.btn').forEach(b => b.disabled = true);
+    
+    const requestData = { type:'accept_offer', offer_type: type, player_id: pid, price, quantity: qty };
+    log(`發送請求: ${JSON.stringify(requestData)}`);
+    liveSend(requestData);
+    
+    setTimeout(() => {
+        if (isProcessingAction) {
+            document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+            isProcessingAction = false;
+            showStatus('伺服器無回應，請重試', 'warning', 3000);
+            log('接受掛單超時，重設狀態');
+        }
+    }, 5000);
+    return false;
+}
+
+/** 取消掛單 **/
+function cancelOffer(dir, price, qty) {
+    if (isProcessingAction) return false;
+    
+    log(`嘗試取消掛單: ${dir}, 價格 ${price}, 數量 ${qty}`);
+    
+    showStatus('取消掛單中...', 'info');
+    isProcessingAction = true;
+    document.querySelectorAll('.btn').forEach(b => b.disabled = true);
+    
+    const requestData = { type:'cancel_offer', direction: dir, price, quantity: qty };
+    log(`發送請求: ${JSON.stringify(requestData)}`);
+    liveSend(requestData);
+    
+    setTimeout(() => {
+        if (isProcessingAction) {
+            document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+            isProcessingAction = false;
+            showStatus('伺服器無回應，請重試', 'warning', 3000);
+            log('取消掛單超時，重設狀態');
+        }
+    }, 5000);
+    return false;
+}
+
+/** 倒計時更新 **/
+setInterval(() => {
+    if (countdown > 0) {
+        countdown -= 1;
+        cdDisplay.innerText = countdown;
+        if (countdown <= 30) {
+            timerEl.style.color = (countdown % 2 ? 'red' : 'black');
+        }
+    }
+}, 1000);
+
+/** 修改更新交易歷史的函數 **/
+function updateTradeHistory(tradeHistory) {
+    const tbody = document.getElementById('trade-history-body');
+    tbody.innerHTML = '';
+    
+    if (tradeHistory && tradeHistory.length > 0) {
+        // 對交易歷史排序，最新的在最上面
+        const sortedHistory = [...tradeHistory].sort((a, b) => {
+            // 兼容不同格式的時間戳
+            const timeA = a.timestamp || a.time || 0;
+            const timeB = b.timestamp || b.time || 0;
+            return typeof timeB === 'string' ? timeB.localeCompare(timeA) : timeB - timeA;
+        });
+        
+        sortedHistory.forEach(trade => {
+            const row = document.createElement('tr');
+            
+            // 時間
+            const timeCell = document.createElement('td');
+            // 優先使用已格式化的時間，否則轉換時間戳
+            timeCell.textContent = trade.time || 
+                                  (typeof trade.timestamp === 'string' ? trade.timestamp : 
+                                   new Date(trade.timestamp * 1000).toLocaleTimeString());
+            row.appendChild(timeCell);
+            
+            // 價格
+            const priceCell = document.createElement('td');
+            priceCell.textContent = trade.price;
+            row.appendChild(priceCell);
+            
+            // 數量
+            const quantityCell = document.createElement('td');
+            quantityCell.textContent = trade.quantity;
+            row.appendChild(quantityCell);
+            
+            // 類型
+            const typeCell = document.createElement('td');
+            
+            // 簡化顯示：根據當前玩家角色顯示買入或賣出
+            if (trade.buyer_id == playerId) {
+                typeCell.textContent = '買入';
+                typeCell.className = 'text-success font-weight-bold';
+                row.className = 'table-success';
+            } else if (trade.seller_id == playerId) {
+                typeCell.textContent = '賣出';
+                typeCell.className = 'text-danger font-weight-bold';
+                row.className = 'table-danger';
+            } else {
+                // 其他玩家交易顯示為其他交易，使用中性樣式
+                typeCell.textContent = '其他交易';
+                typeCell.className = 'text-muted';
+                row.className = 'table-light';
+            }
+            row.appendChild(typeCell);
+            
+            tbody.appendChild(row);
+        });
+    } else {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 4;
+        cell.textContent = '尚無交易記錄';
+        cell.className = 'text-center text-muted';
+        row.appendChild(cell);
+        tbody.appendChild(row);
+    }
+}
+
+/** 修改 processOtreeResponse 函數中的相關部分 **/
+function processOtreeResponse(data) {
+    try {
+        log(`接收原始數據: ${JSON.stringify(data).slice(0,200)}...`);
+        
+        // 重置重試計數器
+        pingRetryCount = 0;
+        
+        // 如果正在顯示連接相關的狀態，清除它
+        const statusEl = document.getElementById('status-message');
+        if (statusEl && (
+            statusEl.textContent.includes('連接') || 
+            statusEl.textContent.includes('同步') ||
+            statusEl.textContent.includes('重新連接')
+        )) {
+            statusEl.parentElement.style.display = 'none';
+        }
+        
+        let playerData = null;
+        
+        // 嘗試從回應中提取玩家數據
+        if (data[playerId]) { 
+            playerData = data[playerId];
+            log(`找到玩家 ${playerId} 的數據`);
+        } else if (data.type === 'update') { 
+            playerData = data;
+            log(`找到更新類型數據`);
+        } else if (data.cash !== undefined && data.permits !== undefined) {
+            // 直接接受具有必要字段的數據
+            playerData = data;
+            log('直接使用數據');
+        } else {
+            for (const k in data) {
+                if (data[k] && (data[k].type || (data[k].cash !== undefined && data[k].permits !== undefined))) { 
+                    playerData = data[k];
+                    log(`在鍵 ${k} 找到數據`);
+                    break;
+                }
+            }
+        }
+        
+        if (!playerData) {
+            log('未找到有效的玩家數據');
+            return false;
+        }
+        
+        // 更新顯示可用資源
+        if (playerData.cash !== undefined) {
+            document.getElementById('cash').innerText = playerData.cash;
+        }
+        
+        if (playerData.permits !== undefined) {
+            document.getElementById('permits').innerText = playerData.permits;
+        }
+        
+        // 更新交易歷史
+        if (playerData.trade_history) {
+            log(`更新交易歷史: ${JSON.stringify(playerData.trade_history).slice(0,200)}...`);
+            updateTradeHistory(playerData.trade_history);
+        }
+        
+        // 計算已保留資源
+        const { cash: reservedCash, permits: reservedPermits } = reservedFromOffers(
+            playerData.my_buy_offers || [], 
+            playerData.my_sell_offers || []
+        );
+        
+        // 賣單保留量顯示已移除 - 因為賣單邏輯改為無限制掛單
+
+        updateSellButtonState();
+
+        if (playerData.notification) {
+            showStatus(playerData.notification.message, playerData.notification.type, 5000);
+        }
+
+        // 更新我的買單列表
+        const myBuyTb = document.querySelector('#my-buy-orders-body');
+        myBuyTb.innerHTML = '';
+        if (playerData.my_buy_offers && playerData.my_buy_offers.length) {
+            playerData.my_buy_offers.forEach(o => {
+                const row = document.createElement('tr');
+                // 單價
+                const c1 = document.createElement('td');
+                c1.textContent = o.price;
+                c1.className = 'text-success font-weight-bold';
+                row.appendChild(c1);
+                // 數量
+                const c3 = document.createElement('td');
+                c3.textContent = o.quantity;
+                row.appendChild(c3);
+                // 總價
+                const tp = o.price * o.quantity;
+                const c2 = document.createElement('td');
+                c2.textContent = tp;
+                c2.className = 'text-primary';
+                row.appendChild(c2);
+                // 取消按鈕
+                const c4 = document.createElement('td');
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-danger btn-sm';
+                btn.textContent = '取消';
+                btn.onclick = e => { e.preventDefault(); cancelOffer('buy', o.price, o.quantity); };
+                c4.appendChild(btn);
+                row.appendChild(c4);
+                myBuyTb.appendChild(row);
+            });
+        } else {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = '目前沒有買單';
+            cell.className = 'text-center text-muted';
+            row.appendChild(cell);
+            myBuyTb.appendChild(row);
+        }
+
+        // 更新我的賣單列表
+        const mySellTb = document.querySelector('#my-sell-orders-body');
+        mySellTb.innerHTML = '';
+        if (playerData.my_sell_offers && playerData.my_sell_offers.length) {
+            playerData.my_sell_offers.forEach(o => {
+                const row = document.createElement('tr');
+                // 單價
+                const c1 = document.createElement('td');
+                c1.textContent = o.price;
+                c1.className = 'text-danger font-weight-bold';
+                row.appendChild(c1);
+                // 數量
+                const c3 = document.createElement('td');
+                c3.textContent = o.quantity;
+                row.appendChild(c3);
+                // 總價
+                const tp = o.price * o.quantity;
+                const c2 = document.createElement('td');
+                c2.textContent = tp;
+                c2.className = 'text-primary';
+                row.appendChild(c2);
+                // 取消按鈕
+                const c4 = document.createElement('td');
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-danger btn-sm';
+                btn.textContent = '取消';
+                btn.onclick = e => { e.preventDefault(); cancelOffer('sell', o.price, o.quantity); };
+                c4.appendChild(btn);
+                row.appendChild(c4);
+                mySellTb.appendChild(row);
+            });
+        } else {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = '目前沒有賣單';
+            cell.className = 'text-center text-muted';
+            row.appendChild(cell);
+            mySellTb.appendChild(row);
+        }
+
+        // 更新買單列表 (公共)
+        const buyTb = document.querySelector('#buy-offers tbody');
+        buyTb.innerHTML = '';
+        if (playerData.buy_offers && playerData.buy_offers.length) {
+            playerData.buy_offers.forEach(o => {
+                const row = document.createElement('tr');
+                // 單價
+                const c1 = document.createElement('td');
+                c1.textContent = o.price;
+                c1.className = 'text-success font-weight-bold';
+                row.appendChild(c1);
+                // 數量
+                const c3 = document.createElement('td');
+                c3.textContent = o.quantity;
+                row.appendChild(c3);
+                // 總價
+                const tp = o.price * o.quantity;
+                const c2 = document.createElement('td');
+                c2.textContent = tp;
+                c2.className = 'text-primary';
+                row.appendChild(c2);
+                // 操作
+                const c4 = document.createElement('td');
+                
+                // 只有當不是自己的掛單時，才顯示"接受"按鈕
+                if (o.player_id != playerId) {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-success btn-sm';
+                    btn.textContent = '賣出';
+                    btn.onclick = e => { e.preventDefault(); acceptOffer('buy', o.player_id, o.price, o.quantity); };
+                    c4.appendChild(btn);
+                } else {
+                    // 如果是自己的掛單，顯示"我的掛單"提示
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-secondary';
+                    badge.textContent = '我的掛單';
+                    c4.appendChild(badge);
+                }
+                
+                row.appendChild(c4);
+                buyTb.appendChild(row);
+            });
+        }
+        // 如果沒有買單顯示提示
+        if (!buyTb.hasChildNodes()) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = '目前沒有買單';
+            cell.className = 'text-center text-muted';
+            row.appendChild(cell);
+            buyTb.appendChild(row);
+        }
+
+        // 更新賣單列表 (公共)
+        const sellTb = document.querySelector('#sell-offers tbody');
+        sellTb.innerHTML = '';
+        if (playerData.sell_offers && playerData.sell_offers.length) {
+            playerData.sell_offers.forEach(o => {
+                const row = document.createElement('tr');
+                // 單價
+                const c1 = document.createElement('td');
+                c1.textContent = o.price;
+                c1.className = 'text-danger font-weight-bold';
+                row.appendChild(c1);
+                // 數量
+                const c3 = document.createElement('td');
+                c3.textContent = o.quantity;
+                row.appendChild(c3);
+                // 總價
+                const tp = o.price * o.quantity;
+                const c2 = document.createElement('td');
+                c2.textContent = tp;
+                c2.className = 'text-primary';
+                row.appendChild(c2);
+                // 操作
+                const c4 = document.createElement('td');
+                
+                // 只有當不是自己的掛單時，才顯示"接受"按鈕
+                if (o.player_id != playerId) {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-success btn-sm';
+                    btn.textContent = '買入';
+                    btn.onclick = e => { e.preventDefault(); acceptOffer('sell', o.player_id, o.price, o.quantity); };
+                    c4.appendChild(btn);
+                } else {
+                    // 如果是自己的掛單，顯示"我的掛單"提示
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-secondary';
+                    badge.textContent = '我的掛單';
+                    c4.appendChild(badge);
+                }
+                
+                row.appendChild(c4);
+                sellTb.appendChild(row);
+            });
+        }
+        // 如果沒有賣單顯示提示
+        if (!sellTb.hasChildNodes()) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = '目前沒有賣單';
+            cell.className = 'text-center text-muted';
+            row.appendChild(cell);
+            sellTb.appendChild(row);
+        }
+        
+        // 更新生產表
+        const profitTb = document.querySelector('#emissions-table tbody');
+        profitTb.innerHTML = '';
+        if (playerData.profit_table && playerData.profit_table.length > 0) {
+            playerData.profit_table.forEach(item => {
+                let row = document.createElement('tr');
+                
+                // 生產數量
+                let cell1 = document.createElement('td');
+                cell1.textContent = item.quantity;
+                row.appendChild(cell1);
+                
+                // 邊際成本
+                let cell2 = document.createElement('td');
+                cell2.textContent = item.marginal_cost;
+                row.appendChild(cell2);
+                
+                // 碳排放
+                let cell3 = document.createElement('td');
+                const emissions = playerData.carbon_emission_per_unit || 1;
+                cell3.textContent = emissions;
+                row.appendChild(cell3);
+                
+                profitTb.appendChild(row);
+            });
+        }
+        
+        // 明確返回成功
+        return true;
+
+    } catch (error) {
+        log(`更新市場錯誤: ${error.message}`);
+        showStatus(`更新失敗: ${error.message}`, 'danger', 5000);
+        isProcessingAction = false;
+    }
+}
+
+/** WebSocket 接收 **/
+window.liveRecv = function(data) {
+    document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+    
+    // 檢查資料是否為空或格式不正確
+    if (!data || typeof data !== 'object') {
+        log('收到無效數據格式');
+        showStatus('伺服器返回數據格式錯誤，正在重試...', 'warning', 2000);
+        setTimeout(() => liveSend({ type: 'ping' }), 2000);
+        return false;
+    }
+    
+    // 嘗試處理數據
+    if (!processOtreeResponse(data)) {
+        log('數據處理失敗，嘗試重新獲取');
+        pingRetryCount++;  // 增加重試計數
+        
+        if (pingRetryCount <= 1) {
+            showStatus('正在同步交易資料...', 'info', 2000);
+        } else if (pingRetryCount <= MAX_PING_RETRIES) {
+            showStatus(`第 ${pingRetryCount} 次嘗試同步交易資料...`, 'info', 2000);
+        } else {
+            showStatus('同步失敗，請刷新頁面重試', 'danger', 0);
+            return false;
+        }
+        
+        setTimeout(() => liveSend({ type: 'ping' }), 2000);
+    } else {
+        pingRetryCount = 0;  // 成功後重置計數器
+    }
+    
+    return false;
+};
+
+/** 首次載入與定時 ping **/
+window.addEventListener('load', e => {
+    e.preventDefault();
+    log('頁面載入，發送 ping');
+    showStatus('正在連接交易系統...', 'info');
+    setTimeout(() => liveSend({ type: 'ping' }), 500);
+    updatePriceDisplay();
+    updateQuantityDisplay();
+    updateTotalPrice();
+    updateSellButtonState();
+    setupInputValidation();  // 設置輸入驗證
+    if (DEBUG) document.getElementById('debug-controls').style.display = 'flex';
+    return false;
+});
+
+// 添加連接重試計數器
+let pingRetryCount = 0;
+const MAX_PING_RETRIES = 5;
+
+setInterval(() => {
+    if (!isProcessingAction) {
+        // 如果有計數器且大於0，則顯示重試信息
+        if (pingRetryCount > 0 && pingRetryCount <= MAX_PING_RETRIES) {
+            showStatus(`正在重新連接交易系統 (${pingRetryCount}/${MAX_PING_RETRIES})...`, 'warning');
+            pingRetryCount++;
+        }
+        liveSend({ type: 'ping' });
+    }
+}, 15000);
+
+/** 禁用原生表單提交與連結 **/
+document.addEventListener('submit', e => { e.preventDefault(); return false; });
+document.addEventListener('click', e => {
+    const t = e.target;
+    if ((t.tagName==='A'||t.parentElement.tagName==='A') && !t.href.includes('/admin/')&& !t.href.includes('/logout/')) {
+        e.preventDefault();
+        return false;
+    }
+});
+window.addEventListener('beforeunload', e => {
+    if (isProcessingAction) {
+        const msg = '操作尚未完成，確定要離開？';
+        e.returnValue = msg;
+        return msg;
+    }
+});
+
+// 添加這個輔助函數到 JavaScript 部分
+function getRelativeTimeString(timestamp) {
+    // 如果已經是 MM:SS 格式，直接返回
+    if (typeof timestamp === 'string' && timestamp.match(/^\d{2}:\d{2}$/)) {
+        return timestamp;
+    }
+    
+    // 否則計算相對時間
+    const elapsedSeconds = Math.floor(Date.now()/1000) - startTime;
+    const minutes = Math.floor(elapsedSeconds / 60);
+    const seconds = elapsedSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// 添加測試數據處理函數
+function testDataProcessing() {
+    // 創建測試數據
+    const testData = {
+        cash: 1000,
+        permits: 5,
+        my_buy_offers: [],
+        my_sell_offers: [],
+        buy_offers: [],
+        sell_offers: [],
+        trade_history: [],
+        carbon_emission_per_unit: 1,
+        profit_table: [
+            {quantity: 1, marginal_cost: 2},
+            {quantity: 2, marginal_cost: 4},
+            {quantity: 3, marginal_cost: 6}
+        ]
+    };
+    
+    // 顯示測試數據
+    log(`測試數據處理函數，使用模擬數據: ${JSON.stringify(testData)}`);
+    showStatus('正在測試數據處理...', 'info');
+    
+    // 調用處理函數
+    try {
+        const result = processOtreeResponse(testData);
+        if (result === true) {
+            showStatus('測試數據處理成功！', 'success', 3000);
+            log('測試數據處理成功，返回值: true');
+        } else {
+            showStatus('測試數據處理失敗，返回值不是 true', 'danger', 0);
+            log(`測試數據處理失敗，返回值: ${result}`);
+        }
+    } catch (error) {
+        showStatus(`測試數據處理出錯: ${error.message}`, 'danger', 0);
+        log(`測試數據處理錯誤: ${error.message}`);
+        console.error(error);
+    }
+    
+    return false;
+}
+
+// 添加焦點失去事件處理器，確保最終輸入有效
+function setupInputValidation() {
+    const priceInput = document.getElementById('price');
+    const quantityInput = document.getElementById('quantity');
+    
+    // 設置失去焦點時的驗證
+    priceInput.addEventListener('blur', function() {
+        if (this.value === '' || parseInt(this.value) < 1) {
+            this.value = 1;
+            updatePriceDisplay();
+        }
+    });
+    
+    quantityInput.addEventListener('blur', function() {
+        if (this.value === '' || parseInt(this.value) < 1) {
+            this.value = 1;
+            updateQuantityDisplay();
+        }
+    });
+}
+
+
+</script>
+
+{% endblock %}

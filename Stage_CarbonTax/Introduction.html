@@ -1,0 +1,82 @@
+{% extends 'global/Page.html' %}
+{% load otree static %}
+
+{% block title %}實驗說明{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-warning text-dark text-center">
+            <h2><i class="fas fa-leaf"></i> 實驗說明</h2>
+        </div>
+        <div class="card-body">
+            
+            <!-- 簡單的實驗說明 -->
+            <div class="alert alert-info text-center">
+                <h4>歡迎參加實驗！</h4>
+                <p class="lead">在本實驗中，您將扮演一間製造商，根據成本與價格來決定生產數量。</p>
+                <p>請注意：每單位生產都會產生碳排放，並需繳納對應的碳稅。這些排放將真實影響現實世界。實驗結束後，我們會依照您的總排放量，退還相應的碳抵換額度。</p>
+                <p>請您依據每回合資訊，審慎決策。</p>
+            </div>
+
+            <!-- 實驗流程 -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-step-forward"></i> 實驗步驟</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body">
+                                    <h1 class="text-primary">1</h1>
+                                    <h5>決定生產數量</h5>
+                                    <p class="small">考慮生產成本和碳稅後，決定最適合的生產數量</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-warning">
+                                <div class="card-body">
+                                    <h1 class="text-warning">2</h1>
+                                    <h5>支付成本與碳稅</h5>
+                                    <p class="small">系統自動計算生產成本和碳稅並扣除</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-success">
+                                <div class="card-body">
+                                    <h1 class="text-success">3</h1>
+                                    <h5>查看結果</h5>
+                                    <p class="small">看看在碳稅政策下您獲得多少淨收益</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 碳稅抽取結果 -->
+            <div class="alert alert-primary">
+                <strong><i class="fas fa-dice"></i> 第{{ player.round_number }}輪碳稅抽取結果：</strong>
+                碳稅率 = <strong>{{ tax_rate }}</strong> 法幣/單位碳排
+            </div>
+            
+            <!-- 計算說明 -->
+            <div class="alert alert-info">
+                <strong><i class="fas fa-calculator"></i> 計算說明：</strong>
+                結果頁面的淨利計算會進行四捨五入處理，以便清楚顯示您的收益。碳稅計算公式：生產數量 × 每單位碳排放 × 碳稅率。
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 開始按鈕 -->
+    <div class="text-center mt-4">
+        <p class="text-muted">理解規則後，準備開始實驗</p>
+        {{ next_button }}
+    </div>
+</div>
+
+{% endblock %}

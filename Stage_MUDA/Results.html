@@ -1,0 +1,182 @@
+{% extends 'global/Page.html' %}
+{% load otree static %}
+
+{% block title %}實驗結果{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>本輪結果</h2>
+        </div>
+        <div class="card-body">
+            <!-- 簡化結果顯示 -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4>主要資訊</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header bg-warning text-dark text-center">
+                                    <h5>您的{{ item_name }}持有量</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <h2>{{ current_items }}</h2>
+                                    <small class="text-muted">單位</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header bg-danger text-white text-center">
+                                    <h5>全體玩家的{{ item_name }}總量</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <h2>{{ group_items_total }}</h2>
+                                    <small class="text-muted">單位</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header bg-success text-white text-center">
+                                    <h5>利潤計算</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-center"><strong>{{ total_value_formatted }} - {{ initial_capital_formatted }} = {{ current_profit_formatted }}</strong></p>
+                                    <p class="small text-muted text-center">總資產 - 初始資金 = 利潤</p>
+                                    <p class="small text-muted text-center">總資產 = 現金({{ player.current_cash }}) + {{ item_name }}價值({{ item_value }})</p>
+                                    <p class="small text-info text-center">您的{{ item_name }}價值：{{ personal_item_value }} 法幣/單位</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 進度指示 -->
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if is_last_round %}
+                        <div class="alert alert-success">
+                            <h4>恭喜！您已完成所有實驗輪次。</h4>
+                            <p>感謝您的參與！</p>
+                        </div>
+                        
+                        <!-- 最終報酬資訊 -->
+                        {% if final_payoff_info %}
+                        <div class="card mt-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h4>您的最終實驗報酬</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <h5>隨機選中第 <strong>{{ final_payoff_info.selected_round }}</strong> 輪的結果作為您的最終報酬</h5>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header bg-success text-white text-center">
+                                                <h5>經濟報酬</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-borderless">
+                                                    <tr>
+                                                        <td><strong>初始資金：</strong></td>
+                                                        <td>{{ final_payoff_info.initial_capital_formatted }} 法幣</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>最終現金：</strong></td>
+                                                        <td>{{ final_payoff_info.final_cash_formatted }} 法幣</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>持有{{ item_name }}：</strong></td>
+                                                        <td>{{ final_payoff_info.item_count }} 單位</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>{{ item_name }}價值：</strong></td>
+                                                        <td>{{ final_payoff_info.item_value_formatted }} 法幣</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>總資產：</strong></td>
+                                                        <td>{{ final_payoff_info.total_value_formatted }} 法幣</td>
+                                                    </tr>
+                                                    <tr class="table-success">
+                                                        <td><strong>淨利潤：</strong></td>
+                                                        <td><strong>{{ final_payoff_info.profit_formatted }} 法幣</strong></td>
+                                                    </tr>
+                                                </table>
+                                                <small class="text-muted">
+                                                    {{ item_name }}價值 = {{ final_payoff_info.item_count }} × {{ final_payoff_info.personal_item_value_formatted }} = {{ final_payoff_info.item_value_formatted }} 法幣
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header bg-info text-white text-center">
+                                                <h5>交易統計</h5>
+                                            </div>
+                                            <div class="card-body text-center">
+                                                <h2 class="text-info">{{ final_payoff_info.item_count }}</h2>
+                                                <p class="text-muted">單位{{ item_name }}</p>
+                                                <small class="text-muted">
+                                                    這是您在被選中回合最終持有的{{ item_name }}數量，
+                                                    代表您的交易策略成果。
+                                                </small>
+                                                <div class="mt-3">
+                                                    <p class="text-info">
+                                                        <strong>您的單位{{ item_name }}價值：{{ final_payoff_info.personal_item_value_formatted }} 法幣</strong>
+                                                    </p>
+                                                    <p class="text-muted small">
+                                                        {{ item_name }}總價值：{{ final_payoff_info.item_value_formatted }} 法幣
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-warning mt-3">
+                                    <h6><i class="fas fa-info-circle"></i> 報酬說明</h6>
+                                    <p class="mb-0">
+                                        您的最終經濟報酬為 <strong>{{ final_payoff_info.profit_formatted }} 法幣</strong>，
+                                        這是您在第 <strong>{{ final_payoff_info.selected_round }}</strong> 輪中通過交易策略獲得的利潤。
+                                        利潤計算方式：總資產({{ final_payoff_info.total_value_formatted }}法幣) - 初始資金({{ final_payoff_info.initial_capital_formatted }}法幣) = 利潤({{ final_payoff_info.profit_formatted }}法幣)。
+                                        這個結果將作為您本次實驗的最終成果。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <h5>實驗進度</h5>
+                            <p>還有 <strong>{{ remaining_rounds }}</strong> 輪實驗。</p>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ progress_percentage }}%;" 
+                                     aria-valuenow="{{ player.round_number }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="{{ total_rounds }}">
+                                    第 {{ player.round_number }} / {{ total_rounds }} 輪
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        {{ next_button }}
+    </div>
+</div>
+{% endblock %}

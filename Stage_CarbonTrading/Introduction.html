@@ -1,0 +1,77 @@
+{% extends 'global/Page.html' %}
+{% load otree static %}
+
+{% block title %}實驗說明{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-success text-white text-center">
+            <h2><i class="fas fa-exchange-alt"></i> 實驗說明</h2>
+        </div>
+        <div class="card-body">
+            
+            <!-- 簡單的實驗說明 -->
+            <div class="alert alert-info text-center">
+                <h4>歡迎參加實驗！</h4>
+                <p class="lead">在本實驗中，您將扮演一間製造商，根據成本與價格來決定生產數量。</p>
+                <p>每回合開始前，您可進入交易市場與其他廠商買賣碳權。您最終擁有的碳排放權數量，將限制當回合的最大可生產數量，請您根據自身條件，決定是要購買更多碳權，還是出售多餘碳權。</p>
+                <p>請注意：每單位生產都會產生碳排放，而這些排放將真實影響現實世界。實驗結束後，我們會依照您的總排放量，退還相應的碳抵換額度。</p>
+                <p>請您依據每回合資訊，審慎決策，進行交易與生產。</p>
+            </div>
+
+            <!-- 實驗流程 -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-step-forward"></i> 實驗步驟</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="card h-100 border-info">
+                                <div class="card-body">
+                                    <h1 class="text-info">1</h1>
+                                    <h5>碳權交易</h5>
+                                    <p class="small">與其他參與者買賣碳權，獲得生產所需的碳權數量</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body">
+                                    <h1 class="text-primary">2</h1>
+                                    <h5>決定生產數量</h5>
+                                    <p class="small">根據持有的碳權決定要生產多少（不能超過碳權數量）</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-success">
+                                <div class="card-body">
+                                    <h1 class="text-success">3</h1>
+                                    <h5>查看結果</h5>
+                                    <p class="small">看看交易和生產策略帶來多少收入</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 計算說明 -->
+            <div class="alert alert-info">
+                <strong><i class="fas fa-calculator"></i> 計算說明：</strong>
+                結果頁面的淨利計算會進行四捨五入處理，以便清楚顯示您的收益。您的最終收益包含交易損益和生產利潤。
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 開始按鈕 -->
+    <div class="text-center mt-4">
+        <p class="text-muted">理解規則後，準備開始實驗</p>
+        {{ next_button }}
+    </div>
+</div>
+
+{% endblock %}

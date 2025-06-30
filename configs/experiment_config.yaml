@@ -1,0 +1,186 @@
+# 碳排放交易實驗配置文件
+# 統一管理各階段的常數和設定
+
+# ====================================
+# 正式實驗模式設定 (Production Mode)
+# ====================================
+general:
+  players_per_group: 15  # 正式實驗：15人一組
+  num_rounds: 15
+  max_production: 50
+  
+  # 市場價格隨機抽取設定 (所有組別共用)
+  market_price_random_draw:
+    base_prices: [25, 30, 35, 40]  # 基礎價格選項
+    variations: [-2, -1, 1, 2]  # 變動幅度選項
+    min_price: 1  # 最低價格（確保不為負或太小）
+  
+  # 廠商角色參數
+  dominant_firm:
+    mc_range: [1, 5]  # 邊際成本係數範圍
+    emission_per_unit: 2  # 每單位碳排放
+    max_production: 20    # 最大生產量
+    
+  non_dominant_firm:
+    mc_range: [2, 7]  # 邊際成本係數範圍  
+    emission_per_unit: 1  # 每單位碳排放
+    max_production: 8     # 最大生產量
+  
+  # 角色分配設定（正式實驗）
+  role_assignment:
+    test_mode: false  # 正式模式
+    production_mode: true  # 正式模式：3個主導廠商，12個其他廠商
+    dominant_firm_count: 3  # 主導廠商數量
+    non_dominant_firm_count: 12  # 其他廠商數量
+    ensure_player1_dominant: false  # 正式實驗不需要確保1號玩家為主導廠商
+  
+  # 隨機擾動參數
+  random_disturbance:
+    range: [-1, 1]  # 生產成本隨機擾動範圍
+
+# 各階段特定設定
+stages:
+  control:
+    name_in_url: 'Stage_Control'
+    display_name: "對照組"
+    initial_capital: 300
+    description: "對照組：受試者直接決定生產量，不受碳排放限制，也不需繳納碳稅"
+    
+  carbon_tax:
+    name_in_url: 'Stage_CarbonTax'
+    display_name: "碳稅組"
+    initial_capital: 300
+    description: "碳稅組：受試者直接決定生產量，但需為每單位碳排放繳納碳稅"
+    # 碳稅隨機抽取設定
+    tax_random_selection:
+      rates: [1, 2, 3]
+      
+  muda:
+    name_in_url: 'Stage_MUDA'
+    display_name: "MUDA"
+    initial_capital: 10000
+    trading_time: 180
+    item_name: "碳權"
+    reset_cash_each_round: true
+    description: "MUDA：純交易練習回合，讓受試者熟悉交易市場介面操作"
+    # 碳權價格隨機抽取設定
+    item_price_options: [25, 30, 35, 40]  # 碳權價格選項
+    
+  carbon_trading:
+    name_in_url: 'Stage_CarbonTrading'
+    display_name: "碳交易組"
+    initial_capital: 10000
+    trading_time: 120
+    carbon_allowance_per_player: 10
+    reset_cash_each_round: true  # 每輪重置現金
+    description: "碳交易組：受試者需要先決定生產量，然後在碳權交易市場進行買賣"
+    
+    # 社會最適產量與碳權分配設定
+    optimal_allocation:
+      # 固定參數設定
+      use_fixed_price: true  # 是否使用固定市場價格（而非隨機抽取）
+      fixed_market_price: 10  # 固定市場價格 p
+      social_cost_per_unit_carbon: 2  # 每單位碳的社會成本 c
+      
+      # 配額分配設定
+      cap_multipliers: [0.8, 1.0, 1.2]  # 配額倍率選項
+      allocation_method: "equal_with_random_remainder"  # 分配方法
+      round_cap_total: true  # 是否將配額總數四捨五入為整數
+      
+    # 輸出設定
+    output:
+      show_detailed_calculation: true  # 是否顯示詳細計算過程
+      decimal_places: 2  # 小數位數
+      console_output_format: "detailed"  # 控制台輸出格式: "simple" 或 "detailed"
+
+# ====================================
+# 測試模式設定 (Test Mode)
+# ====================================
+test_mode:
+  enabled: true  # 是否啟用測試模式
+  
+  # 測試模式下的通用設定
+  general:
+    players_per_group: 2  # 測試模式：2人一組
+    num_rounds: 3  # 測試模式：3回合
+    max_production: 10  # 測試模式：最大生產量10
+    
+    # 角色分配設定（測試模式）
+    role_assignment:
+      ensure_player1_dominant: true  # 測試模式確保1號玩家為主導廠商
+      dominant_firm_ratio: 0.5  # 測試模式：50%為主導廠商（1/2）
+    
+    # 市場價格（測試模式可使用簡化價格）
+    market_price_random_draw:
+      base_prices: [30, 35]  # 簡化的基礎價格選項
+      variations: [-1, 1]  # 簡化的變動幅度
+      min_price: 1
+  
+  # 測試模式下的階段設定
+  stages:
+    control:
+      initial_capital: 1000  # 測試模式較高初始資金
+      
+    carbon_tax:
+      initial_capital: 1000
+      tax_random_selection:
+        rates: [2, 3]  # 測試模式簡化稅率選項
+        
+    muda:
+      initial_capital: 99999  # 測試模式大量資金
+      trading_time: 60  # 測試模式縮短交易時間
+      item_price_options: [30, 35]  # 測試模式簡化價格選項
+      
+    carbon_trading:
+      initial_capital: 99999
+      trading_time: 60  # 測試模式縮短交易時間
+      carbon_allowance_per_player: 5  # 測試模式較少碳權
+      
+      # 測試模式的碳權分配設定
+      optimal_allocation:
+        use_fixed_price: true
+        fixed_market_price: 10
+        social_cost_per_unit_carbon: 2
+        cap_multipliers: [1.0]  # 測試模式只用標準倍率
+
+# 頁面流程配置
+page_sequences:
+  control: ['Introduction', 'ReadyWaitPage', 'ProductionDecision', 'ResultsWaitPage', 'Results']
+  carbon_tax: ['Introduction', 'ReadyWaitPage', 'ProductionDecision', 'ResultsWaitPage', 'Results']
+  muda: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ResultsWaitPage', 'Results']
+  carbon_trading: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ProductionDecision', 'ResultsWaitPage', 'Results']
+
+# 實驗設定
+experiment_settings:
+  # 最終報酬計算
+  final_payoff:
+    random_round_selection: true  # 隨機選擇回合計算最終報酬
+    
+  # 調試設定
+  debug:
+    show_debug_info: false  # 是否顯示調試信息
+    console_logging: true   # 是否輸出控制台日誌
+
+# 國際化設定
+ui_text:
+  zh_tw:
+    treatment_names:
+      control: "對照"
+      carbon_tax: "碳稅"
+      muda: "MUDA"
+      carbon_trading: "碳交易"
+    common_labels:
+      production: "生產量"
+      revenue: "收入"
+      cost: "成本"
+      profit: "利潤"
+      cash: "現金"
+      round: "回合"
+      market_price: "市場價格"
+      carbon_emission: "碳排放量"
+      carbon_tax: "碳稅"
+      carbon_allowance: "碳權"
+      trading_time: "交易時間"
+      base_tax_rate: "基礎稅率"
+      tax_variation: "稅率變動"
+      item_price: "物品價格" 
