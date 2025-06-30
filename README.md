@@ -397,6 +397,6 @@ CMD ["otree", "prodserver", "0.0.0.0:8000"]
 ---
 
 **Developer / 開發者**: Levi  
-**Last Updated / 最後更新**: June 2025 / 2025 年 6 月  
-**Version / 版本**: 3.0  
+**Last Updated / 最後更新**: June 30, 2025 / 2025 年 6 月 30 日
+**Version / 版本**: 3.1  
 **License / 授權**: See [LICENSE](LICENSE) / 請見 [LICENSE](LICENSE)

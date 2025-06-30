@@ -55,19 +55,19 @@ def main():
     result = cleaner.run_full_cleaning()
     
     if 'error' in result:
-        print(f"❌ 清理失敗: {result['error']}")
+        print(f"[清理失敗]: {result['error']}")
     else:
-        print("✅ 資料庫清理完成！")
+        print("[資料庫清理完成]")
         
         if 'summary' in result:
             summary = result['summary']
-            print(f"📊 清理統計:")
+            print(f"[清理統計]:")
             print(f"   - 修復問題數: {summary.get('total_issues_fixed', 0)}")
             print(f"   - 警告數: {summary.get('total_warnings', 0)}")
             print(f"   - 清理表格數: {summary.get('cleaned_tables', 0)}")
         
-        print(f"📁 清理後數據已導出至: cleaned_data/")  
-        print(f"📋 詳細報告請查看生成的 cleaning_report_*.json 文件")
+        print(f"清理後數據已導出至: cleaned_data/")  
+        print(f"詳細報告請查看生成的 cleaning_report_*.json 文件]")
 
 if __name__ == "__main__":
     main() 
