@@ -57,7 +57,7 @@ def _initialize_player(player: BasePlayer) -> None:
     # 設置現金
     if C.RESET_CASH_EACH_ROUND or player.round_number == 1:
         player.current_cash = C.INITIAL_CAPITAL
-        else:
+    else:
         player.current_cash = player.in_round(player.round_number - 1).final_cash
     
     player.initial_capital = player.current_cash
@@ -217,16 +217,16 @@ class TradingMarket(Page):
             
             # 處理通知
             if result.get('notifications'):
-                    market_states = {}
-                    for p in group.get_players():
-                        state = TradingMarket.market_state(p)
+                market_states = {}
+                for p in group.get_players():
+                    state = TradingMarket.market_state(p)
                     if p.id_in_group in result['notifications']:
-                            state['notification'] = {
-                                'type': 'success',
+                        state['notification'] = {
+                            'type': 'success',
                             'message': result['notifications'][p.id_in_group]
-                            }
-                        market_states[p.id_in_group] = state
-                    return market_states
+                        }
+                    market_states[p.id_in_group] = state
+                return market_states
             elif result.get('update_all'):
                 return {p.id_in_group: TradingMarket.market_state(p) 
                         for p in group.get_players()}
@@ -428,4 +428,4 @@ def _calculate_final_payoff_info(player: Player) -> Dict[str, Any]:
         'total_value_formatted': f"{int(round(total_value))}",
     }
 
-page_sequence = [Introduction, ReadyWaitPage, TradingMarket, ResultsWaitPage, Results]
+page_sequence = [Introduction, ReadyWaitPage, TradingMarket, ResultsWaitPage, Results] 
