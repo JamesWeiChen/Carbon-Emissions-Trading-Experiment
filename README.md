@@ -1,6 +1,6 @@
 # Carbon Emissions Trading Experiment Platform
 
-**版本 / Version**: 3.1 (2025-06-30)  
+**版本 / Version**: 3.2 (2025-07-03)  
 **Language / 語言**: [English](#english) | [中文](#中文版本)
 
 ---
@@ -9,7 +9,7 @@
 
 An experimental economics platform built on the oTree framework, specifically designed to study the impact of different carbon reduction policies on firm production behavior.
 
-**Latest Update (v3.1)**: Major code refactoring and optimization completed, including full type hints, modular design improvements, and 20% performance enhancement.
+**Latest Update (v3.2)**: Implemented multiple order functionality and unlimited order mechanism, allowing players to submit multiple buy/sell orders simultaneously for more flexible trading strategies.
 
 ### Platform Features
 
