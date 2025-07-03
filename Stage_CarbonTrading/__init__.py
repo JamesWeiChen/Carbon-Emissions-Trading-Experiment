@@ -326,12 +326,6 @@ def _process_carbon_trading_order(
     # 解析現有訂單
     buy_orders, sell_orders = parse_orders(group)
     
-    # 自動取消之前的同方向訂單
-    cancel_player_orders(group, player.id_in_group, direction)
-    
-    # 重新載入訂單
-    buy_orders, sell_orders = parse_orders(group)
-    
     # 尋找匹配的訂單
     if direction == 'buy':
         # 尋找價格不高於出價且數量足夠的賣單
@@ -351,7 +345,7 @@ def _process_carbon_trading_order(
                 seller = group.get_player_by_id(seller_id)
                 execute_trade(group, player, seller, float(best_order[1]), quantity, 'current_permits')
                 
-                # 取消雙方其他訂單
+                # 保留：交易成功時取消雙方其他訂單
                 cancel_player_orders(group, player.id_in_group, 'buy')
                 cancel_player_orders(group, seller_id, 'sell')
                 
@@ -398,7 +392,7 @@ def _process_carbon_trading_order(
                 buyer = group.get_player_by_id(buyer_id)
                 execute_trade(group, buyer, player, float(best_order[1]), quantity, 'current_permits')
                 
-                # 取消雙方其他訂單
+                # 保留：交易成功時取消雙方其他訂單
                 cancel_player_orders(group, buyer_id, 'buy')
                 cancel_player_orders(group, player.id_in_group, 'sell')
                 

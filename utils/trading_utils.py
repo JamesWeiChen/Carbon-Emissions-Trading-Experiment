@@ -211,11 +211,8 @@ def process_new_order(
     # 解析現有訂單
     buy_orders, sell_orders = parse_orders(group)
     
-    # 自動取消之前的同方向訂單
-    cancel_player_orders(group, player.id_in_group, direction)
-    
-    # 重新載入訂單（因為取消操作可能已經修改了訂單列表）
-    buy_orders, sell_orders = parse_orders(group)
+    # 移除：不再自動取消之前的同方向訂單，允許掛多個買單/賣單
+    # cancel_player_orders(group, player.id_in_group, direction)
     
     # 尋找匹配的訂單
     if direction == 'buy':
@@ -232,7 +229,7 @@ def process_new_order(
                 seller = group.get_player_by_id(seller_id)
                 execute_trade(group, player, seller, float(best_order[1]), quantity, item_field)
                 
-                # 取消雙方其他訂單
+                # 保留：交易成功時取消雙方其他訂單
                 cancel_player_orders(group, player.id_in_group, 'buy')
                 cancel_player_orders(group, seller_id, 'sell')
                 
@@ -270,7 +267,7 @@ def process_new_order(
                 buyer = group.get_player_by_id(buyer_id)
                 execute_trade(group, buyer, player, float(best_order[1]), quantity, item_field)
                 
-                # 取消雙方其他訂單
+                # 保留：交易成功時取消雙方其他訂單
                 cancel_player_orders(group, buyer_id, 'buy')
                 cancel_player_orders(group, player.id_in_group, 'sell')
                 
@@ -335,7 +332,7 @@ def process_accept_offer(
             seller = group.get_player_by_id(target_id)
             execute_trade(group, player, seller, price, quantity, item_field)
             
-            # 取消雙方其他訂單
+            # 保留：交易成功時取消雙方其他訂單
             cancel_player_orders(group, player.id_in_group, 'buy')
             cancel_player_orders(group, target_id, 'sell')
             
@@ -370,7 +367,7 @@ def process_accept_offer(
             buyer = group.get_player_by_id(target_id)
             execute_trade(group, buyer, player, price, quantity, item_field)
             
-            # 取消雙方其他訂單
+            # 保留：交易成功時取消雙方其他訂單
             cancel_player_orders(group, target_id, 'buy')
             cancel_player_orders(group, player.id_in_group, 'sell')
             
