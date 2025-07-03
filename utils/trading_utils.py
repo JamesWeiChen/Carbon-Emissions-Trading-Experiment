@@ -417,12 +417,13 @@ def calculate_locked_resources(
     """
     player_id = player.id_in_group
     
-    # 計算鎖定的現金（買單）
-    locked_cash = sum(
-        float(order[1]) * int(order[2])
-        for order in buy_orders
-        if int(order[0]) == player_id
-    )
+    # 買單邏輯改為無限制掛單，不再鎖定現金
+    locked_cash = 0
+    # locked_cash = sum(
+    #     float(order[1]) * int(order[2])
+    #     for order in buy_orders
+    #     if int(order[0]) == player_id
+    # )
     
     # 計算鎖定的物品（賣單）
     locked_items = sum(

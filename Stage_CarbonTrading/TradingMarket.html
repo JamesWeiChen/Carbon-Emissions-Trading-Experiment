@@ -543,10 +543,12 @@ function updateTotalPrice() {
         el.className = 'text-muted font-weight-bold';
     } else {
         el.innerText = total;
-        if (document.getElementById('selected-direction').value === 'buy') {
+        const direction = document.getElementById('selected-direction').value;
+        if (direction === 'buy') {
+            // 買單邏輯改為無限制掛單，只要單一買單不超過持有現金即可
             const cash = parseInt(document.getElementById('cash').innerText);
             el.className = total > cash
-                ? 'text-danger font-weight-bold'
+                ? 'text-warning font-weight-bold'
                 : 'text-success font-weight-bold';
         } else {
             el.className = 'text-success font-weight-bold';
@@ -558,10 +560,10 @@ function updateTotalPrice() {
 function reservedFromOffers(buyOffers, sellOffers) {
     let cash = 0, permits = 0;
     
-    // 計算買單佔用的現金
-    (buyOffers || []).forEach(o => {
-        cash += o.price * o.quantity;
-    });
+    // 買單邏輯改為無限制掛單，不再鎖定現金
+    // (buyOffers || []).forEach(o => {
+    //     cash += o.price * o.quantity;
+    // });
     
     // 計算賣單佔用的碳權
     (sellOffers || []).forEach(o => {
@@ -765,7 +767,7 @@ function updateMarket(data) {
                 if (o.player_id != playerId) {
                     const btn = document.createElement('button');
                     btn.className = 'btn btn-success btn-sm';
-                    btn.textContent = '買入';
+                    btn.textContent = '賣出';
                     btn.onclick = e => { e.preventDefault(); acceptOffer('sell', o.player_id, o.price, o.quantity); };
                     c4.appendChild(btn);
                 } else {
@@ -918,7 +920,12 @@ function submitOffer() {
     log(`嘗試提交掛單: ${dir}, 價格 ${price}, 數量 ${quantity}`);
     log(`當前資源: 現金=${document.getElementById('cash').innerText}, 物品=${document.getElementById('permits').innerText}`);
 
-    // 資源檢查 - 移除現金檢查，允許負債購買
+    // 資源檢查 - 買單邏輯改為無限制掛單，只要單一買單不超過持有現金數量即可
+    if (dir === 'buy' && price * quantity > parseInt(document.getElementById('cash').innerText)) {
+        showStatus(`單一買單金額不能超過持有現金！需要 ${price * quantity}，但您只有 ${document.getElementById('cash').innerText}`, 'warning', 5000);
+        return false;
+    }
+    
     if (dir === 'sell' && parseInt(document.getElementById('permits').innerText) < quantity) {
         const currentPermits = parseInt(document.getElementById('permits').innerText);
         showStatus(`碳權不足！您想要賣出 ${quantity} 個碳權，但目前只持有 ${currentPermits} 個碳權。請調整賣出數量。`, 'warning', 5000);
@@ -966,6 +973,12 @@ function acceptOffer(type, pid, price, qty) {
     
     log(`嘗試接受掛單: ${type}, 玩家 ${pid}, 價格 ${price}, 數量 ${qty}`);
     log(`當前資源: 現金=${document.getElementById('cash').innerText}, 物品=${document.getElementById('permits').innerText}`);
+    
+    // 資源檢查 - 買單邏輯改為無限制掛單，只要單一買單不超過持有現金數量即可
+    if (type === 'sell' && price * qty > parseInt(document.getElementById('cash').innerText)) {
+        showStatus(`現金不足！需要 ${price * qty}，但您只有 ${document.getElementById('cash').innerText}`, 'warning', 5000);
+        return false;
+    }
     
     if (type === 'buy'  && parseInt(document.getElementById('permits').innerText) < qty) {
         const currentPermits = parseInt(document.getElementById('permits').innerText);
@@ -1336,7 +1349,7 @@ function processOtreeResponse(data) {
                 if (o.player_id != playerId) {
                     const btn = document.createElement('button');
                     btn.className = 'btn btn-success btn-sm';
-                    btn.textContent = '買入';
+                    btn.textContent = '賣出';
                     btn.onclick = e => { e.preventDefault(); acceptOffer('sell', o.player_id, o.price, o.quantity); };
                     c4.appendChild(btn);
                 } else {

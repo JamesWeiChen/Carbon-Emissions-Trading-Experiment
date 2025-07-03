@@ -549,10 +549,12 @@ function updateTotalPrice() {
         el.className = 'text-muted font-weight-bold';
     } else {
         el.innerText = total;
-        if (document.getElementById('selected-direction').value === 'buy') {
+        const direction = document.getElementById('selected-direction').value;
+        if (direction === 'buy') {
+            // 買單邏輯改為無限制掛單，只要單一買單不超過持有現金即可
             const cash = parseInt(document.getElementById('cash').innerText);
             el.className = total > cash
-                ? 'text-danger font-weight-bold'
+                ? 'text-warning font-weight-bold'
                 : 'text-success font-weight-bold';
         } else {
             el.className = 'text-success font-weight-bold';
@@ -564,10 +566,10 @@ function updateTotalPrice() {
 function reservedFromOffers(buyOffers, sellOffers) {
     let cash = 0, items = 0;
     
-    // 計算買單佔用的現金
-    (buyOffers || []).forEach(o => {
-        cash += o.price * o.quantity;
-    });
+    // 買單邏輯改為無限制掛單，不再鎖定現金
+    // (buyOffers || []).forEach(o => {
+    //     cash += o.price * o.quantity;
+    // });
     
     // 計算賣單佔用的物品
     (sellOffers || []).forEach(o => {
@@ -695,21 +697,22 @@ function updateMarket(data) {
         document.getElementById('items-display').innerText = data.items;
         
         // 添加已保留資源提示
-        if (reservedCash > 0) {
-            const cashEl = document.getElementById('cash').parentNode;
-            if (!document.getElementById('reserved-cash-info')) {
-                const reservedInfo = document.createElement('small');
-                reservedInfo.id = 'reserved-cash-info';
-                reservedInfo.className = 'text-muted d-block';
-                reservedInfo.innerHTML = `(其中 <b>${reservedCash}</b> 已用於買單)`;
-                cashEl.appendChild(reservedInfo);
-            } else {
-                document.getElementById('reserved-cash-info').innerHTML = 
-                    `(其中 <b>${reservedCash}</b> 已用於買單)`;
-            }
-        } else if (document.getElementById('reserved-cash-info')) {
-            document.getElementById('reserved-cash-info').remove();
-        }
+        // 買單邏輯改為無限制掛單，不再顯示現金保留量
+        // if (reservedCash > 0) {
+        //     const cashEl = document.getElementById('cash').parentNode;
+        //     if (!document.getElementById('reserved-cash-info')) {
+        //         const reservedInfo = document.createElement('small');
+        //         reservedInfo.id = 'reserved-cash-info';
+        //         reservedInfo.className = 'text-muted d-block';
+        //         reservedInfo.innerHTML = `(其中 <b>${reservedCash}</b> 已用於買單)`;
+        //         cashEl.appendChild(reservedInfo);
+        //     } else {
+        //         document.getElementById('reserved-cash-info').innerHTML = 
+        //             `(其中 <b>${reservedCash}</b> 已用於買單)`;
+        //     }
+        // } else if (document.getElementById('reserved-cash-info')) {
+        //     document.getElementById('reserved-cash-info').remove();
+        // }
         
         if (reservedItems > 0) {
             const itemsEl = document.getElementById('items').parentNode;
@@ -1046,11 +1049,12 @@ function submitOffer() {
     log(`嘗試提交掛單: ${dir}, 價格 ${price}, 數量 ${quantity}`);
     log(`當前資源: 現金=${document.getElementById('cash').innerText}, 物品=${document.getElementById('items').innerText}`);
 
-    // 資源檢查 - 移除現金檢查，允許負債購買
-    // if (dir === 'buy' && parseInt(document.getElementById('cash').innerText) < price * quantity) {
-    //     showStatus(`現金不足！需要 ${price*quantity}`, 'danger', 3000);
-    //     return false;
-    // }
+    // 資源檢查 - 買單邏輯改為無限制掛單，只要單一買單不超過持有現金數量即可
+    if (dir === 'buy' && price * quantity > parseInt(document.getElementById('cash').innerText)) {
+        showStatus(`單一買單金額不能超過持有現金！需要 ${price * quantity}，但您只有 ${document.getElementById('cash').innerText}`, 'warning', 5000);
+        return false;
+    }
+    
     if (dir === 'sell' && parseInt(document.getElementById('items').innerText) < quantity) {
         const currentItems = parseInt(document.getElementById('items').innerText);
         showStatus(`${item_name}不足！您想要賣出 ${quantity} 個{{ item_name }}，但目前只持有 ${currentItems} 個{{ item_name }}。請調整賣出數量。`, 'warning', 5000);
@@ -1099,10 +1103,12 @@ function acceptOffer(type, pid, price, qty) {
     log(`嘗試接受掛單: ${type}, 玩家 ${pid}, 價格 ${price}, 數量 ${qty}`);
     log(`當前資源: 現金=${document.getElementById('cash').innerText}, 物品=${document.getElementById('items').innerText}`);
     
-    // 移除現金檢查，允許負債購買
-    // if (type === 'sell' && parseInt(document.getElementById('cash').innerText) < price * qty) {
-    //     showStatus(`現金不足！`, 'danger', 3000); return false;
-    // }
+    // 資源檢查 - 買單邏輯改為無限制掛單，只要單一買單不超過持有現金數量即可
+    if (type === 'sell' && price * qty > parseInt(document.getElementById('cash').innerText)) {
+        showStatus(`現金不足！需要 ${price * qty}，但您只有 ${document.getElementById('cash').innerText}`, 'warning', 5000);
+        return false;
+    }
+    
     if (type === 'buy'  && parseInt(document.getElementById('items').innerText) < qty) {
         const currentItems = parseInt(document.getElementById('items').innerText);
         showStatus(`${item_name}不足！您想要賣出 ${qty} 個{{ item_name }}，但目前只持有 ${currentItems} 個{{ item_name }}。無法接受此買單。`, 'warning', 5000);
@@ -1274,21 +1280,22 @@ function processOtreeResponse(data) {
         }
         
         // 添加已保留資源提示
-        if (reservedCash > 0) {
-            const cashEl = document.getElementById('cash').parentNode;
-            if (!document.getElementById('reserved-cash-info')) {
-                const reservedInfo = document.createElement('small');
-                reservedInfo.id = 'reserved-cash-info';
-                reservedInfo.className = 'text-muted d-block';
-                reservedInfo.innerHTML = `(其中 <b>${reservedCash}</b> 已用於買單)`;
-                cashEl.appendChild(reservedInfo);
-            } else {
-                document.getElementById('reserved-cash-info').innerHTML = 
-                    `(其中 <b>${reservedCash}</b> 已用於買單)`;
-            }
-        } else if (document.getElementById('reserved-cash-info')) {
-            document.getElementById('reserved-cash-info').remove();
-        }
+        // 買單邏輯改為無限制掛單，不再顯示現金保留量
+        // if (reservedCash > 0) {
+        //     const cashEl = document.getElementById('cash').parentNode;
+        //     if (!document.getElementById('reserved-cash-info')) {
+        //         const reservedInfo = document.createElement('small');
+        //         reservedInfo.id = 'reserved-cash-info';
+        //         reservedInfo.className = 'text-muted d-block';
+        //         reservedInfo.innerHTML = `(其中 <b>${reservedCash}</b> 已用於買單)`;
+        //         cashEl.appendChild(reservedInfo);
+        //     } else {
+        //         document.getElementById('reserved-cash-info').innerHTML = 
+        //             `(其中 <b>${reservedCash}</b> 已用於買單)`;
+        //     }
+        // } else if (document.getElementById('reserved-cash-info')) {
+        //     document.getElementById('reserved-cash-info').remove();
+        // }
         
         if (reservedItems > 0) {
             const itemsEl = document.getElementById('items').parentNode;

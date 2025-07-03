@@ -855,7 +855,8 @@ class TradingMarket(Page):
             public_sell_offers = []
         
         # 計算已鎖定資源
-        locked_cash = sum(o['price'] * o['quantity'] for o in my_buy_offers)
+        # 買單邏輯改為無限制掛單，不再鎖定現金
+        locked_cash = 0  # sum(o['price'] * o['quantity'] for o in my_buy_offers)
         locked_permits = sum(o['quantity'] for o in my_sell_offers)
 
         # 剩餘可用
