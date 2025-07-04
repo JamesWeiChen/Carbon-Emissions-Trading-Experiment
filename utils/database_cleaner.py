@@ -285,7 +285,7 @@ class DatabaseCleaner:
                 'description': '碳稅組數據清理完成'
             })
         
-        logger.info(f"碳稅組數據清理完成，処理了 {original_count} 筆記錄，發現 {issues_found} 個問題")
+        logger.info(f"碳稅組數據清理完成，處理了 {original_count} 筆記錄，發現 {issues_found} 個問題")
     
     def clean_muda_data(self):
         """清理MUDA訓練組數據"""
