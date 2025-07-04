@@ -53,9 +53,9 @@ USE_POINTS = True
 
 ROOMS = [
     dict(
-        name='econ101',
-        display_name='Econ 101 class',
-        participant_label_file='_rooms/econ101.txt',
+        name='tassel',
+        display_name='TASSEL',
+        participant_label_file='_rooms/tassel.txt',
     ),
 ]
 
@@ -76,3 +76,5 @@ INSTALLED_APPS = ['otree']
 import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
+
+DEBUG = environ.get('OTREE_PRODUCTION') in {None, '', '0'}
