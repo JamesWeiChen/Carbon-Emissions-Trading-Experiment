@@ -149,9 +149,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="price">價格：<span id="price-display">50</span> 法幣</label>
+                        <label for="price">價格：<span id="price-display">？</span> 法幣</label>
                         <div class="input-group mb-3">
-                            <input type="number" id="price" class="form-control" min="1" step="1" value="50" 
+                            <input type="number" id="price" class="form-control" min="1" step="1" value="" 
+                                   placeholder="請輸入價格"
                                    oninput="validateAndUpdatePrice(this)" 
                                    onkeypress="return isNumberKey(event)"
                                    onpaste="return validatePaste(event, this)">
@@ -162,9 +163,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="quantity">數量：<span id="quantity-display">1</span> 單位</label>
+                        <label for="quantity">數量：<span id="quantity-display">？</span> 單位</label>
                         <div class="input-group mb-3">
-                            <input type="number" id="quantity" class="form-control" min="1" step="1" value="1" 
+                            <input type="number" id="quantity" class="form-control" min="1" step="1" value="" 
+                                   placeholder="請輸入數量"
                                    oninput="validateAndUpdateQuantity(this)" 
                                    onkeypress="return isNumberKey(event)"
                                    onpaste="return validatePaste(event, this)">
@@ -179,7 +181,7 @@
                         <label class="col-sm-3 col-form-label">總價格：</label>
                         <div class="col-sm-9">
                             <div class="alert alert-info mb-0">
-                                <span id="price-value-display">50</span> × <span id="quantity-value-display">1</span> = <strong id="total-price-display" class="text-success font-weight-bold">50</strong>
+                                <span id="price-value-display">？</span> × <span id="quantity-value-display">？</span> = <strong id="total-price-display" class="text-muted font-weight-bold">？</strong>
                             </div>
                         </div>
                     </div>
@@ -1556,15 +1558,15 @@ function setupInputValidation() {
     
     // 設置失去焦點時的驗證
     priceInput.addEventListener('blur', function() {
-        if (this.value === '' || parseInt(this.value) < 1) {
-            this.value = 1;
+        if (this.value !== '' && parseInt(this.value) < 1) {
+            this.value = '';
             updatePriceDisplay();
         }
     });
     
     quantityInput.addEventListener('blur', function() {
-        if (this.value === '' || parseInt(this.value) < 1) {
-            this.value = 1;
+        if (this.value !== '' && parseInt(this.value) < 1) {
+            this.value = '';
             updateQuantityDisplay();
         }
     });
