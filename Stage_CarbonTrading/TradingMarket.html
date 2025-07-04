@@ -767,7 +767,7 @@ function updateMarket(data) {
                 if (o.player_id != playerId) {
                     const btn = document.createElement('button');
                     btn.className = 'btn btn-success btn-sm';
-                    btn.textContent = '賣出';
+                    btn.textContent = '買入';
                     btn.onclick = e => { e.preventDefault(); acceptOffer('sell', o.player_id, o.price, o.quantity); };
                     c4.appendChild(btn);
                 } else {
@@ -1349,7 +1349,7 @@ function processOtreeResponse(data) {
                 if (o.player_id != playerId) {
                     const btn = document.createElement('button');
                     btn.className = 'btn btn-success btn-sm';
-                    btn.textContent = '賣出';
+                    btn.textContent = '買入';
                     btn.onclick = e => { e.preventDefault(); acceptOffer('sell', o.player_id, o.price, o.quantity); };
                     c4.appendChild(btn);
                 } else {
