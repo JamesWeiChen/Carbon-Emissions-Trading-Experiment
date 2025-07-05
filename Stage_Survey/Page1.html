@@ -1,0 +1,18 @@
+{{ block title }}
+問卷調查
+{{ endblock }}
+{{ block content }}
+<p> 正式實驗結束之後，我們需要了解您是如何做決策，請您回答以下問題。</p><br>
+
+  {{ formfield 'gender' }}
+  {{ formfield 'age' }}
+  {{ formfield 'grade' }}
+  {{ formfield 'principle' }}
+  {{ formfield 'principle_2' }}
+  {{ formfield 'theory' }}
+  {{ formfield 'game' }}
+  {{ formfield 'exp' }}
+
+    {{ next_button }}
+
+{{ endblock }}
