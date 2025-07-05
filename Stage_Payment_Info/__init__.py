@@ -58,9 +58,11 @@ class PaymentInfo(Page):
             total_emission_formatted=f"{total_emission:.1f} 噸 CO₂",
             total_group_emission_formatted=f"{total_group_emission:.1f} 噸 CO₂",
             real_payoff_formatted=f"{real_payoff:,.0f} 元",
-            participation_fee=participation_fee,
+            participation_fee = int(player.session.config.get('participation_fee', 0)),
             total_payment_formatted=f"{total_payment:,.0f} 元",
             completion_code=Constants.completion_code
         )
+
+
 
 page_sequence = [PaymentInfo]
