@@ -148,7 +148,7 @@ stages:
     # 社會最適產量與碳權分配設定
     optimal_allocation:
       # 固定參數設定
-      use_fixed_price: true  # 是否使用固定市場價格（而非隨機抽取）
+      use_fixed_price: false  # 是否使用固定市場價格（而非隨機抽取）
       fixed_market_price: 10  # 固定市場價格 p
       social_cost_per_unit_carbon: 2  # 每單位碳的社會成本 c
       
