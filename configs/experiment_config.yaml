@@ -137,13 +137,13 @@ stages:
 
   payment_info:
     name_in_url: 'Stage_Payment_Info'
-    display_name: "收據資訊"
-    description: "自動產生收據用資訊收集"
+    display_name: "報酬結算"
+    description: "計算總報酬"
 
   survey:
     name_in_url: 'Stage_Survey'
-    display_name: "問卷"
-    description: "問卷"
+    display_name: "收據資訊與問卷"
+    description: "收據資訊與實驗後問卷"
     
     # 社會最適產量與碳權分配設定
     optimal_allocation:
