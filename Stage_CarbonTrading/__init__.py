@@ -1167,7 +1167,7 @@ class Results(Page):
             }
         
         # 儲存數據以供 Payment Info 使用
-        if final_payoff_info:
+        if final_payoff_info is not None:
             player.participant.vars["carbon_trade_summary"] = {
                 "profit": final_payoff_info["profit"],
                 "emission": final_payoff_info["emissions"],
