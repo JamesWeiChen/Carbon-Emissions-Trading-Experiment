@@ -61,7 +61,7 @@ def initialize_roles(subsession: Subsession) -> None:
 
     # 碳交易組特有的市場價格設定
     if config.carbon_trading_use_fixed_price:
-        subsession.market_price = config.carbon_trading_fixed_market_price
+        subsession.market_price = _generate_market_price() # config.carbon_trading_fixed_market_price
         print(f"使用固定市場價格: {subsession.market_price}")
     else:
         subsession.market_price = _generate_market_price()
