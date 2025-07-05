@@ -4,14 +4,11 @@
 {{ block content }}
 
 <h3>實驗完成</h3>
-<p>您所參與的組別：{{ treatment_label }}</p>
 
 <table>
-    <tr><td>階段一報酬：</td><td>{{ control_profit }} 法幣</td></tr>
-    <tr><td>階段二報酬：</td><td>{{ carbon_profit }} 法幣</td></tr>
-    <tr><td><strong>總報酬：</strong></td><td><strong>{{ total_profit_formatted }}</strong></td></tr>
-    <tr><td>總排放量：</td><td>{{ total_emission_formatted }}</td></tr>
-    <tr><td>組別總排放量：</td><td>{{ total_group_emission_formatted }}</td></tr>
+    <tr><td><strong>您兩階段的總報酬為：</strong></td><td><strong>{{ total_profit_formatted }}</strong></td></tr>
+    <tr><td>而您個人的碳排放量為：</td><td>{{ total_emission_formatted }}</td></tr>
+    <tr><td>整個實驗的總碳排放量為：</td><td>{{ total_group_emission_formatted }}</td></tr>
 </table>
 
 <p>
