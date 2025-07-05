@@ -47,7 +47,7 @@ class PaymentInfo(Page):
         total_emission = control.get("emission", 0) + carbon.get("emission", 0)
         total_group_emission = control.get("group_emission", 0) + carbon.get("group_emission", 0)
 
-        particpipant.profit = total_profit
+        player.payoff = total_profit
 
         # 格式化後給 template 用
         return dict(
