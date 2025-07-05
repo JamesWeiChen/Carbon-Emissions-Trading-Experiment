@@ -134,6 +134,16 @@ stages:
     carbon_allowance_per_player: 10
     reset_cash_each_round: true  # 每輪重置現金
     description: "碳交易組：受試者需要先決定生產量，然後在碳權交易市場進行買賣"
+
+  payment_info:
+    name_in_url: 'Stage_Payment_Info'
+    display_name: "收據資訊"
+    description: "自動產生收據用資訊收集"
+
+  survey:
+    name_in_url: 'Stage_Survey'
+    display_name: "問卷"
+    description: "問卷"
     
     # 社會最適產量與碳權分配設定
     optimal_allocation:
