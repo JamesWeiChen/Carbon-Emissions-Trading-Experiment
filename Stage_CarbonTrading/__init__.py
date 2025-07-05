@@ -11,7 +11,8 @@ from utils.shared_utils import (
     update_price_history,
     record_trade,
     cancel_player_orders,
-    _generate_market_price
+    _generate_market_price,
+    initialize_player_roles
 )
 from utils.trading_utils import (
     parse_orders,
