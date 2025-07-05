@@ -100,10 +100,10 @@ class Results(Page):
         final_payoff_info = calculate_final_payoff_info(player)
 
         # 儲存數據以供 Payment Info 使用
-        player.participant.vars["app1_summary"] = dict(
+        player.participant.vars["control_summary"] = dict(
             profit=final_payoff_info.profit_formatted,
-            emission=final_payoff_info.emission
-            
+            emission=final_payoff_info.emission_formatted,
+            group_emission=final_payoff_info.group_emission_formatted,
         )
         
         # 計算進度資訊
