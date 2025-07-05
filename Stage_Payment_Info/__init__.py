@@ -7,7 +7,7 @@ Your app description
 
 
 class Constants(BaseConstants):
-    name_in_url = 'payment_info_U'
+    name_in_url = 'payment_info'
     players_per_group = None
     num_rounds = 1
     completion_code = '273940'
