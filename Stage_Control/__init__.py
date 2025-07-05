@@ -32,6 +32,8 @@ def creating_session(subsession: Subsession) -> None:
     # 讓所有參與者都進入同一組
     subsession.set_group_matrix([subsession.get_players()])
 
+    subsession.market_price = _generate_market_price()
+
 class Group(BaseGroup):
     pass
 
