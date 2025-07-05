@@ -81,7 +81,8 @@ def _assign_player_attributes(player: BasePlayer, is_dominant: bool, initial_cap
     player.current_cash = initial_capital
     
     # 設置市場價格
-    player.market_price = _generate_market_price()
+    # player.market_price = _generate_market_price()
+    player.market_price = player.subsession.market_price
 
 def _generate_market_price() -> Currency:
     """生成市場價格"""
