@@ -3,112 +3,18 @@
 {{ endblock }}
 {{ block content }}
 
-<p>
-    在第一部份的實驗，抽到第 {{ participant.SV_U_seq_random_round }} 回合，該回合有 {{ participant.SV_U_seq_num_vote_alpha }} 人選擇 α ， {{ participant.SV_U_seq_num_vote_beta }} 人選擇 β ， {{ participant.SV_U_seq_num_vote_gamma }} 人選擇 γ 。<br>
-    該回合您看到的報酬表如下，而您拿到的的報酬為 {{ participant.SV_U_seq_payoff }} 法幣。
-</p>
-    {{ if participant.SV_U_seq_Type == 1 }}
-        <table class=table style="width: auto">
-            <tr>
-                <td> α 最多人選</td>
-                <td> β 最多人選</td>
-                <td> γ 最多人選</td>
-            </tr>
+<h3>實驗完成</h3>
+<p>您所參與的組別：{{ treatment_label }}</p>
 
-            <tr>
-                <td>{{Constants.MULTIPLIER1}}</td>
-                <td>{{Constants.MULTIPLIER3}}</td>
-                <td>{{Constants.MULTIPLIER2}}</td>
-            </tr>
-        </table>
+<table>
+    <tr><td>階段一報酬：</td><td>{{ control_profit }} 法幣</td></tr>
+    <tr><td>階段二報酬：</td><td>{{ carbon_profit }} 法幣</td></tr>
+    <tr><td><strong>總報酬：</strong></td><td><strong>{{ total_profit_formatted }}</strong></td></tr>
+    <tr><td>總排放量：</td><td>{{ total_emission_formatted }}</td></tr>
+    <tr><td>組別總排放量：</td><td>{{ total_group_emission_formatted }}</td></tr>
+</table>
 
-        {{ elif participant.SV_U_seq_Type == 2 }}
-            <table class=table style="width: auto">
-                <tr>
-                    <td> α 最多人選</td>
-                    <td> β 最多人選</td>
-                    <td> γ 最多人選</td>
-                </tr>
-
-                <tr>
-                    <td>{{Constants.MULTIPLIER2}}</td>
-                    <td>{{Constants.MULTIPLIER1}}</td>
-                    <td>{{Constants.MULTIPLIER3}}</td>
-                </tr>
-            </table>
-
-        {{else}}
-            <table class=table style="width: auto">
-                <tr>
-                    <td> α 最多人選 </td>
-                    <td> β 最多人選 </td>
-                    <td> γ 最多人選 </td>
-                </tr>
-
-                <tr>
-                    <td>{{Constants.MULTIPLIER3}}</td>
-                    <td>{{Constants.MULTIPLIER2}}</td>
-                    <td>{{Constants.MULTIPLIER1}}</td>
-                </tr>
-            </table>
-    {{ endif }}
-
-
-<p>
-    在第二部份的實驗，抽到第 {{ participant.SV_U_sim_random_round }} 回合，該回合有 {{ participant.SV_U_sim_num_vote_alpha }} 人選擇 α ， {{ participant.SV_U_sim_num_vote_beta }} 人選擇 β ， {{ participant.SV_U_sim_num_vote_gamma }} 人選擇 γ 。<br>
-    該回合您看到的報酬表如下，而您拿到的的報酬為 {{ participant.SV_U_sim_payoff }} 法幣。
-</p>
-
-    {{ if participant.SV_U_sim_Type == 1 }}
-        <table class=table style="width: auto">
-            <tr>
-                <td> α 最多人選</td>
-                <td> β 最多人選</td>
-                <td> γ 最多人選</td>
-            </tr>
-
-            <tr>
-                <td>{{Constants.MULTIPLIER1}}</td>
-                <td>{{Constants.MULTIPLIER3}}</td>
-                <td>{{Constants.MULTIPLIER2}}</td>
-            </tr>
-        </table>
-
-        {{ elif participant.SV_U_sim_Type == 2 }}
-            <table class=table style="width: auto">
-                <tr>
-                    <td> α 最多人選</td>
-                    <td> β 最多人選</td>
-                    <td> γ 最多人選</td>
-                </tr>
-
-                <tr>
-                    <td>{{Constants.MULTIPLIER2}}</td>
-                    <td>{{Constants.MULTIPLIER1}}</td>
-                    <td>{{Constants.MULTIPLIER3}}</td>
-                </tr>
-            </table>
-
-        {{else}}
-            <table class=table style="width: auto">
-                <tr>
-                    <td> α 最多人選 </td>
-                    <td> β 最多人選 </td>
-                    <td> γ 最多人選 </td>
-                </tr>
-
-                <tr>
-                    <td>{{Constants.MULTIPLIER3}}</td>
-                    <td>{{Constants.MULTIPLIER2}}</td>
-                    <td>{{Constants.MULTIPLIER1}}</td>
-                </tr>
-            </table>
-    {{ endif }}
-
-<p>
-    <br>
-    根據法幣與新台幣兌換匯率（1 : 14），您的總報酬（含車馬費 100 元）為<span style="color:red;font-size: 16px">新台幣 {{ participant.SV_U_totalpayoff }} 元</span>。 <br>
-</p>
+<p><strong>請複製並回報以下完成代碼：</strong> {{ completion_code }}</p>
 
 <p>
     <br>
