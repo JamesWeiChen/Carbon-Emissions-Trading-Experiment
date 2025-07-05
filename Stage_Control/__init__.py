@@ -9,7 +9,8 @@ from utils.shared_utils import (
     initialize_player_roles, 
     calculate_control_payoffs,
     get_production_template_vars,
-    calculate_final_payoff_info
+    calculate_final_payoff_info,
+    _generate_market_price
 )
 from configs.config import config
 
