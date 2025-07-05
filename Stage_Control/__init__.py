@@ -101,9 +101,9 @@ class Results(Page):
 
         # 儲存數據以供 Payment Info 使用
         player.participant.vars["control_summary"] = dict(
-            profit=final_payoff_info.profit_formatted,
-            emission=final_payoff_info.emission_formatted,
-            group_emission=final_payoff_info.group_emission_formatted,
+            profit=final_payoff_info.profit,
+            emission=final_payoff_info.emission,
+            group_emission=final_payoff_info.group_emission,
         )
         
         # 計算進度資訊
