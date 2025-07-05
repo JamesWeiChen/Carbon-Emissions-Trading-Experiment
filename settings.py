@@ -32,17 +32,17 @@ SESSION_CONFIGS = [
     },
 
     {
-        'name': config.get_stage_name_in_url('carbon_trading'),
-        'app_sequence': [config.get_stage_name_in_url('carbon_trading')],
+        'name': config.get_stage_name_in_url('payment_info'),
+        'app_sequence': [config.get_stage_name_in_url('payment_info')],
         'num_demo_participants': config.players_per_group,
-        'display_name': config.get_stage_display_name('carbon_trading'),
+        'display_name': config.get_stage_display_name('payment_info'),
     },
 
     {
-        'name': config.get_stage_name_in_url('carbon_trading'),
-        'app_sequence': [config.get_stage_name_in_url('carbon_trading')],
+        'name': config.get_stage_name_in_url('survey'),
+        'app_sequence': [config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
-        'display_name': config.get_stage_display_name('carbon_trading'),
+        'display_name': config.get_stage_display_name('survey'),
     },
 ]
 
