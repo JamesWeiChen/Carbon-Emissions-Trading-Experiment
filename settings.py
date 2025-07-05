@@ -46,14 +46,14 @@ SESSION_CONFIGS = [
     },
 
     {
-        'name': 'Exp: Carbon Tax',
+        'name': 'Experiment Carbon Tax',
         'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
         'display_name': "正式實驗：碳稅",
     },
 
     {
-        'name': 'Exp: Carbon Trade',
+        'name': 'Experiment Carbon Trade',
         'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'), config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
         'display_name': "正式實驗：碳權交易",
