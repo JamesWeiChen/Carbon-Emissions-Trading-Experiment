@@ -98,6 +98,13 @@ class Results(Page):
         
         # 計算最終報酬資訊
         final_payoff_info = calculate_final_payoff_info(player)
+
+        # 儲存數據以供 Payment Info 使用
+        player.participant.vars["app1_summary"] = dict(
+            profit=final_payoff_info.profit_formatted,
+            emission=final_payoff_info.emission
+            
+        )
         
         # 計算進度資訊
         is_last_round = player.round_number == C.NUM_ROUNDS
