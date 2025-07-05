@@ -318,6 +318,7 @@ def calculate_final_payoff_info(
     
     # 選擇隨機回合
     selected_round = _get_or_set_selected_round(player)
+    player.selected_round = selected_round
     selected_round_player = player.in_round(selected_round)
     
     # 計算選中回合的數據
