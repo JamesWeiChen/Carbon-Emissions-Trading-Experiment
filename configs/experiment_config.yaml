@@ -58,7 +58,7 @@ test_mode_overrides:
   general:
     players_per_group: 2  # 測試模式：2人一組
     num_rounds: 3  # 測試模式：3回合
-    max_production: 10  # 測試模式：最大生產量10
+    max_production: 20  # 測試模式：最大生產量10
     
     # 角色分配設定（測試模式）
     role_assignment:
