@@ -398,7 +398,7 @@ class Results(Page):
     @staticmethod
     def vars_for_template(player: Player) -> Dict[str, Any]:
         # 計算全體玩家的物品總量
-        total_items_in_group = sum(p.current_items for p in player.group.get_players())
+        group_items_total = sum(p.current_items for p in player.group.get_players())
         
         # 獲取交易歷史
         try:
@@ -433,7 +433,7 @@ class Results(Page):
             # 市場資訊
             'market_price': player.subsession.item_market_price,
             'personal_item_value': player.personal_item_value,
-            'total_items_in_group': total_items_in_group,
+            'group_items_total': group_items_total,
             
             # 回合資訊
             'current_round': player.round_number,
