@@ -99,12 +99,13 @@ class Results(Page):
         # 計算最終報酬資訊
         final_payoff_info = calculate_final_payoff_info(player)
 
-        # 儲存數據以供 Payment Info 使用
-        player.participant.vars["control_summary"] = dict(
-            profit=final_payoff_info.profit,
-            emission=final_payoff_info.emission,
-            group_emission=final_payoff_info.group_emission,
-        )
+        # 給 Payment Info 用的資訊
+        if final_payoff_info:
+            player.participant.vars["control_summary"] = {
+                "profit": final_payoff_info["profit"],
+                "emission": final_payoff_info["emissions"],
+                "group_emission": final_payoff_info["group_emissions"]
+            }
         
         # 計算進度資訊
         is_last_round = player.round_number == C.NUM_ROUNDS
