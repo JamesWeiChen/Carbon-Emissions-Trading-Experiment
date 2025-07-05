@@ -44,6 +44,20 @@ SESSION_CONFIGS = [
         'num_demo_participants': config.players_per_group,
         'display_name': config.get_stage_display_name('survey'),
     },
+
+    {
+        'name': 'Exp: Carbon Tax',
+        'app_sequence': [config.get_stage_name_in_url('carbon_trading')],
+        'num_demo_participants': config.players_per_group,
+        'display_name': "正式實驗：碳稅",
+    },
+
+    {
+        'name': 'Exp: Carbon Trade',
+        'app_sequence': [config.get_stage_name_in_url('carbon_trading')],
+        'num_demo_participants': config.players_per_group,
+        'display_name': "正式實驗：碳權交易",
+    },
 ]
 
 
