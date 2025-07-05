@@ -161,6 +161,8 @@ page_sequences:
   carbon_tax: ['Introduction', 'ReadyWaitPage', 'ProductionDecision', 'ResultsWaitPage', 'Results']
   muda: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ResultsWaitPage', 'Results']
   carbon_trading: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ProductionDecision', 'ResultsWaitPage', 'Results']
+  payment_info: ['']
+  survey: ['']
 
 # ====================================
 # 實驗設定
