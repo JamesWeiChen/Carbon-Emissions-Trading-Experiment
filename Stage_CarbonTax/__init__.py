@@ -41,6 +41,8 @@ def creating_session(subsession: Subsession) -> None:
     
     print(f"第{subsession.round_number}輪 - 選中的稅率: {selected_tax_rate}")
 
+    subsession.market_price = _generate_market_price()
+
 class Group(BaseGroup):
     pass
 
