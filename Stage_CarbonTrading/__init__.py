@@ -1167,11 +1167,12 @@ class Results(Page):
             }
         
         # 儲存數據以供 Payment Info 使用
-        player.participant.vars["carbon_trade_summary"] = dict(
-            profit=final_payoff_info["profit"],
-            emission=final_payoff_info["emissions"],
-            group_emission=final_payoff_info["group_emissions"]
-        )
+        if final_payoff_info:
+            player.participant.vars["carbon_trade_summary"] = {
+                "profit": final_payoff_info["profit"],
+                "emission": final_payoff_info["emissions"],
+                "group_emission": final_payoff_info["group_emissions"]
+            }
  
         # 計算當前輪的總資金和利潤（用於顯示）
         current_final_cash_after_production = player.current_cash - production_cost
