@@ -445,6 +445,11 @@ class Results(Page):
             # 其他
             'item_name': C.ITEM_NAME,
             'final_payoff_info': final_payoff_info,
+
+            # 顯示用格式化值
+            'total_value_formatted': f"{int(round(player.total_value))}",
+            'initial_capital_formatted': f"{int(round(player.initial_capital))}",
+            'current_profit_formatted': f"{int(round(player.total_value - player.initial_capital))}",
         }
 
 def _calculate_final_payoff_info(player: Player) -> Dict[str, Any]:
