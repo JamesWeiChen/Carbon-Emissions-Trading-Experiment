@@ -106,4 +106,4 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
 
-DEBUG = environ.get('OTREE_PRODUCTION') in {None, '', '0'}
+# DEBUG = environ.get('OTREE_PRODUCTION') in {None, '', '0'}
