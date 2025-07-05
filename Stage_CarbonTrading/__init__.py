@@ -239,15 +239,15 @@ def creating_session(subsession: Subsession) -> None:
     """創建會話時的初始化"""
     # 讓所有人進入同一組
     subsession.set_group_matrix([subsession.get_players()])
-    
-    # 設定起始時間與初始化邏輯
-    subsession.start_time = int(time.time())
-    initialize_roles(subsession)
 
     # 如果還沒抽過，先抽一個 shared selected round
     if "selected_round" not in subsession.session.vars:
         subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
     print(f"選中的報酬回合為：{subsession.session.vars['selected_round']}")
+    
+    # 設定起始時間與初始化邏輯
+    subsession.start_time = int(time.time())
+    initialize_roles(subsession)
 
 class Group(BaseGroup):
     buy_orders = models.LongStringField(initial='[]')
