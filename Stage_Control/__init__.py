@@ -100,13 +100,13 @@ class Results(Page):
         final_payoff_info = calculate_final_payoff_info(player)
 
         # 給 Payment Info 用的資訊
-        if final_payoff_info:
+        if final_payoff_info is not None:
             player.participant.vars["control_summary"] = {
                 "profit": final_payoff_info["profit"],
                 "emission": final_payoff_info["emissions"],
                 "group_emission": final_payoff_info["group_emissions"]
             }
-        
+
         # 計算進度資訊
         is_last_round = player.round_number == C.NUM_ROUNDS
         remaining_rounds = C.NUM_ROUNDS - player.round_number
