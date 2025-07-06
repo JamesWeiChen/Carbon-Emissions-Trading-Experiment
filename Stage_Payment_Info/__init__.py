@@ -65,4 +65,4 @@ class PaymentInfo(Page):
 
 
 
-page_sequence = [PaymentInfo]
+page_sequence = [PaymentInfo, WaitForInstruction]
