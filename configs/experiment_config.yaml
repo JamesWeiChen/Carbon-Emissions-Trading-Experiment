@@ -75,20 +75,21 @@ test_mode_overrides:
   # 測試模式下的階段設定覆蓋
   stages:
     control:
-      initial_capital: 1000  # 測試模式較高初始資金
+      initial_capital: 10000  # 測試模式較高初始資金
       
     carbon_tax:
-      initial_capital: 1000
+      initial_capital: 10000
       tax_random_selection:
         rates: [2, 3]  # 測試模式簡化稅率選項
         
     muda:
-      initial_capital: 99999  # 測試模式大量資金
+      initial_capital: 10000  # 測試模式大量資金
       trading_time: 60  # 測試模式縮短交易時間
       item_price_options: [30, 35]  # 測試模式簡化價格選項
       
+      
     carbon_trading:
-      initial_capital: 99999
+      initial_capital: 10000
       trading_time: 60  # 測試模式縮短交易時間
       carbon_allowance_per_player: 5  # 測試模式較少碳權
       
@@ -120,6 +121,7 @@ stages:
     display_name: "MUDA"
     initial_capital: 10000
     trading_time: 180
+    num_rounds: 4
     item_name: "碳權"
     reset_cash_each_round: true
     description: "MUDA：純交易練習回合，讓受試者熟悉交易市場介面操作"
