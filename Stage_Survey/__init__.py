@@ -143,4 +143,8 @@ class Survey(Page):
         'mechanism_complex', 'better_for_emission'
     ]
 
-page_sequence = [BasicInfo, Survey]
+class ByePage(Page):
+    def is_displayed(player):
+        return True
+
+page_sequence = [BasicInfo, Survey, ByePage]
