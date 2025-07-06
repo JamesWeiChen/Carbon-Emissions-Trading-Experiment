@@ -42,6 +42,11 @@ def creating_session(subsession: Subsession) -> None:
     subsession.set_group_matrix([subsession.get_players()])
     # 設置開始時間
     subsession.start_time = int(time.time())
+
+    # 所有人共用 selected_round
+    if "selected_round" not in subsession.session.vars:
+        subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
+        print(f"[MUDA] 共用的 selected_round 抽中第 {subsession.session.vars['selected_round']} 輪")
     
     # 設定參考價格
     reference_price = random.choice(config.muda_item_price_options)
@@ -106,11 +111,11 @@ def initialize_roles(subsession: Subsession) -> None:
     for p in subsession.get_players():
         _initialize_player(p)
         
-        # 設置selected_round
-        if p.round_number == 1:
-            p.selected_round = random.randint(1, config.num_rounds)
-        else:
-            p.selected_round = p.in_round(1).selected_round
+    # 所有人共用 session.vars["selected_round"]
+    if p.round_number == 1:
+        p.selected_round = subsession.session.vars["selected_round"]
+    else:
+        p.selected_round = p.in_round(1).selected_round
 
 def set_payoffs(group: BaseGroup) -> None:
     """設置玩家報酬"""
