@@ -1,3 +1,4 @@
+# apps/WaitForHost/__init__.py
 from otree.api import *
 
 class C(BaseConstants):
@@ -9,18 +10,8 @@ class Subsession(BaseSubsession): pass
 class Group(BaseGroup): pass
 class Player(BasePlayer): pass
 
-
-class WaitForInstruction(Page):
-    timeout_seconds = None  # 無限等待，由主持人控制
-
-    @staticmethod
-    def is_displayed(player):
-        return True
-
-    @staticmethod
-    def vars_for_template(player):
-        return {
-            'message': "請稍候，等待實驗者進行說明。",
-        }
+class InstructionWait(Page):
+    timeout_seconds = None
+    def is_displayed(player): return True
 
 page_sequence = [WaitForInstruction]
