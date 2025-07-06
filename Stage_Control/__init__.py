@@ -152,6 +152,9 @@ class Results(Page):
             'treatment_text': config.get_treatment_name('control'),
         }
 
+class WaitForInstruction(Page):
+    pass
+    
 def _get_production_cost(player: Player) -> float:
     """獲取生產成本"""
     if player.field_maybe_none('total_cost') is not None:
