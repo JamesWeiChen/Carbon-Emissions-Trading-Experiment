@@ -25,7 +25,7 @@ doc = config.get_stage_description('muda')
 class C(BaseConstants):
     NAME_IN_URL = config.get_stage_name_in_url('muda')
     PLAYERS_PER_GROUP = config.players_per_group
-    NUM_ROUNDS = config.num_rounds
+    NUM_ROUNDS = config.muda_num_rounds
     TRADING_TIME = config.muda_trading_time
     INITIAL_CAPITAL = config.get_stage_initial_capital('muda')
     ITEM_NAME = config.muda_item_name
