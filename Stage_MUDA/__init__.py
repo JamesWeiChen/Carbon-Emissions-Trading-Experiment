@@ -453,7 +453,9 @@ class Results(Page):
         }
 
 class WaitForInstruction(Page):
-    pass
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == C.NUM_ROUNDS
 
 def _calculate_final_payoff_info(player: Player) -> Dict[str, Any]:
     """計算最終報酬資訊"""
