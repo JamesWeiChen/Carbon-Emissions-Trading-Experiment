@@ -1221,6 +1221,9 @@ class Results(Page):
             initial_capital_formatted=f"{int(round(float(player.initial_capital if hasattr(player, 'initial_capital') else C.INITIAL_CAPITAL)))}",
         )
 
+class WaitForInstruction(Page):
+    pass
+
 page_sequence = [
     Introduction,
     ReadyWaitPage,
