@@ -64,6 +64,8 @@ class PaymentInfo(Page):
         )
 
 class WaitForInstruction(Page):
-    pass
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == C.NUM_ROUNDS
 
 page_sequence = [PaymentInfo, WaitForInstruction]
