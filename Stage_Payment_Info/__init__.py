@@ -63,6 +63,7 @@ class PaymentInfo(Page):
             completion_code=Constants.completion_code
         )
 
-
+class WaitForInstruction(Page):
+    pass
 
 page_sequence = [PaymentInfo, WaitForInstruction]
