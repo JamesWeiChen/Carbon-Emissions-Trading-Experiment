@@ -488,4 +488,4 @@ def _calculate_final_payoff_info(player: Player) -> Dict[str, Any]:
         'item_value_formatted': f"{int(round(item_value))}",
     }
 
-page_sequence = [Introduction, ReadyWaitPage, TradingMarket, ResultsWaitPage, Results]
+page_sequence = [Introduction, ReadyWaitPage, TradingMarket, ResultsWaitPage, Results, WaitForInstruction]
