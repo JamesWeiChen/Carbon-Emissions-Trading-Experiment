@@ -452,6 +452,9 @@ class Results(Page):
             'current_profit_formatted': f"{int(round(player.total_value - player.initial_capital))}",
         }
 
+class WaitForInstruction(Page):
+    pass
+
 def _calculate_final_payoff_info(player: Player) -> Dict[str, Any]:
     """計算最終報酬資訊"""
     if player.round_number != C.NUM_ROUNDS:
