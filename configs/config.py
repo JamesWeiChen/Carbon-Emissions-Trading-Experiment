@@ -217,8 +217,8 @@ class ExperimentConfig:
 
     @property
     def muda_num_rounds(self) -> int:
-    """MUDA 回合數"""
-    return self.get('stages.muda.num_rounds', 4)
+        """MUDA 回合數"""
+        return self.get('stages.muda.num_rounds', 4)
     
     @property
     def muda_initial_capital(self) -> 'Currency':
