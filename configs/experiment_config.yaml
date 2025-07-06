@@ -86,6 +86,7 @@ test_mode_overrides:
       initial_capital: 10000  # 測試模式大量資金
       trading_time: 60  # 測試模式縮短交易時間
       item_price_options: [30, 35]  # 測試模式簡化價格選項
+      num_rounds: 2
       
       
     carbon_trading:
