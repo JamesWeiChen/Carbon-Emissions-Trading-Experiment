@@ -1227,5 +1227,6 @@ page_sequence = [
     TradingMarket,
     ProductionDecision,
     ResultsWaitPage,
-    Results
+    Results, 
+    WaitForInstruction
 ]
