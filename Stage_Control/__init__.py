@@ -168,4 +168,4 @@ def _calculate_group_emissions(player: Player) -> float:
         group_emissions += p_emissions
     return group_emissions
 
-page_sequence = [Introduction, ReadyWaitPage, ProductionDecision, ResultsWaitPage, Results]
+page_sequence = [Introduction, ReadyWaitPage, ProductionDecision, ResultsWaitPage, Results, WaitForInstruction]
