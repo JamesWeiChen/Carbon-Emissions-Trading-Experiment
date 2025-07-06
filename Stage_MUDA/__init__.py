@@ -41,7 +41,7 @@ def creating_session(subsession: Subsession) -> None:
     # 讓所有人進入同一組
     subsession.set_group_matrix([subsession.get_players()])
     # 設置開始時間
-    subsession.start_time = int(time.time())
+    # subsession.start_time = int(time.time())
 
     # 所有人共用 selected_round
     if "selected_round" not in subsession.session.vars:
@@ -151,11 +151,13 @@ class TradingMarket(Page):
     form_model = 'player'
     form_fields = ['buy_quantity', 'buy_price', 'sell_quantity', 'sell_price']
     timeout_seconds = C.TRADING_TIME
-
+    
     @staticmethod
     def vars_for_template(player: Player) -> Dict[str, Any]:
-        
-        player.subsession.start_time = int(time.time())
+
+        if player.subsession.start_time is None:
+            player.subsession.start_time = int(time.time())
+            print(f"[DEBUG] Round {player.round_number} 開始交易時間：{player.subsession.start_time}")
 
         personal_value = player.field_maybe_none('personal_item_value') or player.subsession.item_market_price
         total_item_value = player.current_items * personal_value
