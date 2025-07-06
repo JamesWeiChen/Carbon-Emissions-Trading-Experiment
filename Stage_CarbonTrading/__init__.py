@@ -693,6 +693,9 @@ class TradingMarket(Page):
 
     @staticmethod
     def vars_for_template(player):
+
+        player.subsession.start_time = int(time.time())
+
         return dict(
             cash=int(player.current_cash),
             permits=int(player.current_permits),
