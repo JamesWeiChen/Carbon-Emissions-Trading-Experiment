@@ -225,4 +225,4 @@ def _carbon_tax_additional_info(selected_player: Player) -> Dict[str, Any]:
         'tax_formatted': f"{int(round(tax))}"
     }
 
-page_sequence = [Introduction, ReadyWaitPage, ProductionDecision, ResultsWaitPage, Results]
+page_sequence = [Introduction, ReadyWaitPage, ProductionDecision, ResultsWaitPage, Results, WaitForInstruction]
