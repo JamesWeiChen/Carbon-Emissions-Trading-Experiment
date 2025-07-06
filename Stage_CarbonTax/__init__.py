@@ -187,7 +187,9 @@ class Results(Page):
         }
 
 class WaitForInstruction(Page):
-    pass
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == C.NUM_ROUNDS
     
 def _get_production_cost(player: Player) -> float:
     """獲取生產成本"""
