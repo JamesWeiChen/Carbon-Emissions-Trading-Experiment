@@ -20,7 +20,7 @@ class WaitForInstruction(Page):
     @staticmethod
     def vars_for_template(player):
         return {
-            'message': "請稍候，等待實驗者說明後再繼續。",
+            'message': "請稍候，等待實驗者進行實驗說明。",
         }
 
 page_sequence = [WaitForInstruction]
