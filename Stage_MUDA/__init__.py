@@ -482,6 +482,7 @@ def _calculate_final_payoff_info(player: Player) -> Dict[str, Any]:
         'profit_formatted': f"{int(round(profit))}",
         'total_value_formatted': f"{int(round(total_value))}",
         'initial_capital_formatted': f"{int(round(selected_round_player.initial_capital))}",
+        'final_cash_formatted': f"{int(round(selected_round_player.current_cash))}",
     }
 
 page_sequence = [Introduction, ReadyWaitPage, TradingMarket, ResultsWaitPage, Results]
