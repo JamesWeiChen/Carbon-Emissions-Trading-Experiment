@@ -40,8 +40,6 @@ def creating_session(subsession: Subsession) -> None:
     """創建會話時的初始化"""
     # 讓所有人進入同一組
     subsession.set_group_matrix([subsession.get_players()])
-    # 設置開始時間
-    subsession.start_time = int(time.time())
 
     # 所有人共用 selected_round
     if "selected_round" not in subsession.session.vars:
@@ -108,6 +106,11 @@ class Player(BasePlayer):
 
 def initialize_roles(subsession: Subsession) -> None:
     """初始化角色分配"""
+    
+    # 設定每回合的開始時間（確保每回合都重置時間）
+    subsession.start_time = int(time.time())
+    print(f"MUDA 第{subsession.round_number}回合開始時間已設定")
+    
     for p in subsession.get_players():
         _initialize_player(p)
         

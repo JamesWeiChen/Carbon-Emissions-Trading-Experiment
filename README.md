@@ -1,6 +1,6 @@
 # Carbon Emissions Trading Experiment Platform
 
-**版本 / Version**: 3.2 (2025-07-03)  
+**版本 / Version**: 4.0 (2025-07-07)  
 **Language / 語言**: [English](#english) | [中文](#中文版本)
 
 ---

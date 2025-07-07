@@ -59,6 +59,10 @@ class Subsession(BaseSubsession):
 def initialize_roles(subsession: Subsession) -> None:
     """使用共享工具庫和配置文件初始化角色"""
 
+    # 設定每回合的開始時間（確保每回合都重置時間）
+    subsession.start_time = int(time.time())
+    print(f"第{subsession.round_number}回合開始時間已設定")
+
     # 碳交易組特有的市場價格設定
     if config.carbon_trading_use_fixed_price:
         subsession.market_price = config.carbon_trading_fixed_market_price
@@ -245,8 +249,7 @@ def creating_session(subsession: Subsession) -> None:
         subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
     print(f"選中的報酬回合為：{subsession.session.vars['selected_round']}")
     
-    # 設定起始時間與初始化邏輯
-    subsession.start_time = int(time.time())
+    # 初始化角色（start_time 將在每回合開始時設定）
     initialize_roles(subsession)
 
 class Group(BaseGroup):
