@@ -9,7 +9,8 @@ from utils.shared_utils import (
     initialize_player_roles, 
     calculate_control_payoffs,
     get_production_template_vars,
-    calculate_final_payoff_info
+    calculate_final_payoff_info,
+    _generate_market_price
 )
 from configs.config import config
 
@@ -30,6 +31,8 @@ def creating_session(subsession: Subsession) -> None:
     """創建會話時的初始化"""
     # 讓所有參與者都進入同一組
     subsession.set_group_matrix([subsession.get_players()])
+
+    subsession.market_price = _generate_market_price()
 
 class Group(BaseGroup):
     pass
@@ -98,7 +101,15 @@ class Results(Page):
         
         # 計算最終報酬資訊
         final_payoff_info = calculate_final_payoff_info(player)
-        
+
+        # 給 Payment Info 用的資訊
+        if final_payoff_info is not None:
+            player.participant.vars["control_summary"] = {
+                "profit": final_payoff_info["profit"],
+                "emission": final_payoff_info["emissions"],
+                "group_emission": final_payoff_info["group_emissions"]
+            }
+
         # 計算進度資訊
         is_last_round = player.round_number == C.NUM_ROUNDS
         remaining_rounds = C.NUM_ROUNDS - player.round_number
@@ -141,6 +152,11 @@ class Results(Page):
             'treatment_text': config.get_treatment_name('control'),
         }
 
+class WaitForInstruction(Page):
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == C.NUM_ROUNDS
+    
 def _get_production_cost(player: Player) -> float:
     """獲取生產成本"""
     if player.field_maybe_none('total_cost') is not None:
@@ -157,4 +173,4 @@ def _calculate_group_emissions(player: Player) -> float:
         group_emissions += p_emissions
     return group_emissions
 
-page_sequence = [Introduction, ReadyWaitPage, ProductionDecision, ResultsWaitPage, Results]
+page_sequence = [Introduction, ReadyWaitPage, ProductionDecision, ResultsWaitPage, Results, WaitForInstruction]

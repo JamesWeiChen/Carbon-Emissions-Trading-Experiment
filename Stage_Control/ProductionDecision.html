@@ -168,7 +168,6 @@ function updateProfitEstimate(qty) {
     // 計算總成本
     let totalCost = 0;
     for (let q = 1; q <= qty; q++) {
-        // 邊際成本 = marginal_cost_coefficient * q，再加上擾動值
         const disturbance = window.disturbanceValues ? window.disturbanceValues[q-1] : 0;
         const marginalCost = parseFloat(marginalCostCoefficient) * q + disturbance;
         totalCost += marginalCost;
@@ -180,10 +179,20 @@ function updateProfitEstimate(qty) {
     // 計算淨利潤
     const netProfit = totalRevenue - totalCost;
     
-    // 更新顯示（所有數值都直接顯示數字）
+    // 更新顯示
     document.getElementById('mc-display2').innerText = totalCost.toFixed(2);
     document.getElementById('net-profit').innerText = netProfit.toFixed(2);
     document.getElementById('card-emissions').innerText = Math.round(totalEmissions);
+    
+    // 根據淨利潤加上顏色 class
+    const profitElement = document.getElementById('net-profit');
+    if (netProfit > 0) {
+        profitElement.className = 'text-success';
+    } else if (netProfit < 0) {
+        profitElement.className = 'text-danger';
+    } else {
+        profitElement.className = '';
+    }
 }
 
 // 表單提交前驗證

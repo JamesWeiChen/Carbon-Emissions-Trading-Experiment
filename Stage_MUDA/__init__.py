@@ -25,7 +25,7 @@ doc = config.get_stage_description('muda')
 class C(BaseConstants):
     NAME_IN_URL = config.get_stage_name_in_url('muda')
     PLAYERS_PER_GROUP = config.players_per_group
-    NUM_ROUNDS = config.num_rounds
+    NUM_ROUNDS = config.muda_num_rounds
     TRADING_TIME = config.muda_trading_time
     INITIAL_CAPITAL = config.get_stage_initial_capital('muda')
     ITEM_NAME = config.muda_item_name
@@ -42,6 +42,11 @@ def creating_session(subsession: Subsession) -> None:
     subsession.set_group_matrix([subsession.get_players()])
     # 設置開始時間
     subsession.start_time = int(time.time())
+
+    # 所有人共用 selected_round
+    if "selected_round" not in subsession.session.vars:
+        subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
+        print(f"[MUDA] 共用的 selected_round 抽中第 {subsession.session.vars['selected_round']} 輪")
     
     # 設定參考價格
     reference_price = random.choice(config.muda_item_price_options)
@@ -106,11 +111,11 @@ def initialize_roles(subsession: Subsession) -> None:
     for p in subsession.get_players():
         _initialize_player(p)
         
-        # 設置selected_round
-        if p.round_number == 1:
-            p.selected_round = random.randint(1, config.num_rounds)
-        else:
-            p.selected_round = p.in_round(1).selected_round
+    # 所有人共用 session.vars["selected_round"]
+    if p.round_number == 1:
+        p.selected_round = subsession.session.vars["selected_round"]
+    else:
+        p.selected_round = p.in_round(1).selected_round
 
 def set_payoffs(group: BaseGroup) -> None:
     """設置玩家報酬"""
@@ -149,6 +154,9 @@ class TradingMarket(Page):
 
     @staticmethod
     def vars_for_template(player: Player) -> Dict[str, Any]:
+        
+        player.subsession.start_time = int(time.time())
+
         personal_value = player.field_maybe_none('personal_item_value') or player.subsession.item_market_price
         total_item_value = player.current_items * personal_value
         
@@ -398,7 +406,7 @@ class Results(Page):
     @staticmethod
     def vars_for_template(player: Player) -> Dict[str, Any]:
         # 計算全體玩家的物品總量
-        total_items_in_group = sum(p.current_items for p in player.group.get_players())
+        group_items_total = sum(p.current_items for p in player.group.get_players())
         
         # 獲取交易歷史
         try:
@@ -433,7 +441,7 @@ class Results(Page):
             # 市場資訊
             'market_price': player.subsession.item_market_price,
             'personal_item_value': player.personal_item_value,
-            'total_items_in_group': total_items_in_group,
+            'group_items_total': group_items_total,
             
             # 回合資訊
             'current_round': player.round_number,
@@ -445,7 +453,17 @@ class Results(Page):
             # 其他
             'item_name': C.ITEM_NAME,
             'final_payoff_info': final_payoff_info,
+
+            # 顯示用格式化值
+            'total_value_formatted': f"{int(round(player.total_value))}",
+            'initial_capital_formatted': f"{int(round(player.initial_capital))}",
+            'current_profit_formatted': f"{int(round(player.total_value - player.initial_capital))}",
         }
+
+class WaitForInstruction(Page):
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == C.NUM_ROUNDS
 
 def _calculate_final_payoff_info(player: Player) -> Dict[str, Any]:
     """計算最終報酬資訊"""
@@ -476,6 +494,11 @@ def _calculate_final_payoff_info(player: Player) -> Dict[str, Any]:
         'profit': profit,
         'profit_formatted': f"{int(round(profit))}",
         'total_value_formatted': f"{int(round(total_value))}",
+        'final_cash_formatted': f"{int(round(selected_round_player.current_cash))}",
+        'initial_capital_formatted': f"{int(round(selected_round_player.initial_capital))}",
+        'item_count': selected_round_player.current_items,
+        'personal_item_value_formatted': f"{int(round(personal_value))}",
+        'item_value_formatted': f"{int(round(item_value))}",
     }
 
-page_sequence = [Introduction, ReadyWaitPage, TradingMarket, ResultsWaitPage, Results]
+page_sequence = [Introduction, ReadyWaitPage, TradingMarket, ResultsWaitPage, Results, WaitForInstruction]

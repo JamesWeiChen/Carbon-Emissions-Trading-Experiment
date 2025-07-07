@@ -8,7 +8,7 @@
 # ====================================
 experiment_mode:
   # 主開關：true = 測試模式, false = 正式模式
-  test_mode_enabled: false
+  test_mode_enabled: true
   
   # 模式說明
   # - 測試模式：2人一組，3回合，簡化參數，方便快速測試
@@ -58,7 +58,7 @@ test_mode_overrides:
   general:
     players_per_group: 2  # 測試模式：2人一組
     num_rounds: 3  # 測試模式：3回合
-    max_production: 10  # 測試模式：最大生產量10
+    max_production: 20  # 測試模式：最大生產量10
     
     # 角色分配設定（測試模式）
     role_assignment:
@@ -75,20 +75,22 @@ test_mode_overrides:
   # 測試模式下的階段設定覆蓋
   stages:
     control:
-      initial_capital: 1000  # 測試模式較高初始資金
+      initial_capital: 10000  # 測試模式較高初始資金
       
     carbon_tax:
-      initial_capital: 1000
+      initial_capital: 10000
       tax_random_selection:
         rates: [2, 3]  # 測試模式簡化稅率選項
         
     muda:
-      initial_capital: 99999  # 測試模式大量資金
+      initial_capital: 10000  # 測試模式大量資金
       trading_time: 60  # 測試模式縮短交易時間
       item_price_options: [30, 35]  # 測試模式簡化價格選項
+      num_rounds: 2
+      
       
     carbon_trading:
-      initial_capital: 99999
+      initial_capital: 10000
       trading_time: 60  # 測試模式縮短交易時間
       carbon_allowance_per_player: 5  # 測試模式較少碳權
       
@@ -120,6 +122,7 @@ stages:
     display_name: "MUDA"
     initial_capital: 10000
     trading_time: 180
+    num_rounds: 4
     item_name: "碳權"
     reset_cash_each_round: true
     description: "MUDA：純交易練習回合，讓受試者熟悉交易市場介面操作"
@@ -138,7 +141,7 @@ stages:
     # 社會最適產量與碳權分配設定
     optimal_allocation:
       # 固定參數設定
-      use_fixed_price: true  # 是否使用固定市場價格（而非隨機抽取）
+      use_fixed_price: false  # 是否使用固定市場價格（而非隨機抽取）
       fixed_market_price: 10  # 固定市場價格 p
       social_cost_per_unit_carbon: 2  # 每單位碳的社會成本 c
       
@@ -152,6 +155,16 @@ stages:
       show_detailed_calculation: true  # 是否顯示詳細計算過程
       decimal_places: 2  # 小數位數
       console_output_format: "detailed"  # 控制台輸出格式: "simple" 或 "detailed"
+  
+  payment_info:
+    name_in_url: 'Stage_Payment_Info'
+    display_name: "報酬結算"
+    description: "計算總報酬"
+
+  survey:
+    name_in_url: 'Stage_Survey'
+    display_name: "收據資訊與問卷"
+    description: "收據資訊與實驗後問卷"
 
 # ====================================
 # 頁面流程配置
@@ -161,6 +174,8 @@ page_sequences:
   carbon_tax: ['Introduction', 'ReadyWaitPage', 'ProductionDecision', 'ResultsWaitPage', 'Results']
   muda: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ResultsWaitPage', 'Results']
   carbon_trading: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ProductionDecision', 'ResultsWaitPage', 'Results']
+  payment_info: ['PaymentInfo']
+  survey: ['BasicInfo', 'Page1', 'Page2', 'Bye']
 
 # ====================================
 # 實驗設定

@@ -10,7 +10,9 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.shared_utils import (
     update_price_history,
     record_trade,
-    cancel_player_orders
+    cancel_player_orders,
+    _generate_market_price,
+    initialize_player_roles
 )
 from utils.trading_utils import (
     parse_orders,
@@ -56,32 +58,21 @@ class Subsession(BaseSubsession):
 
 def initialize_roles(subsession: Subsession) -> None:
     """使用共享工具庫和配置文件初始化角色"""
-    # 使用統一的角色初始化函數
-    from utils.shared_utils import initialize_player_roles
-    initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
-    
-    # 碳交易組特有的額外設定
-    # 根據配置決定使用固定價格或隨機價格
+
+    # 碳交易組特有的市場價格設定
     if config.carbon_trading_use_fixed_price:
-        # 使用固定市場價格
-        shared_price = config.carbon_trading_fixed_market_price
-        print(f"使用固定市場價格: {shared_price}")
+        subsession.market_price = config.carbon_trading_fixed_market_price
+        print(f"使用固定市場價格: {subsession.market_price}")
     else:
-        # 使用隨機價格抽取機制
-        base_prices = config.get('general.market_price_random_draw.base_prices', [25, 30, 35, 40])
-        variations = config.get('general.market_price_random_draw.variations', [-2, -1, 1, 2])
-        min_price = config.get('general.market_price_random_draw.min_price', 1)
-        
-        base_price = random.choice(base_prices)
-        variation = random.choice(variations)
-        shared_price = max(base_price + variation, min_price)
-        print(f"隨機抽取市場價格: {shared_price}")
-    
-    subsession.market_price = shared_price
+        subsession.market_price = _generate_market_price()
+        print(f"隨機抽取市場價格: {subsession.market_price}")
+
+    # 初始化玩家角色（會用到 subsession.market_price）
+    initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
     
     # 計算社會最適產量和碳權分配
     players = subsession.get_players()
-    allowance_allocation = calculate_optimal_allowance_allocation(players, shared_price)
+    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price)
     
     # 儲存結果到 subsession
     subsession.total_optimal_emissions = allowance_allocation['TE_opt_total']
@@ -91,7 +82,7 @@ def initialize_roles(subsession: Subsession) -> None:
     
     for i, p in enumerate(players):
         # 設置市場價格
-        p.market_price = shared_price
+        p.market_price = subsession.market_price
         
         # 現金管理
         if C.RESET_CASH_EACH_ROUND or p.round_number == 1:
@@ -115,11 +106,10 @@ def initialize_roles(subsession: Subsession) -> None:
         # 為每個玩家設置selected_round
         if p.round_number == 1:
             # 在第一輪隨機選擇一個回合用於最終報酬
-            p.selected_round = random.randint(1, C.NUM_ROUNDS)
+            p.selected_round = subsession.session.vars["selected_round"]
         else:
             # 在後續回合中保持與第一輪相同的selected_round
-            p.selected_round = p.in_round(1).selected_round
-        
+            p.selected_round = subsession.session.vars["selected_round"]
 
     
     # 根據配置檔案決定是否輸出詳細資訊
@@ -249,6 +239,11 @@ def creating_session(subsession: Subsession) -> None:
     """創建會話時的初始化"""
     # 讓所有人進入同一組
     subsession.set_group_matrix([subsession.get_players()])
+
+    # 如果還沒抽過，先抽一個 shared selected round
+    if "selected_round" not in subsession.session.vars:
+        subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
+    print(f"選中的報酬回合為：{subsession.session.vars['selected_round']}")
     
     # 設定起始時間與初始化邏輯
     subsession.start_time = int(time.time())
@@ -342,7 +337,7 @@ def _process_carbon_trading_order(
             seller_id = int(best_order[0])
             
             try:
-                seller = group.get_player_by_id(seller_id)
+                seller = grouget_player_by_id(seller_id)
                 execute_trade(group, player, seller, float(best_order[1]), quantity, 'current_permits')
                 
                 # 保留：交易成功時取消雙方其他訂單
@@ -698,6 +693,9 @@ class TradingMarket(Page):
 
     @staticmethod
     def vars_for_template(player):
+
+        player.subsession.start_time = int(time.time())
+
         return dict(
             cash=int(player.current_cash),
             permits=int(player.current_permits),
@@ -1166,6 +1164,14 @@ class Results(Page):
                 'total_final_value_formatted': f"{int(round(float(selected_total_final_value)))}"
             }
         
+        # 儲存數據以供 Payment Info 使用
+        if final_payoff_info is not None:
+            player.participant.vars["carbon_trade_summary"] = {
+                "profit": final_payoff_info["profit"],
+                "emission": final_payoff_info["emissions"],
+                "group_emission": final_payoff_info["group_emissions"]
+            }
+ 
         # 計算當前輪的總資金和利潤（用於顯示）
         current_final_cash_after_production = player.current_cash - production_cost
         current_total_final_value = current_final_cash_after_production + (player.field_maybe_none('revenue') or 0)
@@ -1218,11 +1224,17 @@ class Results(Page):
             initial_capital_formatted=f"{int(round(float(player.initial_capital if hasattr(player, 'initial_capital') else C.INITIAL_CAPITAL)))}",
         )
 
+class WaitForInstruction(Page):
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == C.NUM_ROUNDS
+
 page_sequence = [
     Introduction,
     ReadyWaitPage,
     TradingMarket,
     ProductionDecision,
     ResultsWaitPage,
-    Results
+    Results, 
+    WaitForInstruction
 ]

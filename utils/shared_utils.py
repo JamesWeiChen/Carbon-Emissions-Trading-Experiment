@@ -81,7 +81,8 @@ def _assign_player_attributes(player: BasePlayer, is_dominant: bool, initial_cap
     player.current_cash = initial_capital
     
     # 設置市場價格
-    player.market_price = _generate_market_price()
+    # player.market_price = _generate_market_price()
+    player.market_price = player.subsession.market_price
 
 def _generate_market_price() -> Currency:
     """生成市場價格"""
@@ -317,6 +318,7 @@ def calculate_final_payoff_info(
     
     # 選擇隨機回合
     selected_round = _get_or_set_selected_round(player)
+    player.selected_round = selected_round
     selected_round_player = player.in_round(selected_round)
     
     # 計算選中回合的數據
@@ -353,12 +355,9 @@ def calculate_final_payoff_info(
     return final_payoff_info
 
 def _get_or_set_selected_round(player: BasePlayer) -> int:
-    """獲取或設置選中的回合"""
-    selected_round = player.field_maybe_none('selected_round')
-    if selected_round is None:
-        selected_round = random.randint(1, config.num_rounds)
-        player.selected_round = selected_round
-    return selected_round
+    if "selected_round" not in player.session.vars:
+        player.session.vars["selected_round"] = random.randint(1, config.num_rounds)
+    return player.session.vars["selected_round"]
 
 def _calculate_cost_for_round(player: BasePlayer, cost_calculator_func: Optional[callable]) -> float:
     """計算指定回合的成本"""

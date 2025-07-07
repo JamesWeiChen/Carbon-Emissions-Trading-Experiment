@@ -1,0 +1,37 @@
+{{ block title }}
+    結算報酬
+{{ endblock }}
+
+{{ block content }}
+
+<h3>實驗完成</h3>
+
+<table style="line-height: 1.6;">
+    <tr><td>階段一報酬：</td><td>{{ control_profit }} </td></tr>
+    <tr><td>階段二報酬：</td><td>{{ carbon_profit }} </td></tr>
+    <tr style="background-color: #f0f0f0;">
+        <td><strong>總實驗報酬：</strong></td>
+        <td><strong>{{ total_profit_formatted }}</strong></td>
+    </tr>
+    <tr><td>個人總碳排放量：</td><td>{{ total_emission_formatted }}</td></tr>
+    <tr><td>組別總排放量：</td><td>{{ total_group_emission_formatted }}</td></tr>
+</table>
+
+<br>
+
+<table style="line-height: 1.6;">
+    <tr><td>實驗報酬折算為新台幣：</td><td>{{ real_payoff_formatted }}</td></tr>
+    <tr><td>車馬費：</td><td>{{ participation_fee }} 元</td></tr>
+    <tr style="background-color: #e0ffe0;">
+        <td><strong>您可領取的總金額為：</strong></td>
+        <td><strong>{{ total_payment_formatted }}</strong></td>
+    </tr>
+</table>
+
+<br>
+
+<p>按下「Next」進入問卷。</p>
+
+{{ next_button }}
+
+{{ endblock }}

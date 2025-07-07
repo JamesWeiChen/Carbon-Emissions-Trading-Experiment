@@ -31,11 +31,40 @@ SESSION_CONFIGS = [
         'display_name': config.get_stage_display_name('carbon_trading'),
     },
 
+    {
+        'name': config.get_stage_name_in_url('payment_info'),
+        'app_sequence': [config.get_stage_name_in_url('payment_info')],
+        'num_demo_participants': config.players_per_group,
+        'display_name': config.get_stage_display_name('payment_info'),
+    },
+
+    {
+        'name': config.get_stage_name_in_url('survey'),
+        'app_sequence': [config.get_stage_name_in_url('survey')],
+        'num_demo_participants': config.players_per_group,
+        'display_name': config.get_stage_display_name('survey'),
+    },
+
+    {
+        'name': 'Experiment_Carbon_Tax',
+        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
+        'num_demo_participants': config.players_per_group,
+        'display_name': "正式實驗：碳稅",
+        'treatment': 'tax',
+    },
+
+    {
+        'name': 'Experiment_Carbon_Trade',
+        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'), config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
+        'num_demo_participants': config.players_per_group,
+        'display_name': "正式實驗：碳權交易",
+        'treatment': 'trade',
+    },
 ]
 
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=1.00, participation_fee=0.00, doc=""
+    real_world_currency_per_point=2.00, participation_fee=150.00, doc=""
 )
 
 PARTICIPANT_FIELDS = []
@@ -77,4 +106,4 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
 
-DEBUG = environ.get('OTREE_PRODUCTION') in {None, '', '0'}
+# DEBUG = environ.get('OTREE_PRODUCTION') in {None, '', '0'}

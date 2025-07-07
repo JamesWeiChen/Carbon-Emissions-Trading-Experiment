@@ -10,7 +10,8 @@ from utils.shared_utils import (
     calculate_carbon_tax_payoffs,
     get_production_template_vars,
     calculate_final_payoff_info,
-    calculate_production_cost
+    calculate_production_cost,
+    _generate_market_price
 )
 from configs.config import config
 
@@ -40,6 +41,8 @@ def creating_session(subsession: Subsession) -> None:
     subsession.session.vars[f'tax_rate_round_{subsession.round_number}'] = selected_tax_rate
     
     print(f"第{subsession.round_number}輪 - 選中的稅率: {selected_tax_rate}")
+
+    subsession.market_price = _generate_market_price()
 
 class Group(BaseGroup):
     pass
@@ -129,7 +132,15 @@ class Results(Page):
             _carbon_tax_cost_calculator, 
             _carbon_tax_additional_info
         )
-        
+
+        # 儲存數據以供 Payment Info 使用
+        if final_payoff_info is not None:
+            player.participant.vars["carbon_tax_summary"] = {
+                "profit": final_payoff_info["profit"],
+                "emission": final_payoff_info["emissions"],
+                "group_emission": final_payoff_info["group_emissions"]
+            }
+
         # 計算進度資訊
         is_last_round = player.round_number == C.NUM_ROUNDS
         remaining_rounds = C.NUM_ROUNDS - player.round_number
@@ -175,6 +186,11 @@ class Results(Page):
             'treatment_text': config.get_treatment_name('carbon_tax'),
         }
 
+class WaitForInstruction(Page):
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == C.NUM_ROUNDS
+    
 def _get_production_cost(player: Player) -> float:
     """獲取生產成本"""
     if player.field_maybe_none('total_cost') is not None:
@@ -214,4 +230,4 @@ def _carbon_tax_additional_info(selected_player: Player) -> Dict[str, Any]:
         'tax_formatted': f"{int(round(tax))}"
     }
 
-page_sequence = [Introduction, ReadyWaitPage, ProductionDecision, ResultsWaitPage, Results]
+page_sequence = [Introduction, ReadyWaitPage, ProductionDecision, ResultsWaitPage, Results, WaitForInstruction]

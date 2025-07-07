@@ -214,6 +214,11 @@ class ExperimentConfig:
     def muda_trading_time(self) -> int:
         """MUDA交易時間（秒）"""
         return self.get('stages.muda.trading_time', 180)
+
+    @property
+    def muda_num_rounds(self) -> int:
+        """MUDA 回合數"""
+        return self.get('stages.muda.num_rounds', 4)
     
     @property
     def muda_initial_capital(self) -> 'Currency':
