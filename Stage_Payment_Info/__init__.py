@@ -64,8 +64,6 @@ class PaymentInfo(Page):
         )
 
 class WaitForInstruction(Page):
-    @staticmethod
-    def is_displayed(player: Player):
-        pass
+    pass
 
 page_sequence = [PaymentInfo, WaitForInstruction]
