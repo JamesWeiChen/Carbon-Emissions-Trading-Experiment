@@ -175,7 +175,7 @@ page_sequences:
   muda: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ResultsWaitPage', 'Results']
   carbon_trading: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ProductionDecision', 'ResultsWaitPage', 'Results']
   payment_info: ['PaymentInfo']
-  survey: ['BasicInfo', 'Page1', 'Page2', 'Bye']
+  survey: ['BasicInfo', 'Survey', 'ByePage']
 
 # ====================================
 # 實驗設定
