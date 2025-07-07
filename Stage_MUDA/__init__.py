@@ -155,8 +155,6 @@ class TradingMarket(Page):
     @staticmethod
     def vars_for_template(player: Player) -> Dict[str, Any]:
         
-        player.subsession.start_time = int(time.time())
-
         personal_value = player.field_maybe_none('personal_item_value') or player.subsession.item_market_price
         total_item_value = player.current_items * personal_value
         
