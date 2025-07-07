@@ -114,11 +114,11 @@ def initialize_roles(subsession: Subsession) -> None:
     for p in subsession.get_players():
         _initialize_player(p)
         
-    # 所有人共用 session.vars["selected_round"]
-    if p.round_number == 1:
-        p.selected_round = subsession.session.vars["selected_round"]
-    else:
-        p.selected_round = p.in_round(1).selected_round
+        # 所有人共用 session.vars["selected_round"]
+        if p.round_number == 1:
+            p.selected_round = subsession.session.vars["selected_round"]
+        else:
+            p.selected_round = p.in_round(1).selected_round
 
 def set_payoffs(group: BaseGroup) -> None:
     """設置玩家報酬"""
