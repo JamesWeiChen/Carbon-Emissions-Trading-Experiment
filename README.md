@@ -9,8 +9,6 @@
 
 An experimental economics platform built on the oTree framework, specifically designed to study the impact of different carbon reduction policies on firm production behavior.
 
-**Latest Update (v3.2)**: Implemented multiple order functionality and unlimited order mechanism, allowing players to submit multiple buy/sell orders simultaneously for more flexible trading strategies.
-
 ### Platform Features
 
 This platform supports four experimental treatment groups, providing a comprehensive research environment for carbon emission policies:
@@ -207,8 +205,6 @@ For technical issues or research collaboration inquiries, please submit through 
 ## 中文版本
 
 基於 oTree 框架開發的經濟學實驗平台，專門用於研究不同碳減排政策對廠商生產行為的影響。
-
-**最新更新 (v3.1)**：完成大規模程式碼重構與優化，包含完整型別提示、模組化設計改善，以及 20% 效能提升。
 
 ### 平台特色
 
