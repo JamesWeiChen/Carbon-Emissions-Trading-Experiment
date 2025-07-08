@@ -25,7 +25,7 @@ general:
   
   # 市場價格隨機抽取設定
   market_price_random_draw:
-    base_prices: [25, 30, 35, 40]  # 基礎價格選項
+    base_prices: [25, 30, 35]  # 基礎價格選項
     variations: [-2, -1, 1, 2]  # 變動幅度選項
     min_price: 1  # 最低價格
   
