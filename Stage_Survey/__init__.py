@@ -13,7 +13,8 @@ class Group(BaseGroup):
 
 class Player(BasePlayer):
 
-    # === 背景資訊 ===
+    # === 背景資訊與控制變數 ===
+    age = models.IntegerField(label='你的年齡為？', min=15, max=100)
     gender = models.StringField(
         choices=[('M', '男'), ('F', '女'), ('N', '非二元／不願透露')],
         label='你的性別為何？'
@@ -30,6 +31,7 @@ class Player(BasePlayer):
     has_env_econ = models.BooleanField(label='是否修過：環境經濟學？')
     has_pub_econ = models.BooleanField(label='是否修過：公共經濟學？')
     has_game_theory = models.BooleanField(label='是否修過：博弈論或策略互動相關課？')
+    has_experiment = models.BooleanField(label='是否參與過經濟實驗？')
 
     # === 制度理解與偏好 ===
     understand = models.IntegerField(
@@ -44,6 +46,20 @@ class Player(BasePlayer):
     real_world_choice = models.StringField(
         choices=['碳稅制度', '碳交易制度', '視產業而定', '沒意見'],
         label='若應用於現實，你偏好哪一種制度？'
+    )
+
+    # === 制度比較問題 ===
+    mechanism_fairness = models.StringField(
+        label='你覺得哪個制度在「公平性」上表現較好？',
+        choices=['碳稅制度', '碳交易制度', '差不多', '不知道']
+    )
+    mechanism_efficiency = models.StringField(
+        label='你覺得哪個制度在「經濟效率」上表現較好？',
+        choices=['碳稅制度', '碳交易制度', '差不多', '不知道']
+    )
+    mechanism_environmental_effect = models.StringField(
+        label='你覺得哪個制度「較有助於減碳／改善環境」？',
+        choices=['碳稅制度', '碳交易制度', '差不多', '不知道']
     )
 
     # === 決策行為 ===
@@ -76,7 +92,7 @@ class Player(BasePlayer):
         choices=['一定會', '視情況', '應該不會', '絕對不會']
     )
 
-    # === 制度公平與信任 ===
+    # === 制度信任與影響 ===
     fairness = models.StringField(
         label='你覺得哪個制度比較公平？',
         choices=['碳稅制度', '碳交易制度', '都不公平', '不知道']
@@ -97,19 +113,10 @@ class Player(BasePlayer):
         choices=['碳稅', '碳交易', '效果差不多', '不知道']
     )
 
-
 # === 頁面設定 ===
 class Survey(Page):
     form_model = 'player'
-    form_fields = [
-        'gender', 'grade', 'major',
-        'has_intro_econ', 'has_env_econ', 'has_pub_econ', 'has_game_theory',
-        'understand', 'prefer_mechanism', 'real_world_choice',
-        'consider_market_power', 'adapt_to_others', 'attempt_manipulate',
-        'main_goal', 'free_rider_behavior', 'altruism',
-        'fairness', 'institutional_effect',
-        'mechanism_complex', 'better_for_emission'
-    ]
+    form_fields = [f.name for f in Player._meta.fields if f.name not in ('id', 'participant', 'session', 'subsession', 'group', 'round_number')]
 
 class ByePage(Page):
     def is_displayed(player):
