@@ -12,12 +12,6 @@ class Group(BaseGroup):
     pass
 
 class Player(BasePlayer):
-    # === 基本資料 ===
-    name = models.StringField(label="您的名字")
-    student_id = models.StringField(label="您的學號")
-    id_number = models.StringField(label="您的身份證字號")
-    address = models.StringField(label="您的戶籍地址（含鄰里，需與身分證一致）")
-    address_code = models.StringField(label="戶籍地址郵遞區號（3碼即可）")
 
     # === 背景資訊 ===
     gender = models.StringField(
@@ -105,32 +99,6 @@ class Player(BasePlayer):
 
 
 # === 頁面設定 ===
-class BasicInfo(Page):
-    form_model = 'player'
-    form_fields = ['name', 'student_id', 'id_number', 'address', 'address_code']
-
-    @staticmethod
-    def error_message(player: Player, values):
-        if len(values['student_id']) != 9:
-            return '學號長度不正確'
-        if not values['student_id'][0].isalpha():
-            return '學號第 1 碼應為英文字母'
-        if not values['student_id'][1:2].isnumeric():
-            return '學號格式不正確'
-        if not values['student_id'][4:8].isnumeric():
-            return '學號格式不正確'
-
-        if len(values['id_number']) != 10:
-            return '身份證字號長度不正確'
-        if not values['id_number'][0].isalpha():
-            return '身份證字號第 1 碼應為英文字母'
-        if not values['id_number'][1:9].isnumeric():
-            return '身份證字號格式不正確'
-
-        if len(values['address_code']) != 3 or not values['address_code'].isnumeric():
-            return '戶籍地址郵遞區號應為 3 碼數字'
-
-
 class Survey(Page):
     form_model = 'player'
     form_fields = [
@@ -147,4 +115,4 @@ class ByePage(Page):
     def is_displayed(player):
         return True
 
-page_sequence = [BasicInfo, Survey, ByePage]
+page_sequence = [Survey, ByePage]
