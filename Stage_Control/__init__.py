@@ -63,6 +63,10 @@ def initialize_roles(subsession: Subsession) -> None:
     """初始化角色分配"""
     initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
 
+def before_next_round(subsession: Subsession):
+    """每一回合開始前重新分配角色"""
+    initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
+
 class Introduction(Page):
     @staticmethod
     def is_displayed(player: Player) -> bool:
