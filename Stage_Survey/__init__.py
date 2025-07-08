@@ -48,18 +48,36 @@ class Player(BasePlayer):
         label='若應用於現實，你偏好哪一種制度？'
     )
 
-    # === 制度比較問題 ===
-    mechanism_fairness = models.StringField(
-        label='你覺得哪個制度在「公平性」上表現較好？',
-        choices=['碳稅制度', '碳交易制度', '差不多', '不知道']
+    # === 制度評價（1–5 分量表） ===
+    carbon_tax_fairness = models.IntegerField(
+        label='你認為碳稅制度在「公平性」方面的表現',
+        choices=[[1, '非常不公平'], [2, '不太公平'], [3, '普通'], [4, '公平'], [5, '非常公平']],
+        widget=widgets.RadioSelect
     )
-    mechanism_efficiency = models.StringField(
-        label='你覺得哪個制度在「經濟效率」上表現較好？',
-        choices=['碳稅制度', '碳交易制度', '差不多', '不知道']
+    carbon_trade_fairness = models.IntegerField(
+        label='你認為碳交易制度在「公平性」方面的表現',
+        choices=[[1, '非常不公平'], [2, '不太公平'], [3, '普通'], [4, '公平'], [5, '非常公平']],
+        widget=widgets.RadioSelect
     )
-    mechanism_environmental_effect = models.StringField(
-        label='你覺得哪個制度「較有助於減碳／改善環境」？',
-        choices=['碳稅制度', '碳交易制度', '差不多', '不知道']
+    carbon_tax_efficiency = models.IntegerField(
+        label='你認為碳稅制度在「經濟效率」方面的表現',
+        choices=[[1, '非常沒效率'], [2, '沒效率'], [3, '普通'], [4, '有效率'], [5, '非常有效率']],
+        widget=widgets.RadioSelect
+    )
+    carbon_trade_efficiency = models.IntegerField(
+        label='你認為碳交易制度在「經濟效率」方面的表現',
+        choices=[[1, '非常沒效率'], [2, '沒效率'], [3, '普通'], [4, '有效率'], [5, '非常有效率']],
+        widget=widgets.RadioSelect
+    )
+    carbon_tax_environment = models.IntegerField(
+        label='你認為碳稅制度在「減碳／改善環境」方面的效果',
+        choices=[[1, '完全沒幫助'], [2, '幫助很小'], [3, '普通'], [4, '有幫助'], [5, '非常有效']],
+        widget=widgets.RadioSelect
+    )
+    carbon_trade_environment = models.IntegerField(
+        label='你認為碳交易制度在「減碳／改善環境」方面的效果',
+        choices=[[1, '完全沒幫助'], [2, '幫助很小'], [3, '普通'], [4, '有幫助'], [5, '非常有效']],
+        widget=widgets.RadioSelect
     )
 
     # === 決策行為 ===
@@ -113,10 +131,22 @@ class Player(BasePlayer):
         choices=['碳稅', '碳交易', '效果差不多', '不知道']
     )
 
+
 # === 頁面設定 ===
 class Survey(Page):
     form_model = 'player'
-    form_fields = [f.name for f in Player._meta.fields if f.name not in ('id', 'participant', 'session', 'subsession', 'group', 'round_number')]
+    form_fields = [
+        'age', 'gender', 'grade', 'major',
+        'has_intro_econ', 'has_env_econ', 'has_pub_econ', 'has_game_theory', 'has_experiment',
+        'understand', 'prefer_mechanism', 'real_world_choice',
+        'carbon_tax_fairness', 'carbon_trade_fairness',
+        'carbon_tax_efficiency', 'carbon_trade_efficiency',
+        'carbon_tax_environment', 'carbon_trade_environment',
+        'consider_market_power', 'adapt_to_others', 'attempt_manipulate',
+        'main_goal', 'free_rider_behavior', 'altruism',
+        'fairness', 'institutional_effect',
+        'mechanism_complex', 'better_for_emission'
+    ]
 
 class ByePage(Page):
     def is_displayed(player):
