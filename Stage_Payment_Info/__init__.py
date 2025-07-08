@@ -17,7 +17,14 @@ class Group(BaseGroup):
     pass
 
 class Player(BasePlayer):
+
     total_payment = models.CurrencyField()
+    # === 基本資料 ===
+    name = models.StringField(label="您的名字")
+    student_id = models.StringField(label="您的學號")
+    id_number = models.StringField(label="您的身份證字號")
+    address = models.StringField(label="您的戶籍地址（含鄰里，需與身分證一致）")
+    address_code = models.StringField(label="戶籍地址郵遞區號（3碼即可）")
 
     @staticmethod
     def calculate_payment_info(player):
