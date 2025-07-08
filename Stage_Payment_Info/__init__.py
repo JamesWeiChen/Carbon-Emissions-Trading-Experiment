@@ -98,14 +98,12 @@ class BasicInfo(Page):
             return '學號格式不正確'
         if not values['student_id'][4:8].isnumeric():
             return '學號格式不正確'
-
         if len(values['id_number']) != 10:
             return '身份證字號長度不正確'
         if not values['id_number'][0].isalpha():
             return '身份證字號第 1 碼應為英文字母'
         if not values['id_number'][1:9].isnumeric():
             return '身份證字號格式不正確'
-
         if len(values['address_code']) != 3 or not values['address_code'].isnumeric():
             return '戶籍地址郵遞區號應為 3 碼數字'
 
