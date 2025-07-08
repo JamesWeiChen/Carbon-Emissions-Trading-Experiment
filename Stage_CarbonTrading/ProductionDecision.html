@@ -91,7 +91,15 @@
             <!-- 生產決策表單 -->
             <form method="post" onsubmit="return validateAndSubmit()">
                 <div class="form-group">
-                    <label for="production" class="font-weight-bold">輸入您的生產量：</label>
+                    <label for="production" class="font-weight-bold">輸入您的生產量：
+                        <span id="production-value" class="badge badge-primary">
+                            {% if player.production is not none %}
+                                {{ player.production }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </span>
+                    </label>
                     <div class="input-group mb-3">
                         <input
                             type="number"
