@@ -31,12 +31,12 @@ general:
   
   # 廠商角色參數
   dominant_firm:
-    mc_range: [1, 5]  # 邊際成本係數範圍
+    mc_range: [2, 5]  # 邊際成本係數範圍
     emission_per_unit: 2  # 每單位碳排放
     max_production: 20    # 最大生產量
     
   non_dominant_firm:
-    mc_range: [2, 7]  # 邊際成本係數範圍  
+    mc_range: [4, 7]  # 邊際成本係數範圍  
     emission_per_unit: 1  # 每單位碳排放
     max_production: 8     # 最大生產量
   
