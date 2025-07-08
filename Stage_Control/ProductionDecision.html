@@ -90,11 +90,7 @@
                 <div class="form-group">
                     <label for="production" class="font-weight-bold">輸入您的生產量：
                         <span id="production-value" class="badge badge-primary">
-                            {% if player.field_maybe_none('production') %}
-                                {{ player.production }}
-                            {% else %}
-                                0
-                            {% endif %}
+                            {{ player.production if player.production is not none else 0 }}
                         </span> 單位
                     </label>
                     
