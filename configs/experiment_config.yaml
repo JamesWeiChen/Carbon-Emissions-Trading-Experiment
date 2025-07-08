@@ -122,7 +122,7 @@ stages:
     display_name: "MUDA"
     initial_capital: 10000
     trading_time: 180
-    num_rounds: 4
+    num_rounds: 4 # 正式實驗讓受試者練習 MUDA 的回合數
     item_name: "碳權"
     reset_cash_each_round: true
     description: "MUDA：純交易練習回合，讓受試者熟悉交易市場介面操作"
@@ -136,13 +136,13 @@ stages:
     trading_time: 120
     carbon_allowance_per_player: 10
     reset_cash_each_round: true  # 每輪重置現金
-    description: "碳交易組：受試者需要先決定生產量，然後在碳權交易市場進行買賣"
+    description: "碳交易組：受試者在碳權交易市場進行買賣，確定手上持有碳權數量後，再決定生產量。"
     
     # 社會最適產量與碳權分配設定
     optimal_allocation:
       # 固定參數設定
       use_fixed_price: false  # 是否使用固定市場價格（而非隨機抽取）
-      fixed_market_price: 10  # 固定市場價格 p
+      fixed_market_price: 10  # 固定市場價格時用的價格
       social_cost_per_unit_carbon: 2  # 每單位碳的社會成本 c
       
       # 配額分配設定
@@ -169,13 +169,13 @@ stages:
 # ====================================
 # 頁面流程配置
 # ====================================
-page_sequences:
-  control: ['Introduction', 'ReadyWaitPage', 'ProductionDecision', 'ResultsWaitPage', 'Results']
-  carbon_tax: ['Introduction', 'ReadyWaitPage', 'ProductionDecision', 'ResultsWaitPage', 'Results']
-  muda: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ResultsWaitPage', 'Results']
-  carbon_trading: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ProductionDecision', 'ResultsWaitPage', 'Results']
-  payment_info: ['PaymentInfo']
-  survey: ['BasicInfo', 'Page1', 'Page2', 'Bye']
+page_sequences: # 但似乎沒有用到？
+  control: ['Introduction', 'ReadyWaitPage', 'ProductionDecision', 'ResultsWaitPage', 'Results', 'WaitForInstruction']
+  carbon_tax: ['Introduction', 'ReadyWaitPage', 'ProductionDecision', 'ResultsWaitPage', 'Results', 'WaitForInstruction']
+  muda: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ResultsWaitPage', 'Results', 'WaitForInstruction']
+  carbon_trading: ['Introduction', 'ReadyWaitPage', 'TradingMarket', 'ProductionDecision', 'ResultsWaitPage', 'Results', 'WaitForInstruction']
+  payment_info: ['PaymentInfo', 'WaitForInstruction']
+  survey: ['BasicInfo', 'Survey', 'ByePage']
 
 # ====================================
 # 實驗設定
