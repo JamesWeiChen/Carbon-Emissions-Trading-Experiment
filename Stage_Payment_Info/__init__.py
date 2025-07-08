@@ -19,7 +19,7 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
-    pass
+    total_payment = models.CurrencyField()
 
 
 # PAGES
@@ -49,6 +49,8 @@ class PaymentInfo(Page):
         real_payoff = player.payoff.to_real_world_currency(session)
         participation_fee = session.config.get("participation_fee", 0)
         total_payment = real_payoff + participation_fee
+
+        player.total_payment = total_payment
 
         return dict(
             control_profit=control.get("profit", 0),
