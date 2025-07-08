@@ -158,13 +158,13 @@ stages:
   
   payment_info:
     name_in_url: 'Stage_Payment_Info'
-    display_name: "報酬結算"
-    description: "計算總報酬"
+    display_name: "報酬結算與收據資訊"
+    description: "計算總報酬並收集收據資訊"
 
   survey:
     name_in_url: 'Stage_Survey'
-    display_name: "收據資訊與問卷"
-    description: "收據資訊與實驗後問卷"
+    display_name: "問卷"
+    description: "實驗後問卷"
 
 # ====================================
 # 頁面流程配置
