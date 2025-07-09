@@ -115,7 +115,7 @@ stages:
     description: "碳稅組：受試者直接決定生產量，但需為每單位碳排放繳納碳稅"
     # 碳稅隨機抽取設定
     tax_random_selection:
-      rates: [3, 6, 12]
+      rates: [3, 6, 9]
       
   muda:
     name_in_url: 'Stage_MUDA'
@@ -146,7 +146,7 @@ stages:
       social_cost_per_unit_carbon: 6  # 每單位碳的社會成本 c
       
       # 配額分配設定
-      cap_multipliers: [0.5, 1.0, 2.0]  # 配額倍率選項
+      cap_multipliers: [0.5, 1.0, 1.5]  # 配額倍率選項
       allocation_method: "equal_with_random_remainder"  # 分配方法
       round_cap_total: true  # 是否將配額總數四捨五入為整數
       
