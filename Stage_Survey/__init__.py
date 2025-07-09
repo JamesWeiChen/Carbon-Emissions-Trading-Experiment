@@ -120,24 +120,39 @@ class Player(BasePlayer):
 
 # === 頁面設定 ===
 class Survey(Page):
+    
     form_model = 'player'
 
     @staticmethod
     def get_form_fields(player):
         treatment = player.session.config.get("treatment")
 
+        # 共通欄位
         common_fields = [
             'age', 'male', 'grade', 'major_econ_or_bz', 'major_env',
             'has_intro_econ', 'has_micro', 'has_env_econ', 'has_pub_econ', 'has_exp_econ',
             'main_goal', 'respond_to_high_others', 'respond_to_high_total'
         ]
 
+        # 僅 tax 組回答的題目
+        tax_fields = [
+            'carbon_tax_fairness',
+            'carbon_tax_efficiency',
+            'carbon_tax_environment'
+        ]
+
+        # 僅 trade 組回答的題目
+        trade_fields = [
+            'carbon_trade_fairness',
+            'carbon_trade_efficiency',
+            'carbon_trade_environment',
+            'carbon_trade_mkt_power'
+        ]
+
         if treatment == 'tax':
-            tax_fields = [f.name for f in Player._meta.fields if f.name.startswith('carbon_tax')]
             return common_fields + tax_fields
 
         if treatment == 'trade':
-            trade_fields = [f.name for f in Player._meta.fields if f.name.startswith('carbon_trade')]
             return common_fields + trade_fields
 
 class ByePage(Page):
