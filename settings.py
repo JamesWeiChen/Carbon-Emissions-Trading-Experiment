@@ -39,18 +39,18 @@ SESSION_CONFIGS = [
     },
 
     {
-        'name': '碳稅問卷',
+        'name': 'Survey_Tax',
         'app_sequence': [config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
-        'display_name': config.get_stage_display_name('survey'),
+        'display_name': "問卷：碳稅",
         'treatment': 'tax',
     },
 
     {
-        'name': '碳權交易問卷',
+        'name': 'Survey_Trade',
         'app_sequence': [config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
-        'display_name': config.get_stage_display_name('survey'),
+        'display_name': "問卷：碳權交易",
         'treatment': 'trade',
     },
     
