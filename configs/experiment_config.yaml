@@ -167,6 +167,82 @@ stages:
     description: "實驗後問卷"
 
 # ====================================
+# 12 組隨機參數組合
+# ====================================
+preset_parameter_sets:
+  - market_price: 25
+    tax_rate: 3
+    carbon_multiplier: 0.5
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 25
+    tax_rate: 3
+    carbon_multiplier: 0.5
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+  - market_price: 25
+    tax_rate: 6
+    carbon_multiplier: 1.0
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 25
+    tax_rate: 6
+    carbon_multiplier: 1.0
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+  - market_price: 25
+    tax_rate: 9
+    carbon_multiplier: 1.5
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 25
+    tax_rate: 9
+    carbon_multiplier: 1.5
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+  - market_price: 35
+    tax_rate: 3
+    carbon_multiplier: 0.5
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 35
+    tax_rate: 3
+    carbon_multiplier: 0.5
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+  - market_price: 35
+    tax_rate: 6
+    carbon_multiplier: 1.0
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 35
+    tax_rate: 6
+    carbon_multiplier: 1.0
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+  - market_price: 35
+    tax_rate: 9
+    carbon_multiplier: 1.5
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 35
+    tax_rate: 9
+    carbon_multiplier: 1.5
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+# ====================================
 # 頁面流程配置
 # ====================================
 page_sequences: # 但似乎沒有用到？
