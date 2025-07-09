@@ -146,7 +146,7 @@ stages:
       social_cost_per_unit_carbon: 2  # 每單位碳的社會成本 c
       
       # 配額分配設定
-      cap_multipliers: [0.8, 1.0, 1.2]  # 配額倍率選項
+      cap_multipliers: [0.5, 1.0, 1.5]  # 配額倍率選項
       allocation_method: "equal_with_random_remainder"  # 分配方法
       round_cap_total: true  # 是否將配額總數四捨五入為整數
       
