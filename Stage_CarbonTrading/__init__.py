@@ -80,7 +80,7 @@ def initialize_roles(subsession: Subsession) -> None:
     
     # 計算社會最適產量和碳權分配
     players = subsession.get_players()
-    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price)
+    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price, subsession.carbon_multiplier)
     
     # 儲存結果到 subsession
     subsession.total_optimal_emissions = allowance_allocation['TE_opt_total']
@@ -158,7 +158,8 @@ def initialize_roles(subsession: Subsession) -> None:
 
 def calculate_optimal_allowance_allocation(
     players: List[BasePlayer], 
-    market_price: float
+    market_price: float,
+    carbon_multiplier: float
 ) -> Dict[str, Any]:
     """
     計算社會最適產量和碳權分配
