@@ -67,16 +67,20 @@ class Player(BasePlayer):
 
     # 價值觀與偏好
     main_goal = models.StringField(
-        label='您主要考慮的目標？',
+        label='您決定生產量時主要考慮的目標是？',
         choices=['利潤最大化', '碳排最少', '綜合考慮利潤與碳排（多考慮利潤）', '綜合考慮利潤與碳排（多考慮碳排）']
     )
-    respond_to_high_others = models.StringField(
-        label='當您看到他人碳排很多時，您是否也會選擇排放多一點？',
-        choices=['從未', '偶爾', '經常', '每次']
-    )
-    respond_to_high_total = models.StringField(
-        label='當您看到總碳排很多時，您是否會選擇排放少一點？',
-        choices=['從未', '偶爾', '經常', '每次']
+
+    respond_to_high_others = models.IntegerField(
+        label='當您看到其他受試者碳排（生產）很多時，您通常會怎麼做？',
+        choices=[
+            [-2, '排放（生產）少很多'],
+            [-1, '排放（生產）少一點'],
+            [0, '不受影響，維持原策略'],
+            [1, '排放（生產）多一點'],
+            [2, '排放（生產）多很多']
+        ],
+        widget=widgets.RadioSelect
     )
 
     # carbon_tax 專屬題目
@@ -131,7 +135,7 @@ class Survey(Page):
         common_fields = [
             'age', 'male', 'grade', 'major_econ_or_bz', 'major_env',
             'has_intro_econ', 'has_micro', 'has_env_econ', 'has_pub_econ', 'has_exp_econ',
-            'main_goal', 'respond_to_high_others', 'respond_to_high_total'
+            'main_goal', 'respond_to_high_others'
         ]
 
         # 僅 tax 組回答的題目
