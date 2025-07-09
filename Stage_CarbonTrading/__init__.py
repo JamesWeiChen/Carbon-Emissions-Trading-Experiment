@@ -246,7 +246,7 @@ def calculate_optimal_allowance_allocation(
             'social_cost_per_unit_carbon': c,
             'decimal_places': decimal_places,
             'allocation_method': allocation_method,
-            'cap_multipliers': multipliers,
+            'cap_multipliers': r,
             'use_fixed_price': config.carbon_trading_use_fixed_price
         }
     }
