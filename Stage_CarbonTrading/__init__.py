@@ -182,7 +182,7 @@ def calculate_optimal_allowance_allocation(
     TE_subopts = []
 
     # 從配置檔案讀取配額倍率選項
-    r = subsession.carbon_multiplier
+    r = carbon_multiplier
     
     # 計算每家廠商的社會最適產量和最適排放量
     for player in players:
