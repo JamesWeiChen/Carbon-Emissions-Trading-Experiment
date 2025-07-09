@@ -14,139 +14,131 @@ class Group(BaseGroup):
 class Player(BasePlayer):
 
     # === 背景資訊與控制變數 ===
-    age = models.IntegerField(label='你的年齡為？', min=15, max=100)
-    gender = models.StringField(
-        choices=[('M', '男'), ('F', '女'), ('N', '非二元／不願透露')],
-        label='你的性別為何？'
+    age = models.IntegerField(label='您的年齡為？', min=15, max=100)
+    male = models.IntegerField(
+        choices=[
+            [1, '男'],
+            [0, '女']
+        ],
+        label='您的性別為何？'
     )
     grade = models.StringField(
-        choices=['大一', '大二', '大三', '大四', '研究所'],
-        label='你的年級為？'
+        choices=[
+            ('U1', '大一'),
+            ('U2', '大二'),
+            ('U3', '大三'),
+            ('U4', '大四（以上）'),
+            ('M1', '碩一'),
+            ('M2', '碩二'),
+            ('M3', '碩三（以上）'),
+            ('D', '博士班')
+        ],
+        label='您的年級為？'
     )
-    major = models.StringField(
-        choices=['經濟／商管類', '工程／自然科學', '社會科學（非商管）', '人文／藝術類', '其他'],
-        label='你主修的學門為？'
+    major_econ_or_bz = models.IntegerField(
+        label='您的主修／雙主修／輔系是否與「經濟或商管」相關？',
+        choices=[[1, '是'], [0, '否']]
     )
-    has_intro_econ = models.BooleanField(label='是否修過：初級經濟學？')
-    has_env_econ = models.BooleanField(label='是否修過：環境經濟學？')
-    has_pub_econ = models.BooleanField(label='是否修過：公共經濟學？')
-    has_game_theory = models.BooleanField(label='是否修過：博弈論或策略互動相關課？')
-    has_experiment = models.BooleanField(label='是否參與過經濟實驗？')
-
-    # === 制度理解與偏好 ===
-    understand = models.IntegerField(
-        label='你覺得自己對制度的理解程度為？',
-        choices=[[1, '完全不了解'], [2, '略懂'], [3, '普通'], [4, '大致了解'], [5, '非常清楚']],
-        widget=widgets.RadioSelect
-    )
-    prefer_mechanism = models.StringField(
-        choices=['碳稅制度', '碳交易制度', '兩者都差不多', '不知道'],
-        label='你覺得哪一種制度較容易做出利潤最大化決策？'
-    )
-    real_world_choice = models.StringField(
-        choices=['碳稅制度', '碳交易制度', '視產業而定', '沒意見'],
-        label='若應用於現實，你偏好哪一種制度？'
+    major_env = models.IntegerField(
+        label='您的主修／雙主修／輔系是否與「環境科學」相關？',
+        choices=[[1, '是'], [0, '否']]
     )
 
-    # === 制度評價（1–5 分量表） ===
+    has_intro_econ = models.IntegerField(
+        label='您是否修過大一經濟學？（經濟學原理、個體經濟學原理等...）',
+        choices=[[1, '是'], [0, '否']]
+    )
+    has_micro = models.IntegerField(
+        label='您是否修過個體經濟學？（大二以上課程）',
+        choices=[[1, '是'], [0, '否']]
+    )
+    has_env_econ = models.IntegerField(
+        label='您是否修過環境經濟學？',
+        choices=[[1, '是'], [0, '否']]
+    )
+    has_pub_econ = models.IntegerField(
+        label='您是否修過公共經濟學？',
+        choices=[[1, '是'], [0, '否']]
+    )
+    has_exp_econ = models.IntegerField(
+        label='您是否修過實驗經濟學？',
+        choices=[[1, '是'], [0, '否']]
+    )
+
+    # 價值觀與偏好
+    main_goal = models.StringField(
+        label='您主要考慮的目標？',
+        choices=['利潤最大化', '碳排最少', '綜合考慮利潤與碳排（多考慮利潤）', '綜合考慮利潤與碳排（多考慮碳排）']
+    )
+    respond_to_high_others = models.StringField(
+        label='當您看到他人碳排很多時，您是否也會選擇排放多一點？',
+        choices=['從未', '偶爾', '經常', '每次']
+    )
+    respond_to_high_total = models.StringField(
+        label='當您看到總碳排很多時，您是否會選擇排放少一點？',
+        choices=['從未', '偶爾', '經常', '每次']
+    )
+
+    # carbon_tax 專屬題目
     carbon_tax_fairness = models.IntegerField(
-        label='你認為碳稅制度在「公平性」方面的表現',
-        choices=[[1, '非常不公平'], [2, '不太公平'], [3, '普通'], [4, '公平'], [5, '非常公平']],
-        widget=widgets.RadioSelect
-    )
-    carbon_trade_fairness = models.IntegerField(
-        label='你認為碳交易制度在「公平性」方面的表現',
+        label='您認為碳稅制度在「公平性」方面的表現',
         choices=[[1, '非常不公平'], [2, '不太公平'], [3, '普通'], [4, '公平'], [5, '非常公平']],
         widget=widgets.RadioSelect
     )
     carbon_tax_efficiency = models.IntegerField(
-        label='你認為碳稅制度在「經濟效率」方面的表現',
-        choices=[[1, '非常沒效率'], [2, '沒效率'], [3, '普通'], [4, '有效率'], [5, '非常有效率']],
-        widget=widgets.RadioSelect
-    )
-    carbon_trade_efficiency = models.IntegerField(
-        label='你認為碳交易制度在「經濟效率」方面的表現',
+        label='您認為碳稅制度在「經濟效率」方面的表現',
         choices=[[1, '非常沒效率'], [2, '沒效率'], [3, '普通'], [4, '有效率'], [5, '非常有效率']],
         widget=widgets.RadioSelect
     )
     carbon_tax_environment = models.IntegerField(
-        label='你認為碳稅制度在「減碳／改善環境」方面的效果',
+        label='您認為碳稅制度在「減碳／改善環境」方面的效果',
         choices=[[1, '完全沒幫助'], [2, '幫助很小'], [3, '普通'], [4, '有幫助'], [5, '非常有效']],
+        widget=widgets.RadioSelect
+    )
+
+    # carbon_trade 專屬題目
+    carbon_trade_fairness = models.IntegerField(
+        label='您認為碳交易制度在「公平性」方面的表現',
+        choices=[[1, '非常不公平'], [2, '不太公平'], [3, '普通'], [4, '公平'], [5, '非常公平']],
+        widget=widgets.RadioSelect
+    )
+    carbon_trade_efficiency = models.IntegerField(
+        label='您認為碳交易制度在「經濟效率」方面的表現',
+        choices=[[1, '非常沒效率'], [2, '沒效率'], [3, '普通'], [4, '有效率'], [5, '非常有效率']],
         widget=widgets.RadioSelect
     )
     carbon_trade_environment = models.IntegerField(
-        label='你認為碳交易制度在「減碳／改善環境」方面的效果',
+        label='您認為碳交易制度在「減碳／改善環境」方面的效果',
         choices=[[1, '完全沒幫助'], [2, '幫助很小'], [3, '普通'], [4, '有幫助'], [5, '非常有效']],
         widget=widgets.RadioSelect
     )
-
-    # === 決策行為 ===
-    consider_market_power = models.IntegerField(
-        label='你是否考慮自己會影響市場價格？',
-        choices=[[1, '完全沒考慮'], [2, '偶爾'], [3, '一半時間'], [4, '通常'], [5, '每輪都會']],
+    carbon_trade_mkt_power = models.IntegerField(
+        label='當您是產量上限比較大的廠商，你否有嘗試壓低碳權的價格？',
+        choices=[[1, '沒有'], [2, '偶爾'], [3, '一半時間'], [4, '通常'], [5, '每次']],
         widget=widgets.RadioSelect
     )
-    adapt_to_others = models.IntegerField(
-        label='你是否根據他人行為改變策略？',
-        choices=[[1, '從未'], [2, '偶爾'], [3, '經常'], [4, '每輪都改']],
-        widget=widgets.RadioSelect
-    )
-    attempt_manipulate = models.StringField(
-        label='你是否曾試圖操控市場？',
-        choices=['從未', '考慮但未實行', '偶爾嘗試', '經常嘗試']
-    )
-
-    # === 價值觀與偏好 ===
-    main_goal = models.StringField(
-        label='你主要考慮的目標？',
-        choices=['利潤最大化', '排放最少', '穩定策略', '觀望']
-    )
-    free_rider_behavior = models.StringField(
-        label='是否因他人高排放而也選擇高排？',
-        choices=['從未', '偶爾', '經常', '每一輪都這樣']
-    )
-    altruism = models.StringField(
-        label='若你減排無法影響總量，仍會減排嗎？',
-        choices=['一定會', '視情況', '應該不會', '絕對不會']
-    )
-
-    # === 制度信任與影響 ===
-    fairness = models.StringField(
-        label='你覺得哪個制度比較公平？',
-        choices=['碳稅制度', '碳交易制度', '都不公平', '不知道']
-    )
-    institutional_effect = models.IntegerField(
-        label='你覺得制度對你行為的影響有多大？',
-        choices=[[1, '幾乎沒有影響'], [2, '有些影響'], [3, '明顯影響'], [4, '完全受到影響']],
-        widget=widgets.RadioSelect
-    )
-
-    # === 總結印象 ===
-    mechanism_complex = models.StringField(
-        label='哪個制度讓市場比較混亂／難判斷？',
-        choices=['碳稅制度', '碳交易制度', '都很清楚', '都很混亂']
-    )
-    better_for_emission = models.StringField(
-        label='你覺得哪一制度比較有助於減少排放？',
-        choices=['碳稅', '碳交易', '效果差不多', '不知道']
-    )
-
 
 # === 頁面設定 ===
 class Survey(Page):
     form_model = 'player'
-    form_fields = [
-        'age', 'gender', 'grade', 'major',
-        'has_intro_econ', 'has_env_econ', 'has_pub_econ', 'has_game_theory', 'has_experiment',
-        'understand', 'prefer_mechanism', 'real_world_choice',
-        'carbon_tax_fairness', 'carbon_trade_fairness',
-        'carbon_tax_efficiency', 'carbon_trade_efficiency',
-        'carbon_tax_environment', 'carbon_trade_environment',
-        'consider_market_power', 'adapt_to_others', 'attempt_manipulate',
-        'main_goal', 'free_rider_behavior', 'altruism',
-        'fairness', 'institutional_effect',
-        'mechanism_complex', 'better_for_emission'
-    ]
+
+    @staticmethod
+    def get_form_fields(player):
+        treatment = player.session.config.get("treatment")
+
+        common_fields = [
+            'age', 'male', 'grade', 'major_econ_or_bz', 'major_env',
+            'has_intro_econ', 'has_micro', 'has_env_econ', 'has_pub_econ', 'has_exp_econ',
+            'main_goal', 'respond_to_high_others', 'respond_to_high_total'
+        ]
+
+        if treatment == 'tax':
+            tax_fields = [f.name for f in Player._meta.fields if f.name.startswith('carbon_tax')]
+            return common_fields + tax_fields
+
+        if treatment == 'trade':
+            trade_fields = [f.name for f in Player._meta.fields if f.name.startswith('carbon_trade')]
+            return common_fields + trade_fields
 
 class ByePage(Page):
     def is_displayed(player):
