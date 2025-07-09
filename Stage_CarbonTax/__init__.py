@@ -27,22 +27,31 @@ class C(BaseConstants):
     TAX_RATE_OPTIONS = config.tax_rate_options
 
 class Subsession(BaseSubsession):
-    market_price = models.CurrencyField()
-    tax_rate = models.CurrencyField()
+    market_price = models.IntegerField()
+    tax_rate = models.IntegerField()
+    carbon_multiplier = models.FloatField()
+    dominant_mc = models.IntegerField()
+    non_dominant_mc = models.IntegerField()
 
 def creating_session(subsession: Subsession) -> None:
     """創建會話時的初始化"""
-    # 讓所有參與者都進入同一組
-    subsession.set_group_matrix([subsession.get_players()])
-    
-    # 隨機選擇稅率
-    selected_tax_rate = random.choice(config.carbon_tax_rates)
-    subsession.tax_rate = selected_tax_rate
-    subsession.session.vars[f'tax_rate_round_{subsession.round_number}'] = selected_tax_rate
-    
-    print(f"第{subsession.round_number}輪 - 選中的稅率: {selected_tax_rate}")
+    subsession.set_group_matrix([subsession.get_players()]) # 所有人同一組
+    session = subsession.session
+    round_number = subsession.round_number
 
-    subsession.market_price = _generate_market_price()
+    if round_number == 1:
+        all_sets = config.parameter_sets
+        session.vars['parameter_order'] = random.sample(range(len(all_sets)), len(all_sets))
+
+    order = session.vars['parameter_order']
+    param = config.parameter_sets[order[round_number - 1]]
+
+    subsession.market_price = param['market_price']
+    subsession.tax_rate = param['tax_rate']
+    subsession.carbon_multiplier = param['carbon_multiplier']
+    subsession.dominant_mc = param['dominant_mc']
+    subsession.non_dominant_mc = param['non_dominant_mc']
+
 
 class Group(BaseGroup):
     pass
