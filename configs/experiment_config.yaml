@@ -31,7 +31,7 @@ general:
   
   # 廠商角色參數
   dominant_firm:
-    mc_range: [2, 5]  # 邊際成本係數範圍
+    mc_range: [1, 4]  # 邊際成本係數範圍
     emission_per_unit: 2  # 每單位碳排放
     max_production: 20    # 最大生產量
     
@@ -115,7 +115,7 @@ stages:
     description: "碳稅組：受試者直接決定生產量，但需為每單位碳排放繳納碳稅"
     # 碳稅隨機抽取設定
     tax_random_selection:
-      rates: [1, 2, 3]
+      rates: [3, 6, 9]
       
   muda:
     name_in_url: 'Stage_MUDA'
@@ -143,10 +143,10 @@ stages:
       # 固定參數設定
       use_fixed_price: false  # 是否使用固定市場價格（而非隨機抽取）
       fixed_market_price: 10  # 固定市場價格時用的價格
-      social_cost_per_unit_carbon: 2  # 每單位碳的社會成本 c
+      social_cost_per_unit_carbon: 6  # 每單位碳的社會成本 c
       
       # 配額分配設定
-      cap_multipliers: [0.8, 1.0, 1.2]  # 配額倍率選項
+      cap_multipliers: [0.5, 1.0, 1.5]  # 配額倍率選項
       allocation_method: "equal_with_random_remainder"  # 分配方法
       round_cap_total: true  # 是否將配額總數四捨五入為整數
       
