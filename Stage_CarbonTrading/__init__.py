@@ -596,54 +596,7 @@ def update_price_history(subsession, trade_price, event='trade'):
     
     return price_history
 
-# 記錄交易歷史
-def record_trade(group, buyer_id, seller_id, price, quantity):
-    try:
-        trade_history = json.loads(group.trade_history)
-    except json.JSONDecodeError:
-        trade_history = []
-    
-    # 計算從交易開始經過的時間（秒）
-    elapsed_seconds = int(time.time() - group.subsession.start_time)
-    minutes = elapsed_seconds // 60
-    seconds = elapsed_seconds % 60
-    
-    trade_record = {
-        'timestamp': f"{minutes:02d}:{seconds:02d}",  # 改為分:秒格式
-        'buyer_id': buyer_id,
-        'seller_id': seller_id,
-        'price': float(price),
-        'quantity': int(quantity),
-        'total_value': float(price) * int(quantity),
-        'market_price': float(group.subsession.market_price)
-    }
-    
-    trade_history.append(trade_record)
-    group.trade_history = json.dumps(trade_history)
-    
-    # 記錄成交訂單到 subsession (新增功能)
-    try:
-        executed_trades = json.loads(group.subsession.executed_trades)
-    except (json.JSONDecodeError, AttributeError):
-        executed_trades = []
-    
-    # 創建成交記錄 (使用秒數而非分:秒格式)
-    executed_trade = {
-        'timestamp': elapsed_seconds,  # 從回合開始後的秒數
-        'buyer_id': buyer_id,
-        'seller_id': seller_id,
-        'price': float(price),
-        'quantity': int(quantity),
-        'total_value': float(price) * int(quantity)
-    }
-    
-    executed_trades.append(executed_trade)
-    group.subsession.executed_trades = json.dumps(executed_trades)
-    
-    # 更新價格歷史
-    update_price_history(group.subsession, price)
-    
-    return trade_history
+# 使用共用的 record_trade 函數（已從 utils.shared_utils 匯入）
 
 # 新增函數：取消玩家所有同方向的掛單
 def cancel_player_orders(group, player_id, order_type):
