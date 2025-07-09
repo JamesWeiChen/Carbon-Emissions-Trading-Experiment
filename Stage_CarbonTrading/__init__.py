@@ -175,6 +175,11 @@ def calculate_optimal_allowance_allocation(
     
     firm_details = []
     TE_opts = []
+    TE_subopts = []
+
+    # 從配置檔案讀取配額倍率選項
+    multipliers = config.carbon_trading_cap_multipliers
+    r = random.choice(multipliers)
     
     # 計算每家廠商的社會最適產量和最適排放量
     for player in players:
@@ -184,27 +189,30 @@ def calculate_optimal_allowance_allocation(
         # 社會最適產量：q_opt_i = (p - b_i * c) / a_i
         q_opt_i = int((p - b_i * c) / a_i)
         
+        # 乘數影響下的假最適產量
+        q_subopt_i = int((p - b_i * c * r) / a_i)
+        
         # 最適排放量：TE_opt_i = b_i * q_opt_i
         TE_opt_i = int(b_i * q_opt_i)
+
+        # 乘數影響下的假最適排放量
+        TE_subopts = int(b_i * q_subopt_i)
         
         firm_details.append({
             'a': a_i,
             'b': b_i,
             'q_opt': q_opt_i,
             'TE_opt': TE_opt_i,
+            'TE_subopt': TE_subopt_i,
         })
         
         TE_opts.append(TE_opt_i)
+        TE_subopts.append(TE_subopt_i)
     
     # 社會最適排放總量
     TE_opt_total = sum(TE_opts)
+    cap_total = sum(TE_subopts)
     
-    # 從配置檔案讀取配額倍率選項
-    multipliers = config.carbon_trading_cap_multipliers
-    r = random.choice(multipliers)
-    
-    # 計算總配額
-    cap_total = r * TE_opt_total
     if config.carbon_trading_round_cap_total:
         cap_total_int = int(round(cap_total))  # 轉為整數
     else:
