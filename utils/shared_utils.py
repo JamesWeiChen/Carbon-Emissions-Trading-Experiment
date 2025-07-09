@@ -254,9 +254,7 @@ def record_trade(
         'buyer_id': int(buyer_id),
         'seller_id': int(seller_id),
         'price': float(price),
-        'quantity': int(quantity),
-        'total_value': float(price) * int(quantity),
-        'market_price': float(_get_market_price(group.subsession))
+        'quantity': int(quantity)
     }
     
     trade_history.append(trade_record)

@@ -845,6 +845,11 @@ class TradingMarket(Page):
             trade_history = json.loads(player.group.trade_history)
             # 顯示全體玩家的交易記錄
             my_trades = trade_history  # 修改：顯示所有交易而不是個人交易
+            # 將時間戳轉換為可讀格式
+            for trade in my_trades:
+                if 'timestamp' in trade:
+                    trade['time'] = time.strftime('%H:%M:%S', time.localtime(trade['timestamp']))
+                trade['is_buyer'] = (trade['buyer_id'] == player.id_in_group)
         except:
             my_trades = []
             
@@ -963,9 +968,6 @@ class ProductionDecision(Page):
                 if 'timestamp' in trade:
                     trade['time'] = time.strftime('%H:%M:%S', time.localtime(trade['timestamp']))
                 trade['is_buyer'] = (trade['buyer_id'] == player.id_in_group)
-                # 確保交易總值存在
-                if 'total_value' not in trade:
-                    trade['total_value'] = int(float(trade['price']) * int(trade['quantity']))
         except:
             my_trades = []
             
@@ -1081,9 +1083,6 @@ class Results(Page):
                 if 'timestamp' in trade:
                     trade['time'] = time.strftime('%H:%M:%S', time.localtime(trade['timestamp']))
                 trade['is_buyer'] = (trade['buyer_id'] == player.id_in_group)
-                # 確保交易總值存在
-                if 'total_value' not in trade:
-                    trade['total_value'] = int(float(trade['price']) * int(trade['quantity']))
         except:
             my_trades = []
             
