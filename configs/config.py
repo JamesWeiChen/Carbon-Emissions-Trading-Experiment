@@ -140,7 +140,12 @@ class ExperimentConfig:
         return self.get('general.role_assignment.ensure_player1_dominant', False)
     
     # ========== 廠商參數 ==========
-    
+
+    @property
+    def parameter_sets(self) -> List[Dict[str, Any]]:
+        """從 YAML 中讀取預設參數組合（通常用於每回合隨機排列）"""
+        return self._config.get('parameter_sets', [])
+
     @property
     def dominant_mc_range(self) -> Tuple[int, int]:
         """主導廠商邊際成本係數範圍"""
