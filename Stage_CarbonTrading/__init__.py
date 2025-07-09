@@ -182,16 +182,16 @@ def calculate_optimal_allowance_allocation(
         b_i = float(player.carbon_emission_per_unit)   # 每單位排放量
         
         # 社會最適產量：q_opt_i = (p - b_i * c) / a_i
-        q_opt_i = (p - b_i * c) / a_i
+        q_opt_i = int((p - b_i * c) / a_i)
         
         # 最適排放量：TE_opt_i = b_i * q_opt_i
-        TE_opt_i = b_i * q_opt_i
+        TE_opt_i = int(b_i * q_opt_i)
         
         firm_details.append({
             'a': a_i,
             'b': b_i,
-            'q_opt': round(q_opt_i, decimal_places),
-            'TE_opt': round(TE_opt_i, decimal_places)
+            'q_opt': q_opt_i,
+            'TE_opt': TE_opt_i,
         })
         
         TE_opts.append(TE_opt_i)
