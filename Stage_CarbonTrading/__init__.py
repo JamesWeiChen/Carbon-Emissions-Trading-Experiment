@@ -67,14 +67,6 @@ def initialize_roles(subsession: Subsession) -> None:
     subsession.start_time = int(time.time())
     print(f"第{subsession.round_number}回合開始時間已設定")
 
-    # 碳交易組特有的市場價格設定
-    if config.carbon_trading_use_fixed_price:
-        subsession.market_price = config.carbon_trading_fixed_market_price
-        print(f"使用固定市場價格: {subsession.market_price}")
-    else:
-        subsession.market_price = _generate_market_price()
-        print(f"隨機抽取市場價格: {subsession.market_price}")
-
     # 初始化玩家角色（會用到 subsession.market_price）
     initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
     
