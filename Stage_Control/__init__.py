@@ -11,7 +11,7 @@ from utils.shared_utils import (
     get_production_template_vars,
     calculate_final_payoff_info,
     _generate_market_price,
-    SharedSubsessionFields
+    SubsessionParamMixin
 )
 from configs.config import config
 
@@ -25,7 +25,7 @@ class C(BaseConstants):
     INITIAL_CAPITAL = config.get_stage_initial_capital('control')
     MAX_PRODUCTION = config.max_production
 
-class Subsession(SharedSubsessionFields):
+class Subsession(SubsessionParamMixin, BaseSubsession):    
     pass  # 或你可以再加額外欄位也沒關係
 
 # class Subsession(BaseSubsession):
