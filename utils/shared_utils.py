@@ -14,8 +14,8 @@ from configs.config import config, ConfigConstants
 
 CommonConstants = ConfigConstants
 
-class SharedSubsessionFields(BaseSubsession):
-    """所有共用欄位都寫在這"""
+class SubsessionParamMixin:
+    """這是一個 mixin，只放欄位，不繼承 BaseSubsession"""
     market_price = models.IntegerField()
     tax_rate = models.IntegerField()
     carbon_multiplier = models.FloatField()
