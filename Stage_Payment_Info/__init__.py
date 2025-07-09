@@ -17,7 +17,14 @@ class Group(BaseGroup):
     pass
 
 class Player(BasePlayer):
+
     total_payment = models.CurrencyField()
+    # === 基本資料 ===
+    name = models.StringField(label="您的名字")
+    student_id = models.StringField(label="您的學號")
+    id_number = models.StringField(label="您的身份證字號")
+    address = models.StringField(label="您的戶籍地址（含鄰里，需與身分證一致）")
+    address_code = models.StringField(label="戶籍地址郵遞區號（3碼即可）")
 
     @staticmethod
     def calculate_payment_info(player):
@@ -77,7 +84,30 @@ class PaymentInfo(Page):
         player.payoff = cu(info['total_profit'])  # 必須是 cu() 才會統計進 payoff
         player.total_payment = info['total_payment']
 
+class BasicInfo(Page):
+    form_model = 'player'
+    form_fields = ['name', 'student_id', 'id_number', 'address', 'address_code']
+
+    @staticmethod
+    def error_message(player: Player, values):
+        if len(values['student_id']) != 9:
+            return '學號長度不正確'
+        if not values['student_id'][0].isalpha():
+            return '學號第 1 碼應為英文字母'
+        if not values['student_id'][1:2].isnumeric():
+            return '學號格式不正確'
+        if not values['student_id'][4:8].isnumeric():
+            return '學號格式不正確'
+        if len(values['id_number']) != 10:
+            return '身份證字號長度不正確'
+        if not values['id_number'][0].isalpha():
+            return '身份證字號第 1 碼應為英文字母'
+        if not values['id_number'][1:9].isnumeric():
+            return '身份證字號格式不正確'
+        if len(values['address_code']) != 3 or not values['address_code'].isnumeric():
+            return '戶籍地址郵遞區號應為 3 碼數字'
+
 class WaitForInstruction(Page):
     pass
 
-page_sequence = [PaymentInfo, WaitForInstruction]
+page_sequence = [PaymentInfo, BasicInfo, WaitForInstruction]

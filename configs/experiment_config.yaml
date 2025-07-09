@@ -8,7 +8,7 @@
 # ====================================
 experiment_mode:
   # 主開關：true = 測試模式, false = 正式模式
-  test_mode_enabled: true
+  test_mode_enabled: false
   
   # 模式說明
   # - 測試模式：2人一組，3回合，簡化參數，方便快速測試
@@ -25,18 +25,18 @@ general:
   
   # 市場價格隨機抽取設定
   market_price_random_draw:
-    base_prices: [25, 30, 35, 40]  # 基礎價格選項
+    base_prices: [25, 30, 35]  # 基礎價格選項
     variations: [-2, -1, 1, 2]  # 變動幅度選項
     min_price: 1  # 最低價格
   
   # 廠商角色參數
   dominant_firm:
-    mc_range: [1, 5]  # 邊際成本係數範圍
+    mc_range: [2, 5]  # 邊際成本係數範圍
     emission_per_unit: 2  # 每單位碳排放
     max_production: 20    # 最大生產量
     
   non_dominant_firm:
-    mc_range: [2, 7]  # 邊際成本係數範圍  
+    mc_range: [4, 7]  # 邊際成本係數範圍  
     emission_per_unit: 1  # 每單位碳排放
     max_production: 8     # 最大生產量
   
@@ -158,13 +158,13 @@ stages:
   
   payment_info:
     name_in_url: 'Stage_Payment_Info'
-    display_name: "報酬結算"
-    description: "計算總報酬"
+    display_name: "報酬結算與收據資訊"
+    description: "計算總報酬並收集收據資訊"
 
   survey:
     name_in_url: 'Stage_Survey'
-    display_name: "收據資訊與問卷"
-    description: "收據資訊與實驗後問卷"
+    display_name: "問卷"
+    description: "實驗後問卷"
 
 # ====================================
 # 頁面流程配置
