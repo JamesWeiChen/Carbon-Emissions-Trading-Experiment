@@ -169,26 +169,29 @@ def execute_trade(
         seller.total_sold += quantity
         seller.total_earned += price * quantity
     
-    # 記錄交易到 group
-    record_trade(group, buyer.id_in_group, seller.id_in_group, price, quantity)
-    
-    # 記錄成交訂單到 subsession (新增功能)
+    # 記錄成交訂單到 subsession
     try:
         executed_trades = json.loads(group.subsession.executed_trades)
     except (json.JSONDecodeError, AttributeError):
         executed_trades = []
     
-    # 計算從回合開始後的秒數
-    elapsed_seconds = int(time.time() - group.subsession.start_time) if hasattr(group.subsession, 'start_time') and group.subsession.start_time else 0
+    # 計算時間戳（格式：MM:SS）
+    current_time = int(time.time())
+    if hasattr(group.subsession, 'start_time') and group.subsession.start_time:
+        elapsed_seconds = current_time - group.subsession.start_time
+        minutes = elapsed_seconds // 60
+        seconds = elapsed_seconds % 60
+        timestamp = f"{minutes:02d}:{seconds:02d}"
+    else:
+        timestamp = "00:00"
     
     # 創建成交記錄
     executed_trade = {
-        'timestamp': elapsed_seconds,  # 從回合開始後的秒數
+        'timestamp': timestamp,  # MM:SS 格式
         'buyer_id': buyer.id_in_group,
         'seller_id': seller.id_in_group,
-        'price': float(price),
-        'quantity': int(quantity),
-        'total_value': float(price) * int(quantity)
+        'price': int(price),
+        'quantity': int(quantity)
     }
     
     executed_trades.append(executed_trade)

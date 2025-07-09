@@ -256,8 +256,6 @@ def creating_session(subsession: Subsession) -> None:
 class Group(BaseGroup):
     buy_orders = models.LongStringField(initial='[]')
     sell_orders = models.LongStringField(initial='[]')
-    # 交易歷史記錄
-    trade_history = models.LongStringField(initial='[]')
 
 class Player(BasePlayer):
     # 添加這個欄位
@@ -278,10 +276,10 @@ class Player(BasePlayer):
     permits = models.IntegerField()  # 初始分配的碳權數量
     current_permits = models.IntegerField()  # 當前碳權餘額
     submitted_offers = models.LongStringField(initial='[]')
-    total_bought = models.IntegerField(default=0)
-    total_sold = models.IntegerField(default=0)
-    total_spent = models.CurrencyField(default=0)
-    total_earned = models.CurrencyField(default=0)
+    total_bought = models.IntegerField(default=0)   # 總買入數量：玩家在本回合買入的碳權總數
+    total_sold = models.IntegerField(default=0)     # 總賣出數量：玩家在本回合賣出的碳權總數
+    total_spent = models.CurrencyField(default=0)   # 總支出金額：玩家在本回合買入碳權花費的總金額
+    total_earned = models.CurrencyField(default=0)  # 總收入金額：玩家在本回合賣出碳權獲得的總金額
     
     # 新增：記錄生產成本表
     production_cost_table = models.LongStringField(initial='[]')
@@ -300,15 +298,21 @@ def _record_submitted_offer(player: Player, direction: str, price: int, quantity
     except json.JSONDecodeError:
         submitted_offers = []
     
-    # 計算從回合開始後的秒數
-    elapsed_seconds = int(time.time() - player.subsession.start_time) if hasattr(player.subsession, 'start_time') and player.subsession.start_time else 0
+    # 計算時間戳（格式：MM:SS）
+    current_time = int(time.time())
+    if hasattr(player.subsession, 'start_time') and player.subsession.start_time:
+        elapsed_seconds = current_time - player.subsession.start_time
+        minutes = elapsed_seconds // 60
+        seconds = elapsed_seconds % 60
+        timestamp = f"{minutes:02d}:{seconds:02d}"
+    else:
+        timestamp = "00:00"
     
     submitted_offers.append({
-        'timestamp': elapsed_seconds,  # 改為從回合開始後的秒數
+        'timestamp': timestamp,  # MM:SS 格式
         'direction': direction,
         'price': price,
         'quantity': quantity
-        # 移除 round 欄位
     })
     player.submitted_offers = json.dumps(submitted_offers)
 
@@ -842,12 +846,14 @@ class TradingMarket(Page):
         
         # 提取交易歷史
         try:
-            trade_history = json.loads(player.group.trade_history)
+            trade_history = json.loads(player.subsession.executed_trades)
             # 顯示全體玩家的交易記錄
             my_trades = trade_history  # 修改：顯示所有交易而不是個人交易
             # 將時間戳轉換為可讀格式
             for trade in my_trades:
-                if 'timestamp' in trade:
+                if 'timestamp' in trade and isinstance(trade['timestamp'], str):
+                    trade['time'] = trade['timestamp']  # 已經是 MM:SS 格式
+                elif 'timestamp' in trade:
                     trade['time'] = time.strftime('%H:%M:%S', time.localtime(trade['timestamp']))
                 trade['is_buyer'] = (trade['buyer_id'] == player.id_in_group)
         except:
@@ -960,12 +966,14 @@ class ProductionDecision(Page):
         
         # 獲取交易歷史
         try:
-            trade_history = json.loads(player.group.trade_history)
+            trade_history = json.loads(player.subsession.executed_trades)
             # 顯示全體玩家的交易記錄
             my_trades = trade_history  # 修改：顯示所有交易而不是個人交易
             # 將時間戳轉換為可讀格式
             for trade in my_trades:
-                if 'timestamp' in trade:
+                if 'timestamp' in trade and isinstance(trade['timestamp'], str):
+                    trade['time'] = trade['timestamp']  # 已經是 MM:SS 格式
+                elif 'timestamp' in trade:
                     trade['time'] = time.strftime('%H:%M:%S', time.localtime(trade['timestamp']))
                 trade['is_buyer'] = (trade['buyer_id'] == player.id_in_group)
         except:
@@ -1075,12 +1083,14 @@ class Results(Page):
         
         # 獲取交易歷史
         try:
-            trade_history = json.loads(player.group.trade_history)
+            trade_history = json.loads(player.subsession.executed_trades)
             # 顯示全體玩家的交易記錄
             my_trades = trade_history  # 修改：顯示所有交易而不是個人交易
             # 將時間戳轉換為可讀格式
             for trade in my_trades:
-                if 'timestamp' in trade:
+                if 'timestamp' in trade and isinstance(trade['timestamp'], str):
+                    trade['time'] = trade['timestamp']  # 已經是 MM:SS 格式
+                elif 'timestamp' in trade:
                     trade['time'] = time.strftime('%H:%M:%S', time.localtime(trade['timestamp']))
                 trade['is_buyer'] = (trade['buyer_id'] == player.id_in_group)
         except:

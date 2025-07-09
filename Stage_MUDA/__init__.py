@@ -75,7 +75,6 @@ def _initialize_player(player: BasePlayer) -> None:
 class Group(BaseGroup):
     buy_orders = models.LongStringField(initial='[]')
     sell_orders = models.LongStringField(initial='[]')
-    trade_history = models.LongStringField(initial='[]')
 
 class Player(BasePlayer):
     # 交易相關欄位
@@ -94,10 +93,10 @@ class Player(BasePlayer):
     personal_item_value = models.CurrencyField()
     
     # 交易統計
-    total_bought = models.IntegerField(default=0)
-    total_sold = models.IntegerField(default=0)
-    total_spent = models.CurrencyField(default=0)
-    total_earned = models.CurrencyField(default=0)
+    total_bought = models.IntegerField(default=0)  # 總買入數量：玩家在本回合買入的碳權總數
+    total_sold = models.IntegerField(default=0)    # 總賣出數量：玩家在本回合賣出的碳權總數
+    total_spent = models.CurrencyField(default=0)  # 總支出金額：玩家在本回合買入碳權花費的總金額
+    total_earned = models.CurrencyField(default=0) # 總收入金額：玩家在本回合賣出碳權獲得的總金額
     
     # 結算相關
     item_value = models.CurrencyField()
@@ -327,7 +326,7 @@ class TradingMarket(Page):
         
         # 獲取交易歷史
         try:
-            trade_history = json.loads(group.trade_history)
+            trade_history = json.loads(player.subsession.executed_trades)
             recent_trades = trade_history[-10:]  # 最近10筆交易
         except (json.JSONDecodeError, AttributeError):
             recent_trades = []
@@ -378,15 +377,21 @@ def _record_submitted_offer(player: Player, direction: str, price: int, quantity
     except json.JSONDecodeError:
         submitted_offers = []
     
-    # 計算從回合開始後的秒數
-    elapsed_seconds = int(time.time() - player.subsession.start_time) if hasattr(player.subsession, 'start_time') and player.subsession.start_time else 0
+    # 計算時間戳（格式：MM:SS）
+    current_time = int(time.time())
+    if hasattr(player.subsession, 'start_time') and player.subsession.start_time:
+        elapsed_seconds = current_time - player.subsession.start_time
+        minutes = elapsed_seconds // 60
+        seconds = elapsed_seconds % 60
+        timestamp = f"{minutes:02d}:{seconds:02d}"
+    else:
+        timestamp = "00:00"
     
     submitted_offers.append({
-        'timestamp': elapsed_seconds,  # 改為從回合開始後的秒數
+        'timestamp': timestamp,  # MM:SS 格式
         'direction': direction,
         'price': price,
         'quantity': quantity
-        # 移除 round 欄位
     })
     player.submitted_offers = json.dumps(submitted_offers)
 
@@ -415,7 +420,7 @@ class Results(Page):
         
         # 獲取交易歷史
         try:
-            trade_history = json.loads(player.group.trade_history)
+            trade_history = json.loads(player.subsession.executed_trades)
         except (json.JSONDecodeError, AttributeError):
             trade_history = []
         
