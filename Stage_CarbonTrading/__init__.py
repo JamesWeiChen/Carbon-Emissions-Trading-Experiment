@@ -55,6 +55,7 @@ class Subsession(BaseSubsession):
     cap_multiplier = models.FloatField()
     cap_total = models.IntegerField()
     allocation_details = models.LongStringField(initial='[]')  # 儲存分配詳細資訊
+    executed_trades = models.LongStringField(initial='[]')  # 新增：記錄成交的訂單
 
 def initialize_roles(subsession: Subsession) -> None:
     """使用共享工具庫和配置文件初始化角色"""
@@ -281,6 +282,10 @@ class Player(BasePlayer):
     total_sold = models.IntegerField(default=0)
     total_spent = models.CurrencyField(default=0)
     total_earned = models.CurrencyField(default=0)
+    
+    # 新增：記錄生產成本表
+    production_cost_table = models.LongStringField(initial='[]')
+    
     selected_round = models.IntegerField()  # 新增：隨機選中的回合用於最終報酬
     # 新增：社會最適產量相關欄位
     optimal_production = models.FloatField()  # 個人最適產量 q_opt_i
@@ -295,12 +300,15 @@ def _record_submitted_offer(player: Player, direction: str, price: int, quantity
     except json.JSONDecodeError:
         submitted_offers = []
     
+    # 計算從回合開始後的秒數
+    elapsed_seconds = int(time.time() - player.subsession.start_time) if hasattr(player.subsession, 'start_time') and player.subsession.start_time else 0
+    
     submitted_offers.append({
-        'timestamp': int(time.time()),
+        'timestamp': elapsed_seconds,  # 改為從回合開始後的秒數
         'direction': direction,
         'price': price,
-        'quantity': quantity,
-        'round': player.round_number
+        'quantity': quantity
+        # 移除 round 欄位
     })
     player.submitted_offers = json.dumps(submitted_offers)
 
@@ -612,6 +620,25 @@ def record_trade(group, buyer_id, seller_id, price, quantity):
     
     trade_history.append(trade_record)
     group.trade_history = json.dumps(trade_history)
+    
+    # 記錄成交訂單到 subsession (新增功能)
+    try:
+        executed_trades = json.loads(group.subsession.executed_trades)
+    except (json.JSONDecodeError, AttributeError):
+        executed_trades = []
+    
+    # 創建成交記錄 (使用秒數而非分:秒格式)
+    executed_trade = {
+        'timestamp': elapsed_seconds,  # 從回合開始後的秒數
+        'buyer_id': buyer_id,
+        'seller_id': seller_id,
+        'price': float(price),
+        'quantity': int(quantity),
+        'total_value': float(price) * int(quantity)
+    }
+    
+    executed_trades.append(executed_trade)
+    group.subsession.executed_trades = json.dumps(executed_trades)
     
     # 更新價格歷史
     update_price_history(group.subsession, price)
@@ -1027,6 +1054,14 @@ class ProductionDecision(Page):
             cost = (player.marginal_cost_coefficient * player.production**2) / 2
             # 現金用於交易，不扣除生產成本
             # player.current_cash -= cost
+        
+        # 記錄生產成本表
+        if not timeout_happened:
+            from utils.shared_utils import generate_production_cost_table
+            import json
+            
+            cost_table = generate_production_cost_table(player)
+            player.production_cost_table = json.dumps(cost_table)
 
 
 

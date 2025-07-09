@@ -35,6 +35,7 @@ class Subsession(BaseSubsession):
     item_market_price = models.CurrencyField()
     price_history = models.LongStringField(initial='[]')
     start_time = models.IntegerField()
+    executed_trades = models.LongStringField(initial='[]')  # 新增：記錄成交的訂單
 
 def creating_session(subsession: Subsession) -> None:
     """創建會話時的初始化"""
@@ -377,12 +378,15 @@ def _record_submitted_offer(player: Player, direction: str, price: int, quantity
     except json.JSONDecodeError:
         submitted_offers = []
     
+    # 計算從回合開始後的秒數
+    elapsed_seconds = int(time.time() - player.subsession.start_time) if hasattr(player.subsession, 'start_time') and player.subsession.start_time else 0
+    
     submitted_offers.append({
-        'timestamp': int(time.time()),
+        'timestamp': elapsed_seconds,  # 改為從回合開始後的秒數
         'direction': direction,
         'price': price,
-        'quantity': quantity,
-        'round': player.round_number
+        'quantity': quantity
+        # 移除 round 欄位
     })
     player.submitted_offers = json.dumps(submitted_offers)
 

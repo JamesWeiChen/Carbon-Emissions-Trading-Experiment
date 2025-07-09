@@ -48,10 +48,10 @@ class Group(BaseGroup):
     pass
 
 class Player(BasePlayer):
-    # 基本屬性
+    # 企業特性
+    is_dominant = models.BooleanField()
     marginal_cost_coefficient = models.IntegerField()
     carbon_emission_per_unit = models.FloatField()
-    is_dominant = models.BooleanField()
     max_production = models.IntegerField()
     
     # 市場和生產
@@ -67,7 +67,10 @@ class Player(BasePlayer):
     current_cash = models.CurrencyField()
     final_cash = models.CurrencyField()
     
-    # 最終報酬
+    # 新增：記錄生產成本表
+    production_cost_table = models.LongStringField(initial='[]')
+    
+    # 隨機選中的回合用於最終報酬
     selected_round = models.IntegerField()
 
 def initialize_roles(subsession: Subsession) -> None:
@@ -117,6 +120,17 @@ class ProductionDecision(Page):
             treatment='carbon_tax',
             additional_vars=additional_vars
         )
+    
+    @staticmethod
+    def before_next_page(player: Player, timeout_happened: bool) -> None:
+        """在進入下一頁前記錄生產成本表"""
+        if not timeout_happened:
+            # 生成並儲存成本表
+            from utils.shared_utils import generate_production_cost_table
+            import json
+            
+            cost_table = generate_production_cost_table(player)
+            player.production_cost_table = json.dumps(cost_table)
 
 class ResultsWaitPage(WaitPage):
     after_all_players_arrive = calculate_carbon_tax_payoffs
