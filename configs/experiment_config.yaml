@@ -19,7 +19,7 @@ experiment_mode:
 # ====================================
 general:
   # 基本參數（正式模式）
-  players_per_group: 15  # 正式實驗：15人一組
+  players_per_group: 12  # 正式實驗：15人一組
   num_rounds: 12
   max_production: 50
   
@@ -43,7 +43,7 @@ general:
   # 角色分配設定（正式模式）
   role_assignment:
     dominant_firm_count: 3  # 主導廠商數量
-    non_dominant_firm_count: 12  # 其他廠商數量
+    non_dominant_firm_count: 9  # 其他廠商數量
     ensure_player1_dominant: false  # 正式實驗不需要確保1號玩家為主導廠商
   
   # 隨機擾動參數
