@@ -14,6 +14,14 @@ from configs.config import config, ConfigConstants
 
 CommonConstants = ConfigConstants
 
+class SharedSubsessionFields(BaseSubsession):
+    """所有共用欄位都寫在這"""
+    market_price = models.IntegerField()
+    tax_rate = models.IntegerField()
+    carbon_multiplier = models.FloatField()
+    dominant_mc = models.IntegerField()
+    non_dominant_mc = models.IntegerField()
+
 def initialize_player_roles(subsession: BaseSubsession, initial_capital: Currency) -> None:
     """
     初始化玩家角色分配
