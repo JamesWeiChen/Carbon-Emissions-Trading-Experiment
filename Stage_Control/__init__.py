@@ -10,8 +10,7 @@ from utils.shared_utils import (
     calculate_control_payoffs,
     get_production_template_vars,
     calculate_final_payoff_info,
-    _generate_market_price,
-    SubsessionParamMixin
+    _generate_market_price
 )
 from configs.config import config
 
@@ -25,11 +24,13 @@ class C(BaseConstants):
     INITIAL_CAPITAL = config.get_stage_initial_capital('control')
     MAX_PRODUCTION = config.max_production
 
-class Subsession(SubsessionParamMixin, BaseSubsession):    
-    pass  # 或你可以再加額外欄位也沒關係
-
-# class Subsession(BaseSubsession):
+class Subsession(BaseSubsession):
     # market_price = models.CurrencyField()
+    market_price = models.IntegerField()
+    tax_rate = models.IntegerField()
+    carbon_multiplier = models.FloatField()
+    dominant_mc = models.IntegerField()
+    non_dominant_mc = models.IntegerField()
 
 def creating_session(subsession: Subsession) -> None:
     """創建會話時的初始化"""
