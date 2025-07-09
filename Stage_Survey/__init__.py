@@ -85,34 +85,34 @@ class Player(BasePlayer):
 
     # carbon_tax 專屬題目
     carbon_tax_fairness = models.IntegerField(
-        label='您認為碳稅制度在「公平性」方面的表現',
+        label='您認為第二階段的碳稅制度在「公平性」方面的表現',
         choices=[[1, '非常不公平'], [2, '不太公平'], [3, '普通'], [4, '公平'], [5, '非常公平']],
         widget=widgets.RadioSelect
     )
     carbon_tax_efficiency = models.IntegerField(
-        label='您認為碳稅制度在「經濟效率」方面的表現',
+        label='您認為第二階段的碳稅制度在「經濟效率」方面的表現',
         choices=[[1, '非常沒效率'], [2, '沒效率'], [3, '普通'], [4, '有效率'], [5, '非常有效率']],
         widget=widgets.RadioSelect
     )
     carbon_tax_environment = models.IntegerField(
-        label='您認為碳稅制度在「減碳／改善環境」方面的效果',
+        label='您認為第二階段的碳稅制度在「減碳／改善環境」方面的效果',
         choices=[[1, '完全沒幫助'], [2, '幫助很小'], [3, '普通'], [4, '有幫助'], [5, '非常有效']],
         widget=widgets.RadioSelect
     )
 
     # carbon_trade 專屬題目
     carbon_trade_fairness = models.IntegerField(
-        label='您認為碳交易制度在「公平性」方面的表現',
+        label='您認為第二階段的碳交易制度在「公平性」方面的表現',
         choices=[[1, '非常不公平'], [2, '不太公平'], [3, '普通'], [4, '公平'], [5, '非常公平']],
         widget=widgets.RadioSelect
     )
     carbon_trade_efficiency = models.IntegerField(
-        label='您認為碳交易制度在「經濟效率」方面的表現',
+        label='您認為第二階段的碳交易制度在「經濟效率」方面的表現',
         choices=[[1, '非常沒效率'], [2, '沒效率'], [3, '普通'], [4, '有效率'], [5, '非常有效率']],
         widget=widgets.RadioSelect
     )
     carbon_trade_environment = models.IntegerField(
-        label='您認為碳交易制度在「減碳／改善環境」方面的效果',
+        label='您認為第二階段的碳交易制度在「減碳／改善環境」方面的效果',
         choices=[[1, '完全沒幫助'], [2, '幫助很小'], [3, '普通'], [4, '有幫助'], [5, '非常有效']],
         widget=widgets.RadioSelect
     )
