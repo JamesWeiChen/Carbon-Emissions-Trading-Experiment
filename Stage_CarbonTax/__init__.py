@@ -35,23 +35,29 @@ class Subsession(BaseSubsession):
 
 def creating_session(subsession: Subsession) -> None:
     """創建會話時的初始化"""
-    subsession.set_group_matrix([subsession.get_players()]) # 所有人同一組
+    # 讓所有參與者都進入同一組
+    subsession.set_group_matrix([subsession.get_players()])
+
+    # subsession.market_price = _generate_market_price()
     session = subsession.session
     round_number = subsession.round_number
 
     if round_number == 1:
         all_sets = config.parameter_sets
-        session.vars['parameter_order'] = random.sample(range(len(all_sets)), len(all_sets))
+        order = random.sample(range(len(all_sets)), len(all_sets))
+        session.vars['parameter_order'] = order
+    else:
+        order = session.vars['parameter_order']
 
-    order = session.vars['parameter_order']
-    param = config.parameter_sets[order[round_number - 1]]
+    param_index = order[round_number - 1]
+    param = config.parameter_sets[param_index]
 
+    # 存入 Subsession 的欄位
     subsession.market_price = param['market_price']
     subsession.tax_rate = param['tax_rate']
     subsession.carbon_multiplier = param['carbon_multiplier']
     subsession.dominant_mc = param['dominant_mc']
     subsession.non_dominant_mc = param['non_dominant_mc']
-
 
 class Group(BaseGroup):
     pass
