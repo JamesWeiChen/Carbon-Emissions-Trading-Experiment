@@ -14,14 +14,6 @@ from configs.config import config, ConfigConstants
 
 CommonConstants = ConfigConstants
 
-class SubsessionParamMixin:
-    """這是一個 mixin，只放欄位，不繼承 BaseSubsession"""
-    market_price = models.IntegerField()
-    tax_rate = models.IntegerField()
-    carbon_multiplier = models.FloatField()
-    dominant_mc = models.IntegerField()
-    non_dominant_mc = models.IntegerField()
-
 def initialize_player_roles(subsession: BaseSubsession, initial_capital: Currency) -> None:
     """
     初始化玩家角色分配
