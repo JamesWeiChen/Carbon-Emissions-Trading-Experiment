@@ -251,37 +251,36 @@ def calculate_optimal_allowance_allocation(
     }
 
 def creating_session(subsession: Subsession) -> None:
-    """創建會話時的初始化"""
-    # 讓所有人進入同一組
+    # 設定分組
     subsession.set_group_matrix([subsession.get_players()])
 
-    # 如果還沒抽過，先抽一個 shared selected round
+    # 選擇報酬回合（僅第 1 輪）
     if "selected_round" not in subsession.session.vars:
         subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
-    print(f"選中的報酬回合為：{subsession.session.vars['selected_round']}")
-    
-    # 初始化角色（start_time 將在每回合開始時設定）
-    initialize_roles(subsession)
 
     session = subsession.session
     round_number = subsession.round_number
-
     all_sets = config.parameter_sets
     num_rounds = config.num_rounds
 
+    # 決定參數順序（僅第 1 輪）
     if round_number == 1:
-        if config.test_mode:
-            order = list(range(num_rounds))
-        else:
-            order = random.sample(range(len(all_sets)), num_rounds)
+        order = list(range(num_rounds)) if config.test_mode else random.sample(range(len(all_sets)), num_rounds)
         session.vars['parameter_order'] = order
 
+    # 根據 round_number 取出參數
     order = session.vars['parameter_order']
     param = all_sets[order[round_number - 1]]
 
+    # ✅ 先設定 subsession 欄位
     subsession.market_price = param['market_price']
     subsession.tax_rate = param['tax_rate']
     subsession.carbon_multiplier = param['carbon_multiplier']
+    subsession.dominant_mc = param['dominant_mc']
+    subsession.non_dominant_mc = param['non_dominant_mc']
+
+    # ✅ 再呼叫會用到上述欄位的函數
+    initialize_roles(subsession)
 
 class Group(BaseGroup):
     buy_orders = models.LongStringField(initial='[]')
