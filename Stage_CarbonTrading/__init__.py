@@ -47,15 +47,18 @@ class C(BaseConstants):
     CARBON_ALLOWANCE_PER_PLAYER: int = config.carbon_allowance_per_player
 
 class Subsession(BaseSubsession):
-    market_price = models.CurrencyField()
+    market_price = models.IntegerField()
     price_history = models.LongStringField(initial='[]')
     start_time = models.IntegerField()  # 新增：記錄開始時間
     # 新增：社會最適產量和配額分配相關欄位
     total_optimal_emissions = models.FloatField()
-    cap_multiplier = models.FloatField()
     cap_total = models.IntegerField()
     allocation_details = models.LongStringField(initial='[]')  # 儲存分配詳細資訊
     executed_trades = models.LongStringField(initial='[]')  # 新增：記錄成交的訂單
+    carbon_multiplier = models.FloatField()
+    tax_rate = models.IntegerField()
+    dominant_mc = models.IntegerField()
+    non_dominant_mc = models.IntegerField()
 
 def initialize_roles(subsession: Subsession) -> None:
     """使用共享工具庫和配置文件初始化角色"""
@@ -81,7 +84,7 @@ def initialize_roles(subsession: Subsession) -> None:
     
     # 儲存結果到 subsession
     subsession.total_optimal_emissions = allowance_allocation['TE_opt_total']
-    subsession.cap_multiplier = allowance_allocation['r']
+    subsession.carbon_multiplier = allowance_allocation['r']
     subsession.cap_total = allowance_allocation['cap_total']
     subsession.allocation_details = json.dumps(allowance_allocation['firm_details'])
     
@@ -178,8 +181,7 @@ def calculate_optimal_allowance_allocation(
     TE_subopts = []
 
     # 從配置檔案讀取配額倍率選項
-    multipliers = config.carbon_trading_cap_multipliers
-    r = random.choice(multipliers)
+    r = subsession.carbon_multiplier
     
     # 計算每家廠商的社會最適產量和最適排放量
     for player in players:
@@ -260,6 +262,26 @@ def creating_session(subsession: Subsession) -> None:
     
     # 初始化角色（start_time 將在每回合開始時設定）
     initialize_roles(subsession)
+
+    session = subsession.session
+    round_number = subsession.round_number
+
+    all_sets = config.parameter_sets
+    num_rounds = config.num_rounds
+
+    if round_number == 1:
+        if config.test_mode:
+            order = list(range(num_rounds))
+        else:
+            order = random.sample(range(len(all_sets)), num_rounds)
+        session.vars['parameter_order'] = order
+
+    order = session.vars['parameter_order']
+    param = all_sets[order[round_number - 1]]
+
+    subsession.market_price = param['market_price']
+    subsession.tax_rate = param['tax_rate']
+    subsession.carbon_multiplier = param['carbon_multiplier']
 
 class Group(BaseGroup):
     buy_orders = models.LongStringField(initial='[]')
