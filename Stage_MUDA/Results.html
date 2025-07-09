@@ -4,7 +4,22 @@
 {% block title %}實驗結果{% endblock %}
 
 {% block content %}
-<div class="container">
+<style>
+    .otree-body {
+        max-width: 80vw !important;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    </style>
+
+<style>
+    .custom-wide-container {
+        max-width: 80vw;
+        margin: auto;
+    }
+</style>
+
+<div class="container custom-wide-container">
     <div class="card">
         <div class="card-header bg-primary text-white">
             <h2>本輪結果</h2>
@@ -32,7 +47,7 @@
                         <div class="col-md-4">
                             <div class="card">
                                 <div class="card-header bg-danger text-white text-center">
-                                    <h5>全體玩家的{{ item_name }}總量</h5>
+                                    <h5>全體受試者的{{ item_name }}總量</h5>
                                 </div>
                                 <div class="card-body text-center">
                                     <h2>{{ group_items_total }}</h2>
