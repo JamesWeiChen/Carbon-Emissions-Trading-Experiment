@@ -196,7 +196,7 @@ def calculate_optimal_allowance_allocation(
         TE_opt_i = int(b_i * q_opt_i)
 
         # 乘數影響下的假最適排放量
-        TE_subopts = int(b_i * q_subopt_i)
+        TE_subopt_i = int(b_i * q_subopt_i)
         
         firm_details.append({
             'a': a_i,
