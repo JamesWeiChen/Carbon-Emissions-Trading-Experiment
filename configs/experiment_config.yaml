@@ -22,6 +22,7 @@ general:
   players_per_group: 12  # 正式實驗：N 人一組
   num_rounds: 12 # 正式實驗：T 回合
   max_production: 50 # （實際上用不到）
+  random_dominant_firm_each_round: False
   
   # 市場價格隨機抽取設定 （已經不再使用）
   market_price_random_draw:
