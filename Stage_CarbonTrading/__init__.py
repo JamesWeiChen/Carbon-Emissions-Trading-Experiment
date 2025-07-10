@@ -12,7 +12,8 @@ from utils.shared_utils import (
     record_trade,
     cancel_player_orders,
     _generate_market_price,
-    initialize_player_roles
+    initialize_player_roles,
+    get_parameter_set_for_round
 )
 from utils.trading_utils import (
     parse_orders,
@@ -242,7 +243,7 @@ def calculate_optimal_allowance_allocation(
             'use_fixed_price': config.carbon_trading_use_fixed_price
         }
     }
-
+    
 def creating_session(subsession: Subsession) -> None:
     # 設定分組
     subsession.set_group_matrix([subsession.get_players()])
@@ -251,28 +252,14 @@ def creating_session(subsession: Subsession) -> None:
     if "selected_round" not in subsession.session.vars:
         subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
 
-    session = subsession.session
-    round_number = subsession.round_number
-    all_sets = config.parameter_sets
-    num_rounds = config.num_rounds
+    param = get_parameter_set_for_round(subsession.session, subsession.round_number)
 
-    # 決定參數順序（僅第 1 輪）
-    if round_number == 1:
-        order = list(range(num_rounds)) if config.test_mode else random.sample(range(len(all_sets)), num_rounds)
-        session.vars['parameter_order'] = order
-
-    # 根據 round_number 取出參數
-    order = session.vars['parameter_order']
-    param = all_sets[order[round_number - 1]]
-
-    # ✅ 先設定 subsession 欄位
     subsession.market_price = param['market_price']
     subsession.tax_rate = param['tax_rate']
     subsession.carbon_multiplier = param['carbon_multiplier']
     subsession.dominant_mc = param['dominant_mc']
     subsession.non_dominant_mc = param['non_dominant_mc']
 
-    # ✅ 再呼叫會用到上述欄位的函數
     initialize_roles(subsession)
 
 class Group(BaseGroup):

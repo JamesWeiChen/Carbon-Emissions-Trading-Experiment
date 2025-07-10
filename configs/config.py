@@ -150,11 +150,13 @@ class ExperimentConfig:
         return self.get('general.role_assignment.ensure_player1_dominant', False)
     
     # ========== 廠商參數 ==========
-
     @property
     def parameter_sets(self) -> List[Dict[str, Any]]:
-        """抓參數組合表"""
-        return self._config.get('preset_parameter_sets', [])
+        """從矩陣格式的 preset_parameter_matrix 轉換成 list of dicts"""
+        matrix = self._config.get('preset_parameter_matrix', {})
+        columns = matrix.get('columns', [])
+        values = matrix.get('values', [])
+        return [dict(zip(columns, row)) for row in values]
 
     @property
     def dominant_mc_range(self) -> Tuple[int, int]:
