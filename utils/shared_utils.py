@@ -14,6 +14,32 @@ from configs.config import config, ConfigConstants
 
 CommonConstants = ConfigConstants
 
+def get_parameter_set_for_round(session):
+    """
+    根據 session 當前回合，回傳該回合的參數設定 dict。
+    如果是第一回合，會初始化洗牌順序與轉換矩陣。
+    """
+    from configs.config import config
+    round_number = session.subsession.round_number if hasattr(session, 'subsession') else None
+    if round_number is None:
+        # 如果是 creating_session 中使用，就抓最後一個 subsession
+        round_number = session._current_app_sequence[session._index_in_app_sequence].round_number
+
+    matrix = config.preset_parameter_matrix
+    columns = matrix['columns']
+    values = matrix['values']
+
+    if round_number == 1:
+        all_sets = [dict(zip(columns, row)) for row in values]
+        order = random.sample(range(len(all_sets)), len(all_sets))
+        session.vars['parameter_sets'] = all_sets
+        session.vars['parameter_order'] = order
+    else:
+        all_sets = session.vars['parameter_sets']
+        order = session.vars['parameter_order']
+
+    return all_sets[order[round_number - 1]]
+
 def initialize_player_roles(subsession: BaseSubsession, initial_capital: Currency) -> None:
     """
     初始化玩家角色分配
