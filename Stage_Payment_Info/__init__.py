@@ -74,7 +74,7 @@ class PaymentInfo(Page):
             total_profit_formatted=f"{info['total_profit']:,.0f} 法幣",
             total_emission_formatted=f"{info['total_emission']:.0f} 單位碳排",
             total_group_emission_formatted=f"{info['total_group_emission']:.0f} 單位碳排",
-            real_emission_formatted=f"{info['real_emission']:.0f} 單位 Carbonfund.org 碳排",
+            real_emission_formatted=f"{info['real_emission']:.0f} 公噸 CO₂e",
             real_payoff_formatted=f"{info['real_payoff']:,.0f} 元",
             participation_fee=int(info['participation_fee']),
             total_payment_formatted=f"{info['total_payment']:,.0f} 元",
