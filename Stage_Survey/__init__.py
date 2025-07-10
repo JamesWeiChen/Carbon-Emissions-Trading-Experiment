@@ -117,8 +117,8 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect
     )
     carbon_trade_mkt_power = models.IntegerField(
-        label='當您是產量上限比較大的廠商，你否有嘗試壓低碳權的價格？',
-        choices=[[1, '沒有'], [2, '偶爾'], [3, '一半時間'], [4, '通常'], [5, '每次']],
+        label='若您是產量上限高的大廠商，您是否會嘗試壓低碳權的價格？',
+        choices=[[1, '不會'], [2, '可能不會'], [3, '不確定'], [4, '可能會'], [5, '會']],
         widget=widgets.RadioSelect
     )
 
