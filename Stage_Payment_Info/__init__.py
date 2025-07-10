@@ -38,7 +38,7 @@ class Player(BasePlayer):
             "carbon_trade_summary" if treatment == "trade" else "carbon_tax_summary", {}
         )
 
-        total_profit = control.get("profit", 0) + carbon.get("profit", 0)
+        total_profit = control.get("profit", 50) + carbon.get("profit", 60)
         total_emission = control.get("emission", 12) + carbon.get("emission", 11)
         total_group_emission = control.get("group_emission", 50) + carbon.get("group_emission", 30)
         real_emission = total_group_emission * session.config.get("carbon_real_world_rate", 0.1)
