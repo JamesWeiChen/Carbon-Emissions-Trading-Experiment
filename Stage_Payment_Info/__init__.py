@@ -68,8 +68,8 @@ class PaymentInfo(Page):
         info = Player.calculate_payment_info(player)
 
         return dict(
-            control_profit=info['control'].get("profit", 0),
-            carbon_profit=info['carbon'].get("profit", 0),
+            control_profit=info['control'].get("profit", 50),
+            carbon_profit=info['carbon'].get("profit", 60),
             total_profit=info['total_profit'],
             total_profit_formatted=f"{info['total_profit']:,.0f} 法幣",
             total_emission_formatted=f"{info['total_emission']:.1f} 單位碳排",
