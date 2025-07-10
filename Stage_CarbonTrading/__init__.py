@@ -361,7 +361,7 @@ def _process_carbon_trading_order(
             seller_id = int(best_order[0])
             
             try:
-                seller = grouget_player_by_id(seller_id)
+                seller = group.get_player_by_id(seller_id)
                 execute_trade(group, player, seller, float(best_order[1]), quantity, 'current_permits')
                 
                 # 保留：交易成功時取消雙方其他訂單
