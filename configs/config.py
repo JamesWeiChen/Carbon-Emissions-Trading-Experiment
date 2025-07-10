@@ -113,7 +113,7 @@ class ExperimentConfig:
         return self.get('general.max_production', 50)
     
     @property
-    def players_per_group(self) -> int:
+    def random_dominant_firm_each_round(self) -> int:
         """是否每回合重抽主導廠商"""
         return self.get('general.random_dominant_firm_each_round', False)
     
