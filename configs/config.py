@@ -118,6 +118,11 @@ class ExperimentConfig:
         return self.get('general.random_dominant_firm_each_round', False)
 
     @property
+    def carbon_real_world_rate(self) -> bool:
+        """實驗碳排轉換成真實碳排的比例"""
+        return self.get('general.carbon_real_world_rate', False)
+
+    @property
     def test_mode(self) -> bool:
         """是否為測試模式（兼容舊代碼）"""
         return self.is_test_mode_enabled()
