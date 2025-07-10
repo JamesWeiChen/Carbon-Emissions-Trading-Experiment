@@ -171,78 +171,21 @@ stages:
 # ====================================
 # 12 組隨機參數組合
 # ====================================
-preset_parameter_sets:
-  - market_price: 25
-    tax_rate: 3
-    carbon_multiplier: 0.5
-    dominant_mc: 2
-    non_dominant_mc: 4
-
-  - market_price: 25
-    tax_rate: 3
-    carbon_multiplier: 0.5
-    dominant_mc: 3
-    non_dominant_mc: 5
-
-  - market_price: 25
-    tax_rate: 6
-    carbon_multiplier: 1.0
-    dominant_mc: 2
-    non_dominant_mc: 4
-
-  - market_price: 25
-    tax_rate: 6
-    carbon_multiplier: 1.0
-    dominant_mc: 3
-    non_dominant_mc: 5
-
-  - market_price: 25
-    tax_rate: 9
-    carbon_multiplier: 1.5
-    dominant_mc: 2
-    non_dominant_mc: 4
-
-  - market_price: 25
-    tax_rate: 9
-    carbon_multiplier: 1.5
-    dominant_mc: 3
-    non_dominant_mc: 5
-
-  - market_price: 35
-    tax_rate: 3
-    carbon_multiplier: 0.5
-    dominant_mc: 2
-    non_dominant_mc: 4
-
-  - market_price: 35
-    tax_rate: 3
-    carbon_multiplier: 0.5
-    dominant_mc: 3
-    non_dominant_mc: 5
-
-  - market_price: 35
-    tax_rate: 6
-    carbon_multiplier: 1.0
-    dominant_mc: 2
-    non_dominant_mc: 4
-
-  - market_price: 35
-    tax_rate: 6
-    carbon_multiplier: 1.0
-    dominant_mc: 3
-    non_dominant_mc: 5
-
-  - market_price: 35
-    tax_rate: 9
-    carbon_multiplier: 1.5
-    dominant_mc: 2
-    non_dominant_mc: 4
-
-  - market_price: 35
-    tax_rate: 9
-    carbon_multiplier: 1.5
-    dominant_mc: 3
-    non_dominant_mc: 5
+preset_parameter_matrix:
+  columns: [market_price, tax_rate, carbon_multiplier, dominant_mc, non_dominant_mc]
+  values:
+    - [25, 3, 0.5, 2, 4]
+    - [25, 3, 0.5, 3, 5]
+    - [25, 6, 1.0, 2, 4]
+    - [25, 6, 1.0, 3, 5]
+    - [25, 9, 1.5, 2, 4]
+    - [25, 9, 1.5, 3, 5]
+    - [35, 3, 0.5, 2, 4]
+    - [35, 3, 0.5, 3, 5]
+    - [35, 6, 1.0, 2, 4]
+    - [35, 6, 1.0, 3, 5]
+    - [35, 9, 1.5, 2, 4]
+    - [35, 9, 1.5, 3, 5]
 
 # ====================================
 # 頁面流程配置
