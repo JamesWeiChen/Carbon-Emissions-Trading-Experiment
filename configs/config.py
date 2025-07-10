@@ -137,7 +137,7 @@ class ExperimentConfig:
     @property
     def non_dominant_firm_count(self) -> int:
         """非主導廠商數量"""
-        return self.get('general.role_assignment.non_dominant_firm_count', 12)
+        return self.get('general.role_assignment.non_dominant_firm_count', 9)
     
     @property
     def ensure_player1_dominant(self) -> bool:
