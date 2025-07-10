@@ -58,6 +58,9 @@ def creating_session(subsession: Subsession) -> None:
     subsession.dominant_mc = param['dominant_mc']
     subsession.non_dominant_mc = param['non_dominant_mc']
 
+    if config.random_dominant_firm_each_round or round_number == 1:
+        initialize_roles(subsession)
+
     # 如果你還想留在 session.vars 中也可以（但不是必需）
     # session.vars[f'param_set_round_{round_number}'] = param
 
@@ -92,11 +95,6 @@ class Player(BasePlayer):
 def initialize_roles(subsession: Subsession) -> None:
     """初始化角色分配"""
     initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
-
-def before_next_round(subsession: Subsession):
-    """每一回合開始前是否重新分配角色"""
-    if config.random_dominant_firm_each_round:
-        initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
 
 class Introduction(Page):
     @staticmethod
