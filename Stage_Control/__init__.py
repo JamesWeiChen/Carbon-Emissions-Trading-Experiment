@@ -10,7 +10,8 @@ from utils.shared_utils import (
     calculate_control_payoffs,
     get_production_template_vars,
     calculate_final_payoff_info,
-    _generate_market_price
+    _generate_market_price,
+    get_parameter_set_for_round
 )
 from configs.config import config
 
@@ -33,25 +34,11 @@ class Subsession(BaseSubsession):
     non_dominant_mc = models.IntegerField()
 
 def creating_session(subsession: Subsession) -> None:
-    """創建會話時的初始化"""
-    # 讓所有參與者都進入同一組
+    
     subsession.set_group_matrix([subsession.get_players()])
+    
+    param = get_parameter_set_for_round(subsession.session, subsession.round_number)
 
-    # subsession.market_price = _generate_market_price()
-    session = subsession.session
-    round_number = subsession.round_number
-
-    if round_number == 1:
-        all_sets = config.parameter_sets
-        order = random.sample(range(len(all_sets)), len(all_sets))
-        session.vars['parameter_order'] = order
-    else:
-        order = session.vars['parameter_order']
-
-    param_index = order[round_number - 1]
-    param = config.parameter_sets[param_index]
-
-    # 存入 Subsession 的欄位
     subsession.market_price = param['market_price']
     subsession.tax_rate = param['tax_rate']
     subsession.carbon_multiplier = param['carbon_multiplier']
