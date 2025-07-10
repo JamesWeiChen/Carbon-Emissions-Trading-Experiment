@@ -113,6 +113,11 @@ class ExperimentConfig:
         return self.get('general.max_production', 50)
     
     @property
+    def players_per_group(self) -> int:
+        """是否每回合重抽主導廠商"""
+        return self.get('general.players_per_group', False)
+    
+    @property
     def test_mode(self) -> bool:
         """是否為測試模式（兼容舊代碼）"""
         return self.is_test_mode_enabled()
