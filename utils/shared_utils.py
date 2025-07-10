@@ -62,27 +62,20 @@ def _generate_role_assignments(num_players: int, num_dominant: int) -> List[bool
     
     return roles
 
-def _assign_player_attributes(player: BasePlayer, is_dominant: bool, initial_capital: Currency) -> None:
-    """為玩家分配屬性"""
+def _assign_player_attributes(player: BasePlayer, is_dominant: bool, initial_capital: Currency):
+    ss = player.subsession
+
     player.is_dominant = is_dominant
-    
-    # 設置成本和排放參數
-    if is_dominant:
-        player.marginal_cost_coefficient = random.randint(*config.dominant_mc_range)
-        player.carbon_emission_per_unit = config.dominant_emission_per_unit
-        player.max_production = config.dominant_max_production
-    else:
-        player.marginal_cost_coefficient = random.randint(*config.non_dominant_mc_range)
-        player.carbon_emission_per_unit = config.non_dominant_emission_per_unit
-        player.max_production = config.non_dominant_max_production
-    
-    # 設置資金
+    player.marginal_cost_coefficient = ss.dominant_mc if is_dominant else ss.non_dominant_mc
+    player.carbon_emission_per_unit = (
+        config.dominant_emission_per_unit if is_dominant else config.non_dominant_emission_per_unit
+    )
+    player.max_production = (
+        config.dominant_max_production if is_dominant else config.non_dominant_max_production
+    )
     player.initial_capital = initial_capital
     player.current_cash = initial_capital
-    
-    # 設置市場價格
-    # player.market_price = _generate_market_price()
-    player.market_price = player.subsession.market_price
+    player.market_price = ss.market_price
 
 def _generate_market_price() -> Currency:
     """生成市場價格"""

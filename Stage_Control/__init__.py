@@ -25,14 +25,41 @@ class C(BaseConstants):
     MAX_PRODUCTION = config.max_production
 
 class Subsession(BaseSubsession):
-    market_price = models.CurrencyField()
+    # market_price = models.CurrencyField()
+    market_price = models.IntegerField()
+    tax_rate = models.IntegerField()
+    carbon_multiplier = models.FloatField()
+    dominant_mc = models.IntegerField()
+    non_dominant_mc = models.IntegerField()
 
 def creating_session(subsession: Subsession) -> None:
     """創建會話時的初始化"""
     # 讓所有參與者都進入同一組
     subsession.set_group_matrix([subsession.get_players()])
 
-    subsession.market_price = _generate_market_price()
+    # subsession.market_price = _generate_market_price()
+    session = subsession.session
+    round_number = subsession.round_number
+
+    if round_number == 1:
+        all_sets = config.parameter_sets
+        order = random.sample(range(len(all_sets)), len(all_sets))
+        session.vars['parameter_order'] = order
+    else:
+        order = session.vars['parameter_order']
+
+    param_index = order[round_number - 1]
+    param = config.parameter_sets[param_index]
+
+    # 存入 Subsession 的欄位
+    subsession.market_price = param['market_price']
+    subsession.tax_rate = param['tax_rate']
+    subsession.carbon_multiplier = param['carbon_multiplier']
+    subsession.dominant_mc = param['dominant_mc']
+    subsession.non_dominant_mc = param['non_dominant_mc']
+
+    # 如果你還想留在 session.vars 中也可以（但不是必需）
+    # session.vars[f'param_set_round_{round_number}'] = param
 
 class Group(BaseGroup):
     pass

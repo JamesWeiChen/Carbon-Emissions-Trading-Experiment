@@ -1,7 +1,7 @@
 # 碳排放交易實驗配置文件
 # 統一管理各階段的常數和設定
-# 版本：4.0
-# 最後更新：2025-07-07
+# 版本：5.0
+# 最後更新：2025-07-10
 
 # ====================================
 # 實驗模式切換（主開關）
@@ -12,38 +12,38 @@ experiment_mode:
   
   # 模式說明
   # - 測試模式：2人一組，3回合，簡化參數，方便快速測試
-  # - 正式模式：15人一組，15回合，完整參數，用於正式實驗
+  # - 正式模式：12人一組，12回合，完整參數，用於正式實驗
 
 # ====================================
 # 通用設定（根據模式自動選擇）
 # ====================================
 general:
   # 基本參數（正式模式）
-  players_per_group: 15  # 正式實驗：15人一組
-  num_rounds: 15
-  max_production: 50
+  players_per_group: 12  # 正式實驗：N 人一組
+  num_rounds: 12 # 正式實驗：T 回合
+  max_production: 50 # （實際上用不到）
   
-  # 市場價格隨機抽取設定
+  # 市場價格隨機抽取設定 （已經不再使用）
   market_price_random_draw:
-    base_prices: [25, 30, 35]  # 基礎價格選項
-    variations: [-2, -1, 1, 2]  # 變動幅度選項
+    base_prices: [25, 35]  # 基礎價格選項
+    variations: [0]  # 變動幅度選項
     min_price: 1  # 最低價格
   
   # 廠商角色參數
   dominant_firm:
-    mc_range: [1, 4]  # 邊際成本係數範圍
+    mc_range: [2, 3]  # 邊際成本係數範圍 （已經不再使用）
     emission_per_unit: 2  # 每單位碳排放
     max_production: 20    # 最大生產量
     
   non_dominant_firm:
-    mc_range: [4, 7]  # 邊際成本係數範圍  
+    mc_range: [4, 5]  # 邊際成本係數範圍  （已經不再使用）
     emission_per_unit: 1  # 每單位碳排放
     max_production: 8     # 最大生產量
   
   # 角色分配設定（正式模式）
   role_assignment:
     dominant_firm_count: 3  # 主導廠商數量
-    non_dominant_firm_count: 12  # 其他廠商數量
+    non_dominant_firm_count: 9  # 其他廠商數量
     ensure_player1_dominant: false  # 正式實驗不需要確保1號玩家為主導廠商
   
   # 隨機擾動參數
@@ -58,7 +58,7 @@ test_mode_overrides:
   general:
     players_per_group: 2  # 測試模式：2人一組
     num_rounds: 3  # 測試模式：3回合
-    max_production: 20  # 測試模式：最大生產量10
+    max_production: 20  # 測試模式：最大生產量
     
     # 角色分配設定（測試模式）
     role_assignment:
@@ -68,29 +68,29 @@ test_mode_overrides:
     
     # 市場價格（測試模式簡化）
     market_price_random_draw:
-      base_prices: [30, 35]  # 簡化的基礎價格選項
-      variations: [-1, 1]  # 簡化的變動幅度
+      base_prices: [25, 35]  # 簡化的基礎價格選項 （已經不再使用）
+      variations: [0]  # 簡化的變動幅度 （已經不再使用）
       min_price: 1
   
   # 測試模式下的階段設定覆蓋
   stages:
     control:
-      initial_capital: 10000  # 測試模式較高初始資金
+      initial_capital: 1000 # 測試模式較高初始資金
       
     carbon_tax:
-      initial_capital: 10000
+      initial_capital: 1000
       tax_random_selection:
-        rates: [2, 3]  # 測試模式簡化稅率選項
+        rates: [6]  # 測試模式簡化稅率選項
         
     muda:
-      initial_capital: 10000  # 測試模式大量資金
+      initial_capital: 1000  # 測試模式大量資金
       trading_time: 60  # 測試模式縮短交易時間
       item_price_options: [30, 35]  # 測試模式簡化價格選項
       num_rounds: 2
       
       
     carbon_trading:
-      initial_capital: 10000
+      initial_capital: 1000
       trading_time: 60  # 測試模式縮短交易時間
       carbon_allowance_per_player: 5  # 測試模式較少碳權
       
@@ -105,23 +105,23 @@ stages:
   control:
     name_in_url: 'Stage_Control'
     display_name: "對照組"
-    initial_capital: 300
+    initial_capital: 0
     description: "對照組：受試者直接決定生產量，不受碳排放限制，也不需繳納碳稅"
     
   carbon_tax:
     name_in_url: 'Stage_CarbonTax'
     display_name: "碳稅組"
-    initial_capital: 300
+    initial_capital: 0
     description: "碳稅組：受試者直接決定生產量，但需為每單位碳排放繳納碳稅"
-    # 碳稅隨機抽取設定
+    # 碳稅隨機抽取設定 （已經不再使用）
     tax_random_selection:
-      rates: [3, 6, 9]
+      rates: [3, 6, 9] 
       
   muda:
     name_in_url: 'Stage_MUDA'
     display_name: "MUDA"
-    initial_capital: 10000
-    trading_time: 180
+    initial_capital: 1000
+    trading_time: 120
     num_rounds: 4 # 正式實驗讓受試者練習 MUDA 的回合數
     item_name: "碳權"
     reset_cash_each_round: true
@@ -132,7 +132,7 @@ stages:
   carbon_trading:
     name_in_url: 'Stage_CarbonTrading'
     display_name: "碳交易組"
-    initial_capital: 10000
+    initial_capital: 1000
     trading_time: 120
     carbon_allowance_per_player: 10
     reset_cash_each_round: true  # 每輪重置現金
@@ -146,7 +146,7 @@ stages:
       social_cost_per_unit_carbon: 6  # 每單位碳的社會成本 c
       
       # 配額分配設定
-      cap_multipliers: [0.5, 1.0, 1.5]  # 配額倍率選項
+      cap_multipliers: [0.5, 1.0, 1.5]  # 配額倍率選項 （已經不再使用）
       allocation_method: "equal_with_random_remainder"  # 分配方法
       round_cap_total: true  # 是否將配額總數四捨五入為整數
       
@@ -165,6 +165,82 @@ stages:
     name_in_url: 'Stage_Survey'
     display_name: "問卷"
     description: "實驗後問卷"
+
+# ====================================
+# 12 組隨機參數組合
+# ====================================
+preset_parameter_sets:
+  - market_price: 25
+    tax_rate: 3
+    carbon_multiplier: 0.5
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 25
+    tax_rate: 3
+    carbon_multiplier: 0.5
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+  - market_price: 25
+    tax_rate: 6
+    carbon_multiplier: 1.0
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 25
+    tax_rate: 6
+    carbon_multiplier: 1.0
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+  - market_price: 25
+    tax_rate: 9
+    carbon_multiplier: 1.5
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 25
+    tax_rate: 9
+    carbon_multiplier: 1.5
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+  - market_price: 35
+    tax_rate: 3
+    carbon_multiplier: 0.5
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 35
+    tax_rate: 3
+    carbon_multiplier: 0.5
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+  - market_price: 35
+    tax_rate: 6
+    carbon_multiplier: 1.0
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 35
+    tax_rate: 6
+    carbon_multiplier: 1.0
+    dominant_mc: 3
+    non_dominant_mc: 5
+
+  - market_price: 35
+    tax_rate: 9
+    carbon_multiplier: 1.5
+    dominant_mc: 2
+    non_dominant_mc: 4
+
+  - market_price: 35
+    tax_rate: 9
+    carbon_multiplier: 1.5
+    dominant_mc: 3
+    non_dominant_mc: 5
 
 # ====================================
 # 頁面流程配置

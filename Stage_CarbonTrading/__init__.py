@@ -47,15 +47,18 @@ class C(BaseConstants):
     CARBON_ALLOWANCE_PER_PLAYER: int = config.carbon_allowance_per_player
 
 class Subsession(BaseSubsession):
-    market_price = models.CurrencyField()
+    market_price = models.IntegerField()
     price_history = models.LongStringField(initial='[]')
     start_time = models.IntegerField()  # 新增：記錄開始時間
     # 新增：社會最適產量和配額分配相關欄位
     total_optimal_emissions = models.FloatField()
-    cap_multiplier = models.FloatField()
     cap_total = models.IntegerField()
     allocation_details = models.LongStringField(initial='[]')  # 儲存分配詳細資訊
     executed_trades = models.LongStringField(initial='[]')  # 新增：記錄成交的訂單
+    carbon_multiplier = models.FloatField()
+    tax_rate = models.IntegerField()
+    dominant_mc = models.IntegerField()
+    non_dominant_mc = models.IntegerField()
 
 def initialize_roles(subsession: Subsession) -> None:
     """使用共享工具庫和配置文件初始化角色"""
@@ -64,24 +67,16 @@ def initialize_roles(subsession: Subsession) -> None:
     subsession.start_time = int(time.time())
     print(f"第{subsession.round_number}回合開始時間已設定")
 
-    # 碳交易組特有的市場價格設定
-    if config.carbon_trading_use_fixed_price:
-        subsession.market_price = config.carbon_trading_fixed_market_price
-        print(f"使用固定市場價格: {subsession.market_price}")
-    else:
-        subsession.market_price = _generate_market_price()
-        print(f"隨機抽取市場價格: {subsession.market_price}")
-
     # 初始化玩家角色（會用到 subsession.market_price）
     initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
     
     # 計算社會最適產量和碳權分配
     players = subsession.get_players()
-    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price)
+    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price, subsession.carbon_multiplier)
     
     # 儲存結果到 subsession
     subsession.total_optimal_emissions = allowance_allocation['TE_opt_total']
-    subsession.cap_multiplier = allowance_allocation['r']
+    subsession.carbon_multiplier = allowance_allocation['r']
     subsession.cap_total = allowance_allocation['cap_total']
     subsession.allocation_details = json.dumps(allowance_allocation['firm_details'])
     
@@ -155,7 +150,8 @@ def initialize_roles(subsession: Subsession) -> None:
 
 def calculate_optimal_allowance_allocation(
     players: List[BasePlayer], 
-    market_price: float
+    market_price: float,
+    carbon_multiplier: float
 ) -> Dict[str, Any]:
     """
     計算社會最適產量和碳權分配
@@ -178,8 +174,7 @@ def calculate_optimal_allowance_allocation(
     TE_subopts = []
 
     # 從配置檔案讀取配額倍率選項
-    multipliers = config.carbon_trading_cap_multipliers
-    r = random.choice(multipliers)
+    r = carbon_multiplier
     
     # 計算每家廠商的社會最適產量和最適排放量
     for player in players:
@@ -243,22 +238,41 @@ def calculate_optimal_allowance_allocation(
             'social_cost_per_unit_carbon': c,
             'decimal_places': decimal_places,
             'allocation_method': allocation_method,
-            'cap_multipliers': multipliers,
+            'cap_multipliers': r,
             'use_fixed_price': config.carbon_trading_use_fixed_price
         }
     }
 
 def creating_session(subsession: Subsession) -> None:
-    """創建會話時的初始化"""
-    # 讓所有人進入同一組
+    # 設定分組
     subsession.set_group_matrix([subsession.get_players()])
 
-    # 如果還沒抽過，先抽一個 shared selected round
+    # 選擇報酬回合（僅第 1 輪）
     if "selected_round" not in subsession.session.vars:
         subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
-    print(f"選中的報酬回合為：{subsession.session.vars['selected_round']}")
-    
-    # 初始化角色（start_time 將在每回合開始時設定）
+
+    session = subsession.session
+    round_number = subsession.round_number
+    all_sets = config.parameter_sets
+    num_rounds = config.num_rounds
+
+    # 決定參數順序（僅第 1 輪）
+    if round_number == 1:
+        order = list(range(num_rounds)) if config.test_mode else random.sample(range(len(all_sets)), num_rounds)
+        session.vars['parameter_order'] = order
+
+    # 根據 round_number 取出參數
+    order = session.vars['parameter_order']
+    param = all_sets[order[round_number - 1]]
+
+    # ✅ 先設定 subsession 欄位
+    subsession.market_price = param['market_price']
+    subsession.tax_rate = param['tax_rate']
+    subsession.carbon_multiplier = param['carbon_multiplier']
+    subsession.dominant_mc = param['dominant_mc']
+    subsession.non_dominant_mc = param['non_dominant_mc']
+
+    # ✅ 再呼叫會用到上述欄位的函數
     initialize_roles(subsession)
 
 class Group(BaseGroup):
