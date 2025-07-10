@@ -94,8 +94,9 @@ def initialize_roles(subsession: Subsession) -> None:
     initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
 
 def before_next_round(subsession: Subsession):
-    """每一回合開始前重新分配角色"""
-    initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
+    """每一回合開始前是否重新分配角色"""
+    if config.random_dominant_firm_each_round:
+        initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
 
 class Introduction(Page):
     @staticmethod
