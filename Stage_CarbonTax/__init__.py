@@ -59,6 +59,8 @@ def creating_session(subsession: Subsession) -> None:
     subsession.dominant_mc = param['dominant_mc']
     subsession.non_dominant_mc = param['non_dominant_mc']
 
+    initialize_roles(subsession)
+
 class Group(BaseGroup):
     pass
 

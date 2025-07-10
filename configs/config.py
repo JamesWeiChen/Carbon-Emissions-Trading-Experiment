@@ -113,6 +113,16 @@ class ExperimentConfig:
         return self.get('general.max_production', 50)
     
     @property
+    def random_dominant_firm_each_round(self) -> bool:
+        """是否每回合重抽主導廠商"""
+        return self.get('general.random_dominant_firm_each_round', False)
+
+    @property
+    def carbon_real_world_rate(self) -> bool:
+        """實驗碳排轉換成真實碳排的比例"""
+        return self.get('general.carbon_real_world_rate', False)
+
+    @property
     def test_mode(self) -> bool:
         """是否為測試模式（兼容舊代碼）"""
         return self.is_test_mode_enabled()
@@ -132,7 +142,7 @@ class ExperimentConfig:
     @property
     def non_dominant_firm_count(self) -> int:
         """非主導廠商數量"""
-        return self.get('general.role_assignment.non_dominant_firm_count', 12)
+        return self.get('general.role_assignment.non_dominant_firm_count', 9)
     
     @property
     def ensure_player1_dominant(self) -> bool:

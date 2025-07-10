@@ -56,10 +56,11 @@ def _generate_role_assignments(num_players: int, num_dominant: int) -> List[bool
             for idx in additional_dominant:
                 roles[idx] = True
     else:
-        # 正式模式：隨機分配主導廠商
         roles = [True] * num_dominant + [False] * (num_players - num_dominant)
-        random.shuffle(roles)
-    
+        # 隨機分配主導廠商
+        if config.random_dominant_firm_each_round:
+            random.shuffle(roles)
+        
     return roles
 
 def _assign_player_attributes(player: BasePlayer, is_dominant: bool, initial_capital: Currency):
