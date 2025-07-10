@@ -115,7 +115,7 @@ class ExperimentConfig:
     @property
     def players_per_group(self) -> int:
         """是否每回合重抽主導廠商"""
-        return self.get('general.players_per_group', False)
+        return self.get('general.random_dominant_firm_each_round', False)
     
     @property
     def test_mode(self) -> bool:
