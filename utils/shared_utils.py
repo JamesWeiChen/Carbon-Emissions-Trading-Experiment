@@ -14,31 +14,32 @@ from configs.config import config, ConfigConstants
 
 CommonConstants = ConfigConstants
 
-def get_parameter_set_for_round(session):
+def get_parameter_set_for_round(session: BaseSession, round_number: int) -> Dict[str, Any]:
     """
-    根據 session 當前回合，回傳該回合的參數設定 dict。
-    如果是第一回合，會初始化洗牌順序與轉換矩陣。
+    根據 session 與 round number，決定本回合使用哪一組參數。
+
+    - 第一次呼叫時會在 session.vars 儲存隨機順序
+    - 從 config.parameter_sets 中挑出該回合對應的參數組合
+
+    Args:
+        session: oTree session 物件
+        round_number: 當前回合數（從 1 開始）
+
+    Returns:
+        Dict[str, Any]: 對應本回合的參數設定
     """
-    from configs.config import config
-    round_number = session.subsession.round_number if hasattr(session, 'subsession') else None
-    if round_number is None:
-        # 如果是 creating_session 中使用，就抓最後一個 subsession
-        round_number = session._current_app_sequence[session._index_in_app_sequence].round_number
+    all_sets = config.parameter_sets
+    num_sets = len(all_sets)
 
-    matrix = config.preset_parameter_matrix
-    columns = matrix['columns']
-    values = matrix['values']
+    if 'parameter_order' not in session.vars:
+        session.vars['parameter_order'] = random.sample(range(num_sets), num_sets)
 
-    if round_number == 1:
-        all_sets = [dict(zip(columns, row)) for row in values]
-        order = random.sample(range(len(all_sets)), len(all_sets))
-        session.vars['parameter_sets'] = all_sets
-        session.vars['parameter_order'] = order
-    else:
-        all_sets = session.vars['parameter_sets']
-        order = session.vars['parameter_order']
+    order = session.vars['parameter_order']
+    if round_number < 1 or round_number > len(order):
+        raise ValueError(f"Invalid round_number {round_number}: must be between 1 and {len(order)}")
 
-    return all_sets[order[round_number - 1]]
+    param_index = order[round_number - 1]
+    return all_sets[param_index]
 
 def initialize_player_roles(subsession: BaseSubsession, initial_capital: Currency) -> None:
     """
