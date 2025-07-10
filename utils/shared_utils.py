@@ -58,7 +58,7 @@ def _generate_role_assignments(num_players: int, num_dominant: int) -> List[bool
     else:
         roles = [True] * num_dominant + [False] * (num_players - num_dominant)
         # 隨機分配主導廠商
-        if config.random_dominant_firm_each_round
+        if config.random_dominant_firm_each_round:
             random.shuffle(roles)
         
     return roles
