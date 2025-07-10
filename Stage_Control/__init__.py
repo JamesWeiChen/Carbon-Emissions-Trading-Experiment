@@ -35,9 +35,9 @@ class Subsession(BaseSubsession):
 
 def creating_session(subsession: Subsession) -> None:
     
-    subsession.set_group_matrix([subsession.get_players()])
+    subsession.set_group_matrix([subsession.get_players()]) # 設定分組
     
-    param = get_parameter_set_for_round(subsession.session, subsession.round_number)
+    param = get_parameter_set_for_round(subsession.session, subsession.round_number) # 抓參數組合
 
     subsession.market_price = param['market_price']
     subsession.tax_rate = param['tax_rate']
