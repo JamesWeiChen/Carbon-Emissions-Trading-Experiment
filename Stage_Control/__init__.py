@@ -111,7 +111,7 @@ class Introduction(Page):
 
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
-    after_all_players_arrive = initialize_roles
+    # after_all_players_arrive = initialize_roles
 
 class ProductionDecision(Page):
     form_model = 'player'
