@@ -14,7 +14,7 @@ from configs.config import config, ConfigConstants
 
 CommonConstants = ConfigConstants
 
-def get_parameter_set_for_round(session: BaseSession, round_number: int) -> Dict[str, Any]:
+def get_parameter_set_for_round(session: Any, round_number: int) -> Dict[str, Any]:
     """
     根據 session 與 round number，決定本回合使用哪一組參數。
 
