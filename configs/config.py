@@ -113,10 +113,10 @@ class ExperimentConfig:
         return self.get('general.max_production', 50)
     
     @property
-    def random_dominant_firm_each_round(self) -> int:
+    def random_dominant_firm_each_round(self) -> bool:
         """是否每回合重抽主導廠商"""
         return self.get('general.random_dominant_firm_each_round', False)
-    
+
     @property
     def test_mode(self) -> bool:
         """是否為測試模式（兼容舊代碼）"""
