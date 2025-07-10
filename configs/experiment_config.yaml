@@ -23,6 +23,7 @@ general:
   num_rounds: 12 # 正式實驗：T 回合
   max_production: 50 # （實際上用不到）
   random_dominant_firm_each_round: False
+  carbon_real_world_rate: 0.1 # 1 單位實驗中碳排放 = 現實生活多少單位
   
   # 市場價格隨機抽取設定 （已經不再使用）
   market_price_random_draw:
