@@ -58,6 +58,8 @@ def creating_session(subsession: Subsession) -> None:
     subsession.dominant_mc = param['dominant_mc']
     subsession.non_dominant_mc = param['non_dominant_mc']
 
+    initialize_roles(subsession)
+
     # 如果你還想留在 session.vars 中也可以（但不是必需）
     # session.vars[f'param_set_round_{round_number}'] = param
 
