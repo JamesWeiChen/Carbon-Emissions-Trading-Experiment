@@ -41,6 +41,7 @@ class Player(BasePlayer):
         total_profit = control.get("profit", 0) + carbon.get("profit", 0)
         total_emission = control.get("emission", 0) + carbon.get("emission", 0)
         total_group_emission = control.get("group_emission", 0) + carbon.get("group_emission", 0)
+        real_emission = total_group_emission * session.config.get("carbon_real_world_rate", 0.1)
 
         # 使用 cu() 包裝，才能使用 oTree 的貨幣轉換方法
         real_payoff = cu(total_profit).to_real_world_currency(session)
@@ -53,6 +54,7 @@ class Player(BasePlayer):
             'total_profit': total_profit,
             'total_emission': total_emission,
             'total_group_emission': total_group_emission,
+            'real_emission': real_emission,
             'real_payoff': real_payoff,
             'participation_fee': participation_fee,
             'total_payment': total_payment,
@@ -72,6 +74,7 @@ class PaymentInfo(Page):
             total_profit_formatted=f"{info['total_profit']:,.0f} 法幣",
             total_emission_formatted=f"{info['total_emission']:.1f} 單位碳排",
             total_group_emission_formatted=f"{info['total_group_emission']:.1f} 單位碳排",
+            real_emission_formatted=f"{info['real_emission']:.0f} 單位 Carbonfund.org 碳排",
             real_payoff_formatted=f"{info['real_payoff']:,.0f} 元",
             participation_fee=int(info['participation_fee']),
             total_payment_formatted=f"{info['total_payment']:,.0f} 元",
