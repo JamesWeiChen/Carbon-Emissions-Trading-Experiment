@@ -1,38 +1,71 @@
-{{ block title }}
-    結算報酬
-{{ endblock }}
+{% extends 'global/Page.html' %}
+{% load otree static %}
 
-{{ block content }}
+{% block title %}結算報酬{% endblock %}
 
-<h3>實驗完成</h3>
+{% block content %}
+<style>
+    .otree-body {
+        max-width: 70vw !important;
+        padding-left: 0;
+        padding-right: 0;
+    }
+</style>
 
-<table style="line-height: 1.6;">
-    <tr><td>階段一報酬：</td><td>{{ control_profit }} 法幣 </td></tr>
-    <tr><td>階段二報酬：</td><td>{{ carbon_profit }} 法幣 </td></tr>
-    <tr style="background-color: #f0f0f0;">
-        <td><strong>總實驗報酬：</strong></td>
-        <td><strong>{{ total_profit_formatted }}</strong></td>
-    </tr>
-    <tr><td>個人總碳排放量：</td><td>{{ total_emission_formatted }}</td></tr>
-    <tr><td>組別總排放量：</td><td>{{ total_group_emission_formatted }}</td></tr>
-    <tr><td>真實世界總排放量：</td><td>{{ real_emission_formatted }}</td></tr>
-</table>
+<div class="container">
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">實驗完成</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
 
-<br>
+                <!-- 各階段報酬 -->
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header bg-info text-white">
+                            <strong>階段報酬</strong>
+                        </div>
+                        <div class="card-body">
+                            <p>階段一報酬：<strong>{{ control_profit }}</strong> 法幣</p>
+                            <p>階段二報酬：<strong>{{ carbon_profit }}</strong> 法幣</p>
+                            <p class="bg-light p-2"><strong>總實驗報酬：</strong> {{ total_profit_formatted }}</p>
+                        </div>
+                    </div>
 
-<table style="line-height: 1.6;">
-    <tr><td>實驗報酬折算為新台幣：</td><td>{{ real_payoff_formatted }}</td></tr>
-    <tr><td>車馬費：</td><td>{{ participation_fee }} 元</td></tr>
-    <tr style="background-color: #e0ffe0;">
-        <td><strong>您可領取的總金額為：</strong></td>
-        <td><strong>{{ total_payment_formatted }}</strong></td>
-    </tr>
-</table>
+                    <div class="card mb-3">
+                        <div class="card-header bg-secondary text-white">
+                            <strong>碳排資訊</strong>
+                        </div>
+                        <div class="card-body">
+                            <p>個人總碳排放量：<strong>{{ total_emission_formatted }}</strong></p>
+                            <p>組別總排放量：<strong>{{ total_group_emission_formatted }}</strong></p>
+                            <p>真實世界總排放量：<strong>{{ real_emission_formatted }}</strong></p>
+                        </div>
+                    </div>
+                </div>
 
-<br>
+                <!-- 折算與總金額 -->
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header bg-success text-white">
+                            <strong>新台幣折算</strong>
+                        </div>
+                        <div class="card-body">
+                            <p>實驗報酬折算為新台幣：<strong>{{ real_payoff_formatted }}</strong></p>
+                            <p>車馬費：<strong>{{ participation_fee }}</strong> 元</p>
+                            <p class="bg-light p-2"><strong>您可領取的總金額為：</strong> {{ total_payment_formatted }}</p>
+                        </div>
+                    </div>
+                </div>
 
-<p>按下「Next」填寫收據資訊。</p>
+            </div>
 
-{{ next_button }}
-
-{{ endblock }}
+            <div class="mt-4 text-center">
+                <p>按下「Next」填寫收據資訊。</p>
+                {{ next_button }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
