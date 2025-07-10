@@ -58,7 +58,7 @@ test_mode_overrides:
   general:
     players_per_group: 2  # 測試模式：2人一組
     num_rounds: 3  # 測試模式：3回合
-    max_production: 20  # 測試模式：最大生產量10
+    max_production: 20  # 測試模式：最大生產量
     
     # 角色分配設定（測試模式）
     role_assignment:
@@ -68,8 +68,8 @@ test_mode_overrides:
     
     # 市場價格（測試模式簡化）
     market_price_random_draw:
-      base_prices: [30, 35]  # 簡化的基礎價格選項
-      variations: [-1, 1]  # 簡化的變動幅度
+      base_prices: [25, 35]  # 簡化的基礎價格選項 （已經不再使用）
+      variations: [0]  # 簡化的變動幅度 （已經不再使用）
       min_price: 1
   
   # 測試模式下的階段設定覆蓋
@@ -121,7 +121,7 @@ stages:
     name_in_url: 'Stage_MUDA'
     display_name: "MUDA"
     initial_capital: 1000
-    trading_time: 180
+    trading_time: 120
     num_rounds: 4 # 正式實驗讓受試者練習 MUDA 的回合數
     item_name: "碳權"
     reset_cash_each_round: true
