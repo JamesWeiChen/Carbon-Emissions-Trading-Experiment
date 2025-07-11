@@ -52,8 +52,8 @@ class Subsession(BaseSubsession):
     price_history = models.LongStringField(initial='[]')
     start_time = models.IntegerField()  # 新增：記錄開始時間
     # 新增：社會最適產量和配額分配相關欄位
-    total_optimal_emissions = models.IntegerField()
-    cap_total = models.IntegerField()
+    total_optimal_emissions = models.IntegerField() # 社會最適產排放總量
+    cap_total = models.IntegerField() # 發出的碳排放權總量
     allocation_details = models.LongStringField(initial='[]')  # 儲存分配詳細資訊
     executed_trades = models.LongStringField(initial='[]')  # 新增：記錄成交的訂單
     carbon_multiplier = models.FloatField()
