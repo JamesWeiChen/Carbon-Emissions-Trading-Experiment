@@ -156,44 +156,38 @@ def calculate_optimal_allowance_allocation(
 ) -> Dict[str, Any]:
     """
     計算社會最適產量和碳權分配
-    
-    Args:
-        players: 玩家列表
-        market_price: 市場價格 (p)
-    
-    Returns:
-        包含分配結果的字典
     """
     
-    p = float(market_price)  # 市場價格
-    c = config.carbon_trading_social_cost_per_unit_carbon  # 每單位碳的社會成本
+    def _allocate_discrete_share(indices: List[int], total: int) -> Dict[int, int]:
+        """將 total 配額離散分配給指定 indices，餘數隨機給"""
+        n = len(indices)
+        base = total // n
+        remainder = total % n
+        allocations = {idx: base for idx in indices}
+        if remainder > 0:
+            lucky = random.sample(indices, remainder)
+            for idx in lucky:
+                allocations[idx] += 1
+        return allocations
+        
+    p = float(market_price)
+    c = config.carbon_trading_social_cost_per_unit_carbon
     N = len(players)
     decimal_places = config.carbon_trading_decimal_places
-    
+    r = carbon_multiplier
+
     firm_details = []
     TE_opts = []
     TE_subopts = []
 
-    # 從配置檔案讀取配額倍率選項
-    r = carbon_multiplier
-    
-    # 計算每家廠商的社會最適產量和最適排放量
     for player in players:
-        a_i = float(player.marginal_cost_coefficient)  # 邊際成本係數
-        b_i = float(player.carbon_emission_per_unit)   # 每單位排放量
-        
-        # 社會最適產量：q_opt_i = (p - b_i * c) / a_i
+        a_i = float(player.marginal_cost_coefficient)
+        b_i = float(player.carbon_emission_per_unit)
         q_opt_i = int((p - b_i * c) / a_i)
-        
-        # 乘數影響下的假最適產量
         q_subopt_i = int((p - b_i * c * r) / a_i)
-        
-        # 最適排放量：TE_opt_i = b_i * q_opt_i
         TE_opt_i = int(b_i * q_opt_i)
-
-        # 乘數影響下的假最適排放量
         TE_subopt_i = int(b_i * q_subopt_i)
-        
+
         firm_details.append({
             'a': a_i,
             'b': b_i,
@@ -201,33 +195,45 @@ def calculate_optimal_allowance_allocation(
             'TE_opt': TE_opt_i,
             'TE_subopt': TE_subopt_i,
         })
-        
+
         TE_opts.append(TE_opt_i)
         TE_subopts.append(TE_subopt_i)
-    
-    # 社會最適排放總量
+
     TE_opt_total = sum(TE_opts)
     cap_total = sum(TE_subopts)
-    
-    if config.carbon_trading_round_cap_total:
-        cap_total_int = int(round(cap_total))  # 轉為整數
-    else:
-        cap_total_int = int(cap_total)  # 直接截斷
-    
-    # 平均分配給每個廠商
-    base = cap_total_int // N  # 每人的基礎配額
-    remainder = cap_total_int % N  # 剩餘配額
-    
-    # 初始分配
-    allocations = [base] * N
-    
-    # 隨機分配剩餘配額（根據配置檔案的分配方法）
+    cap_total_int = int(round(cap_total)) if config.carbon_trading_round_cap_total else int(cap_total)
+
+    allocations = [0] * N
     allocation_method = config.carbon_trading_allocation_method
-    if allocation_method == "equal_with_random_remainder" and remainder > 0:
-        lucky_indices = random.sample(range(N), remainder)
-        for idx in lucky_indices:
-            allocations[idx] += 1
-    
+
+    if allocation_method == "equal_with_random_remainder":
+        all_indices = list(range(N))
+        alloc_map = _allocate_discrete_share(all_indices, cap_total_int)
+        for i in range(N):
+            allocations[i] = alloc_map.get(i, 0)
+
+    elif allocation_method == "grandfathering":
+        dominant_cap_share = config.grandfathering_rule.get("dominant_share_of_cap", 0.3)
+        dominant_indices = [i for i, p in enumerate(players) if getattr(p, 'is_dominant', 0) == 1]
+        non_dominant_indices = [i for i in range(N) if i not in dominant_indices]
+
+        if not dominant_indices:
+            raise ValueError("Grandfathering 分配錯誤：找不到任何大廠")
+        if not non_dominant_indices:
+            raise ValueError("Grandfathering 分配錯誤：沒有小廠")
+
+        dominant_total = int(round(cap_total_int * dominant_cap_share))
+        remaining_cap = cap_total_int - dominant_total
+
+        dominant_allocs = _allocate_discrete_share(dominant_indices, dominant_total)
+        small_allocs = _allocate_discrete_share(non_dominant_indices, remaining_cap)
+
+        for i in range(N):
+            allocations[i] = dominant_allocs.get(i, 0) + small_allocs.get(i, 0)
+
+    else:
+        raise ValueError(f"Unsupported allocation method: {allocation_method}")
+
     return {
         'firm_details': firm_details,
         'TE_opt_total': round(TE_opt_total, decimal_places),
