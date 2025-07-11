@@ -168,14 +168,18 @@ def calculate_optimal_allowance_allocation(
 ) -> Dict[str, Any]:
     """
     計算社會最適產量和碳權分配
-    
-    Args:
-        players: 玩家列表
-        market_price: 市場價格 (p)
-    
-    Returns:
-        包含分配結果的字典
     """
+    def _allocate_discrete_share(indices: List[int], total: int) -> Dict[int, int]:
+        n = len(indices)
+        base = total // n
+        remainder = total % n
+        allocs = {idx: base for idx in indices}
+        if remainder > 0:
+            lucky = random.sample(indices, remainder)
+            for idx in lucky:
+                allocs[idx] += 1
+        return allocs
+
     p = float(market_price)
     c = config.carbon_trading_social_cost_per_unit_carbon
     N = len(players)
@@ -224,7 +228,7 @@ def calculate_optimal_allowance_allocation(
         non_dominant_indices = [i for i in range(N) if i not in dominant_indices]
 
         if not dominant_indices:
-            raise ValueError("Grandfathering 分配錯誤：找不到任何 dominant player")
+            raise ValueError("Grandfathering 分配錯誤：找不到任何大廠")
         if not non_dominant_indices:
             raise ValueError("Grandfathering 分配錯誤：沒有小廠")
 
@@ -236,25 +240,6 @@ def calculate_optimal_allowance_allocation(
 
         for i in range(N):
             allocations[i] = dominant_allocs.get(i, 0) + small_allocs.get(i, 0)
-
-    else:
-        raise ValueError(f"Unsupported allocation method: {allocation_method}")
-
-    return {
-        'firm_details': firm_details,
-        'TE_opt_total': round(TE_opt_total, decimal_places),
-        'r': r,
-        'cap_total': cap_total_int,
-        'allocations': allocations,
-        'config': {
-            'market_price': p,
-            'social_cost_per_unit_carbon': c,
-            'decimal_places': decimal_places,
-            'allocation_method': allocation_method,
-            'cap_multipliers': r,
-            'use_fixed_price': config.carbon_trading_use_fixed_price
-        }
-    }
 
     else:
         raise ValueError(f"Unsupported allocation method: {allocation_method}")
