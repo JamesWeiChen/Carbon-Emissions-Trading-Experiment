@@ -103,6 +103,8 @@ def initialize_roles(subsession: Subsession) -> None:
         # 儲存最適產量和排放量資訊
         p.optimal_production = allowance_allocation['firm_details'][i]['q_opt']
         p.optimal_emissions = allowance_allocation['firm_details'][i]['TE_opt']
+        p.mkt_production = allowance_allocation['firm_details'][i]['q_mkt']
+        p.mkt_emissions = allowance_allocation['firm_details'][i]['TE_mkt']
         
         # 為每個玩家設置selected_round
         if p.round_number == 1:
@@ -179,28 +181,36 @@ def calculate_optimal_allowance_allocation(
     firm_details = []
     TE_opts = []
     TE_subopts = []
+    TE_mkts = []
 
     for player in players:
         a_i = float(player.marginal_cost_coefficient)
         b_i = float(player.carbon_emission_per_unit)
         q_opt_i = int((p - b_i * c) / a_i)
         q_subopt_i = int((p - b_i * c * r) / a_i)
+        q_mkt_i = int( p  / a_i)
         TE_opt_i = int(b_i * q_opt_i)
         TE_subopt_i = int(b_i * q_subopt_i)
+        TE_mkt_i = int(b_i * q_mkt_i)
 
         firm_details.append({
             'a': a_i,
             'b': b_i,
             'q_opt': q_opt_i,
+            'q_subopt': q_subopt_i,
+            'q_mkt': q_mkt_i,
             'TE_opt': TE_opt_i,
             'TE_subopt': TE_subopt_i,
+            'TE_mkt': TE_mkt_i,
         })
 
         TE_opts.append(TE_opt_i)
         TE_subopts.append(TE_subopt_i)
+        TE_mkts.append(TE_mkt_i)
 
-    TE_opt_total = sum(TE_opts)
-    cap_total = sum(TE_subopts)
+    TE_opt_total = sum(TE_opts) # 理論上社會最適當的碳權總數
+    cap_total = sum(TE_subopts) # 實際會發的碳權總數
+    TE_mkt_total = sum(TE_mkts) # 理論上社會最適當的碳權總數
     cap_total_int = int(round(cap_total)) if config.carbon_trading_round_cap_total else int(cap_total)
 
     allocations = [0] * N
@@ -236,9 +246,10 @@ def calculate_optimal_allowance_allocation(
 
     return {
         'firm_details': firm_details,
-        'TE_opt_total': round(TE_opt_total, decimal_places),
+        'TE_opt_total': TE_opt_total,
         'r': r,
         'cap_total': cap_total_int,
+        'TE_mkt_total': TE_mkt_total,
         'allocations': allocations,
         'config': {
             'market_price': p,
@@ -301,8 +312,10 @@ class Player(BasePlayer):
     
     selected_round = models.IntegerField()  # 新增：隨機選中的回合用於最終報酬
     # 新增：社會最適產量相關欄位
-    optimal_production = models.FloatField()  # 個人最適產量 q_opt_i
-    optimal_emissions = models.FloatField()   # 個人最適排放量 TE_opt_i
+    optimal_production = models.FloatField()  # 社會最適產量 q_opt_i
+    optimal_emissions = models.FloatField()   # 社會最適排放量 TE_opt_i
+    mkt_production = models.FloatField()  # 利潤極大化產量 q_mkt_i
+    mkt_emissions = models.FloatField()   # 利潤極大化排放量 TE_mkt_i
 
 # ========== 輔助函數 ==========
 
