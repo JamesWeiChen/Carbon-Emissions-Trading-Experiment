@@ -319,9 +319,9 @@ class ExperimentConfig:
         return self.get('stages.carbon_trading.optimal_allocation.round_cap_total', True)
     
     @property
-    def carbon_trading_grandfathering(self) -> Dict[str, Any]:
+    def grandfathering_rule(self) -> Dict[str, Any]:
         return self.get(
-            'stages.carbon_trading.optimal_allocation.carbon_trading_grandfathering',{})
+            'stages.carbon_trading.optimal_allocation.grandfathering_rule',{})
 
     @property
     def carbon_trading_show_detailed_calculation(self) -> bool:
