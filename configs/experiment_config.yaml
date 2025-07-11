@@ -151,7 +151,7 @@ stages:
       cap_multipliers: [0.5, 1.0, 1.5]  # 配額倍率選項 （已經不再使用）
       allocation_method: "grandfathering" #"equal_with_random_remainder"  # 分配方法
       round_cap_total: true  # 是否將配額總數四捨五入為整數
-      carbon_trading_grandfathering:
+      grandfathering_rule:
         dominant_share_of_cap: 0.3  # 大廠總共獲得 cap 的比例
       
     # 輸出設定
