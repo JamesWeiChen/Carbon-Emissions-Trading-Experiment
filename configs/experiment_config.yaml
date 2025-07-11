@@ -152,7 +152,7 @@ stages:
       allocation_method: "grandfathering" # 可選值："equal_with_random_remainder", "grandfathering"
       round_cap_total: true  # 是否將配額總數四捨五入為整數
       grandfathering_rule:
-        dominant_share_of_cap: 0.4  # 大廠總共獲得 cap 的比例
+        dominant_share_of_cap: 0.5  # 大廠總共獲得 cap 的比例
       
     # 輸出設定
     output:
