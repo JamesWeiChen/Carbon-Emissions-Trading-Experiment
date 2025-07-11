@@ -319,6 +319,14 @@ class ExperimentConfig:
         return self.get('stages.carbon_trading.optimal_allocation.round_cap_total', True)
     
     @property
+    def dominant_share_of_cap(self) -> float:
+        """
+        直接取得 dominant_share_of_cap 數值
+        """
+        return self.get(
+            'stages.carbon_trading.optimal_allocation.carbon_trading_grandfathering.dominant_share_of_cap',0.3)  # 預設值
+
+    @property
     def carbon_trading_show_detailed_calculation(self) -> bool:
         """是否顯示詳細計算"""
         return self.get('stages.carbon_trading.output.show_detailed_calculation', True)
