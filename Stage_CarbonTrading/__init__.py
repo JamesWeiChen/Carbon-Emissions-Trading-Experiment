@@ -149,18 +149,6 @@ def initialize_roles(subsession: Subsession) -> None:
     
     print(f"碳交易組初始化完成")
 
-def _allocate_discrete_share(indices: List[int], total: int) -> Dict[int, int]:
-    """將 total 配額離散分配給指定 indices，餘數隨機給"""
-    n = len(indices)
-    base = total // n
-    remainder = total % n
-    allocations = {idx: base for idx in indices}
-    if remainder > 0:
-        lucky = random.sample(indices, remainder)
-        for idx in lucky:
-            allocations[idx] += 1
-    return allocations
-
 def calculate_optimal_allowance_allocation(
     players: List[BasePlayer], 
     market_price: float,
@@ -169,7 +157,19 @@ def calculate_optimal_allowance_allocation(
     """
     計算社會最適產量和碳權分配
     """
-
+    
+    def _allocate_discrete_share(indices: List[int], total: int) -> Dict[int, int]:
+        """將 total 配額離散分配給指定 indices，餘數隨機給"""
+        n = len(indices)
+        base = total // n
+        remainder = total % n
+        allocations = {idx: base for idx in indices}
+        if remainder > 0:
+            lucky = random.sample(indices, remainder)
+            for idx in lucky:
+                allocations[idx] += 1
+        return allocations
+        
     p = float(market_price)
     c = config.carbon_trading_social_cost_per_unit_carbon
     N = len(players)
