@@ -223,7 +223,7 @@ def calculate_optimal_allowance_allocation(
             allocations[i] = alloc_map.get(i, 0)
 
     elif allocation_method == "grandfathering":
-        dominant_cap_share = config.carbon_trading_grandfathering.get("dominant_share_of_cap", 0.3)
+        dominant_cap_share = config.grandfathering_rule.get("dominant_share_of_cap", 0.3)
         dominant_indices = [i for i, p in enumerate(players) if getattr(p, 'is_dominant', 0) == 1]
         non_dominant_indices = [i for i in range(N) if i not in dominant_indices]
 
