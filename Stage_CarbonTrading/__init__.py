@@ -169,16 +169,6 @@ def calculate_optimal_allowance_allocation(
     """
     計算社會最適產量和碳權分配
     """
-    def _allocate_discrete_share(indices: List[int], total: int) -> Dict[int, int]:
-        n = len(indices)
-        base = total // n
-        remainder = total % n
-        allocs = {idx: base for idx in indices}
-        if remainder > 0:
-            lucky = random.sample(indices, remainder)
-            for idx in lucky:
-                allocs[idx] += 1
-        return allocs
 
     p = float(market_price)
     c = config.carbon_trading_social_cost_per_unit_carbon
