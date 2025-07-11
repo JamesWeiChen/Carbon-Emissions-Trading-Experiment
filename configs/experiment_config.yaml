@@ -19,7 +19,7 @@ experiment_mode:
 # ====================================
 general:
   # 基本參數（正式模式）
-  players_per_group: 12  # 正式實驗：N 人一組
+  players_per_group: 15  # 正式實驗：N 人一組
   num_rounds: 12 # 正式實驗：T 回合
   max_production: 50 # （實際上用不到）
   random_dominant_firm_each_round: False
@@ -45,7 +45,7 @@ general:
   # 角色分配設定（正式模式）
   role_assignment:
     dominant_firm_count: 3  # 主導廠商數量
-    non_dominant_firm_count: 9  # 其他廠商數量
+    non_dominant_firm_count: 12  # 其他廠商數量
     ensure_player1_dominant: false  # 正式實驗不需要確保1號玩家為主導廠商
   
   # 隨機擾動參數
@@ -152,7 +152,7 @@ stages:
       allocation_method: "grandfathering" # 可選值："equal_with_random_remainder", "grandfathering"
       round_cap_total: true  # 是否將配額總數四捨五入為整數
       grandfathering_rule:
-        dominant_share_of_cap: 0.5  # 大廠總共獲得 cap 的比例
+        dominant_share_of_cap: 0.4  # 大廠總共獲得 cap 的比例
       
     # 輸出設定
     output:
@@ -176,18 +176,18 @@ stages:
 preset_parameter_matrix:
   columns: [market_price, tax_rate, carbon_multiplier, dominant_mc, non_dominant_mc]
   values:
-    - [25, 3, 0.5, 4, 6]
-    - [25, 3, 0.5, 6, 9]
-    - [25, 6, 1.0, 4, 6]
-    - [25, 6, 1.0, 6, 9]
-    - [25, 9, 1.5, 4, 6]
-    - [25, 9, 1.5, 6, 9]
-    - [35, 3, 0.5, 4, 6]
-    - [35, 3, 0.5, 6, 9]
-    - [35, 6, 1.0, 4, 6]
-    - [35, 6, 1.0, 6, 9]
-    - [35, 9, 1.5, 4, 6]
-    - [35, 9, 1.5, 6, 9]
+    - [25, 3, 0.5, 3, 4]
+    - [25, 3, 0.5, 6, 8]
+    - [25, 6, 1.0, 3, 4]
+    - [25, 6, 1.0, 6, 8]
+    - [25, 9, 1.5, 3, 4]
+    - [25, 9, 1.5, 6, 8]
+    - [35, 3, 0.5, 3, 4]
+    - [35, 3, 0.5, 6, 8]
+    - [35, 6, 1.0, 3, 4]
+    - [35, 6, 1.0, 6, 8]
+    - [35, 9, 1.5, 3, 4]
+    - [35, 9, 1.5, 6, 8]
 
 # ====================================
 # 頁面流程配置
