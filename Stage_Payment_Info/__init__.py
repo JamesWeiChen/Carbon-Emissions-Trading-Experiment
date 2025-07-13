@@ -18,7 +18,7 @@ class Group(BaseGroup):
 
 class Player(BasePlayer):
 
-    total_payment = models.CurrencyField()
+    total_payment = models.IntegerField()
     # === 基本資料 ===
     name = models.StringField(label="您的名字")
     student_id = models.StringField(label="您的學號")
