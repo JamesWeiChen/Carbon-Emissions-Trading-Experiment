@@ -18,7 +18,7 @@ class Group(BaseGroup):
 
 class Player(BasePlayer):
 
-    total_payment = models.CurrencyField()
+    total_payment = models.IntegerField()
     # === 基本資料 ===
     name = models.StringField(label="您的名字")
     student_id = models.StringField(label="您的學號")
@@ -46,7 +46,7 @@ class Player(BasePlayer):
         # 使用 cu() 包裝，才能使用 oTree 的貨幣轉換方法
         real_payoff = cu(total_profit).to_real_world_currency(session)
         participation_fee = session.config.get("participation_fee", 0)
-        total_payment = real_payoff + participation_fee
+        total_payment = int(round(real_payoff + participation_fee))
 
         return {
             'control': control,
