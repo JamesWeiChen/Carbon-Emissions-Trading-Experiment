@@ -700,9 +700,14 @@ class Introduction(Page):
             reset_cash=C.RESET_CASH_EACH_ROUND,
         )
 
+def wrapped_initialize_roles(subsession: Subsession):
+    treatment = subsession.session.config.get("treatment")
+    initialize_roles(subsession, treatment)
+
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
-    after_all_players_arrive = initialize_roles
+    after_all_players_arrive = wrapped_initialize_roles
+
 
 class TradingMarket(Page):
     timeout_seconds = C.TRADING_TIME
