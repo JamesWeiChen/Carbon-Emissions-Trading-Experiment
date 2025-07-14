@@ -67,7 +67,7 @@ class Player(BasePlayer):
 
     # 價值觀與偏好
     main_goal = models.StringField(
-        label='您決定生產量時主要考慮的目標是？',
+        label='整個實驗中，您決定生產量時最主要考慮的目標是？',
         choices=['利潤最大化', '碳排最少', '綜合考慮利潤與碳排（多考慮利潤）', '綜合考慮利潤與碳排（多考慮碳排）']
     )
 
@@ -85,39 +85,39 @@ class Player(BasePlayer):
 
     # carbon_tax 專屬題目
     carbon_tax_fairness = models.IntegerField(
-        label='您認為第二階段的碳稅制度在「公平性」方面的表現',
+        label='您認為第二部份的碳稅制度在「公平性」方面的表現',
         choices=[[1, '非常不公平'], [2, '不太公平'], [3, '普通'], [4, '公平'], [5, '非常公平']],
         widget=widgets.RadioSelect
     )
     carbon_tax_efficiency = models.IntegerField(
-        label='您認為第二階段的碳稅制度在「經濟效率」方面的表現',
+        label='您認為第二部份的碳稅制度在「經濟效率」方面的表現',
         choices=[[1, '非常沒效率'], [2, '沒效率'], [3, '普通'], [4, '有效率'], [5, '非常有效率']],
         widget=widgets.RadioSelect
     )
     carbon_tax_environment = models.IntegerField(
-        label='您認為第二階段的碳稅制度在「減碳／改善環境」方面的效果',
+        label='您認為第二部份的碳稅制度在「減碳／改善環境」方面的效果',
         choices=[[1, '完全沒幫助'], [2, '幫助很小'], [3, '普通'], [4, '有幫助'], [5, '非常有效']],
         widget=widgets.RadioSelect
     )
 
     # carbon_trade 專屬題目
     carbon_trade_fairness = models.IntegerField(
-        label='您認為第二階段的碳交易制度在「公平性」方面的表現',
+        label='您認為第三部份的碳權交易制度在「公平性」方面的表現',
         choices=[[1, '非常不公平'], [2, '不太公平'], [3, '普通'], [4, '公平'], [5, '非常公平']],
         widget=widgets.RadioSelect
     )
     carbon_trade_efficiency = models.IntegerField(
-        label='您認為第二階段的碳交易制度在「經濟效率」方面的表現',
+        label='您認為第三部份的碳權交易制度在「經濟效率」方面的表現',
         choices=[[1, '非常沒效率'], [2, '沒效率'], [3, '普通'], [4, '有效率'], [5, '非常有效率']],
         widget=widgets.RadioSelect
     )
     carbon_trade_environment = models.IntegerField(
-        label='您認為第二階段的碳交易制度在「減碳／改善環境」方面的效果',
+        label='您認為第三部份的碳權交易制度在「減碳／改善環境」方面的效果',
         choices=[[1, '完全沒幫助'], [2, '幫助很小'], [3, '普通'], [4, '有幫助'], [5, '非常有效']],
         widget=widgets.RadioSelect
     )
     carbon_trade_mkt_power = models.IntegerField(
-        label='若您是產量上限高的大廠商，您是否會嘗試壓低碳權的價格？',
+        label='在第三部份的碳權交易制度中，若您是產量上限高的大廠商，您是否會嘗試壓低碳權的價格？',
         choices=[[1, '不會'], [2, '可能不會'], [3, '不確定'], [4, '可能會'], [5, '會']],
         widget=widgets.RadioSelect
     )
