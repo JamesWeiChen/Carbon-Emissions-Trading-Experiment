@@ -272,7 +272,7 @@ def creating_session(subsession: Subsession) -> None:
     subsession.dominant_mc = param['dominant_mc']
     subsession.non_dominant_mc = param['non_dominant_mc']
 
-    treatment = subsession.session.config.get('treatment')
+    subsession.treatment = subsession.session.config.get('treatment')
     
     initialize_roles(subsession, treatment)
 
