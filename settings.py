@@ -15,7 +15,6 @@ SESSION_CONFIGS = [
         'app_sequence': [config.get_stage_name_in_url('carbon_tax')],
         'num_demo_participants': config.players_per_group,
         'display_name': config.get_stage_display_name('carbon_tax'),
-        'allocation_method': 'grandfathering',
     },
 
     {
@@ -30,6 +29,7 @@ SESSION_CONFIGS = [
         'app_sequence': [config.get_stage_name_in_url('carbon_trading')],
         'num_demo_participants': config.players_per_group,
         'display_name': config.get_stage_display_name('carbon_trading'),
+        'allocation_method': 'grandfathering',
     },
 
     {
