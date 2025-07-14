@@ -136,8 +136,6 @@ def initialize_roles(subsession: Subsession, treatment) -> None:
             print(f"Cap total = {allowance_allocation['cap_total']}")
             print(f"Parameters: p = {allowance_allocation['config']['market_price']}, "
                   f"c = {allowance_allocation['config']['social_cost_per_unit_carbon']}")
-            print(f"Configuration: method = {allowance_allocation['config']['allocation_method']}, "
-                  f"fixed_price = {allowance_allocation['config']['use_fixed_price']}")
             print("="*60 + "\n")
         
         elif output_format == "simple":
@@ -241,9 +239,6 @@ def calculate_optimal_allowance_allocation(
 
         for i in range(N):
             allocations[i] = dominant_allocs.get(i, 0) + small_allocs.get(i, 0)
-
-    else:
-        raise ValueError(f"Unsupported allocation method: {allocation_method}")
 
     return {
         'firm_details': firm_details,
