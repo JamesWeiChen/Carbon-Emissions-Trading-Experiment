@@ -60,6 +60,7 @@ class Subsession(BaseSubsession):
     tax_rate = models.IntegerField()
     dominant_mc = models.IntegerField()
     non_dominant_mc = models.IntegerField()
+    treatment = models.StringField()
 
 def initialize_roles(subsession: Subsession) -> None:
     """使用共享工具庫和配置文件初始化角色"""
@@ -80,6 +81,7 @@ def initialize_roles(subsession: Subsession) -> None:
     subsession.carbon_multiplier = allowance_allocation['r']
     subsession.cap_total = allowance_allocation['cap_total']
     subsession.allocation_details = json.dumps(allowance_allocation['firm_details'])
+    subsession.treatment = allowance_allocation['treatment']
     
     for i, p in enumerate(players):
         # 設置市場價格
@@ -215,7 +217,8 @@ def calculate_optimal_allowance_allocation(
 
     allocations = [0] * N
 
-    treatment = session.config.get("grandfather", "equal")
+    
+    treatment = session.config.get("treatment", "equal")
 
     if treatment == "equal":
         all_indices = list(range(N))
@@ -252,11 +255,11 @@ def calculate_optimal_allowance_allocation(
         'cap_total': cap_total_int,
         'TE_mkt_total': TE_mkt_total,
         'allocations': allocations,
+        'treatment': treatment,
         'config': {
             'market_price': p,
             'social_cost_per_unit_carbon': c,
             'decimal_places': decimal_places,
-            'allocation_method': allocation_method,
             'cap_multipliers': r,
             'use_fixed_price': config.carbon_trading_use_fixed_price
         }
