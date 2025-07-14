@@ -60,8 +60,9 @@ class Subsession(BaseSubsession):
     tax_rate = models.IntegerField()
     dominant_mc = models.IntegerField()
     non_dominant_mc = models.IntegerField()
+    allocation_method = models.StringField()
 
-def initialize_roles(subsession: Subsession) -> None:
+def initialize_roles(subsession: Subsession, allocation_method) -> None:
     """使用共享工具庫和配置文件初始化角色"""
 
     # 設定每回合的開始時間（確保每回合都重置時間）
@@ -70,10 +71,10 @@ def initialize_roles(subsession: Subsession) -> None:
 
     # 初始化玩家角色（會用到 subsession.market_price）
     initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
-    
+
     # 計算社會最適產量和碳權分配
     players = subsession.get_players()
-    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price, subsession.carbon_multiplier)
+    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price, subsession.carbon_multiplier, allocation_method)
     
     # 儲存結果到 subsession
     subsession.total_optimal_emissions = allowance_allocation['TE_opt_total']
@@ -135,8 +136,6 @@ def initialize_roles(subsession: Subsession) -> None:
             print(f"Cap total = {allowance_allocation['cap_total']}")
             print(f"Parameters: p = {allowance_allocation['config']['market_price']}, "
                   f"c = {allowance_allocation['config']['social_cost_per_unit_carbon']}")
-            print(f"Configuration: method = {allowance_allocation['config']['allocation_method']}, "
-                  f"fixed_price = {allowance_allocation['config']['use_fixed_price']}")
             print("="*60 + "\n")
         
         elif output_format == "simple":
@@ -154,7 +153,8 @@ def initialize_roles(subsession: Subsession) -> None:
 def calculate_optimal_allowance_allocation(
     players: List[BasePlayer], 
     market_price: float,
-    carbon_multiplier: float
+    carbon_multiplier: float,
+    allocation_method: str,
 ) -> Dict[str, Any]:
     """
     計算社會最適產量和碳權分配
@@ -214,9 +214,8 @@ def calculate_optimal_allowance_allocation(
     cap_total_int = int(round(cap_total)) if config.carbon_trading_round_cap_total else int(cap_total)
 
     allocations = [0] * N
-    allocation_method = config.carbon_trading_allocation_method
 
-    if allocation_method == "equal_with_random_remainder":
+    if allocation_method == "equal":
         all_indices = list(range(N))
         alloc_map = _allocate_discrete_share(all_indices, cap_total_int)
         for i in range(N):
@@ -241,9 +240,6 @@ def calculate_optimal_allowance_allocation(
         for i in range(N):
             allocations[i] = dominant_allocs.get(i, 0) + small_allocs.get(i, 0)
 
-    else:
-        raise ValueError(f"Unsupported allocation method: {allocation_method}")
-
     return {
         'firm_details': firm_details,
         'TE_opt_total': TE_opt_total,
@@ -255,7 +251,6 @@ def calculate_optimal_allowance_allocation(
             'market_price': p,
             'social_cost_per_unit_carbon': c,
             'decimal_places': decimal_places,
-            'allocation_method': allocation_method,
             'cap_multipliers': r,
             'use_fixed_price': config.carbon_trading_use_fixed_price
         }
@@ -277,7 +272,10 @@ def creating_session(subsession: Subsession) -> None:
     subsession.dominant_mc = param['dominant_mc']
     subsession.non_dominant_mc = param['non_dominant_mc']
 
-    initialize_roles(subsession)
+    allocation_method = subsession.session.config.get('allocation_method')
+    subsession.allocation_method = allocation_method
+    
+    initialize_roles(subsession, allocation_method)
 
 class Group(BaseGroup):
     buy_orders = models.LongStringField(initial='[]')
@@ -703,9 +701,14 @@ class Introduction(Page):
             reset_cash=C.RESET_CASH_EACH_ROUND,
         )
 
+def wrapped_initialize_roles(subsession: Subsession):
+    allocation_method = subsession.session.config.get("allocation_method")
+    initialize_roles(subsession, allocation_method)
+
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
-    after_all_players_arrive = initialize_roles
+    after_all_players_arrive = wrapped_initialize_roles
+
 
 class TradingMarket(Page):
     timeout_seconds = C.TRADING_TIME

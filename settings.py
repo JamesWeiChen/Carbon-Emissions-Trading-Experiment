@@ -29,6 +29,7 @@ SESSION_CONFIGS = [
         'app_sequence': [config.get_stage_name_in_url('carbon_trading')],
         'num_demo_participants': config.players_per_group,
         'display_name': config.get_stage_display_name('carbon_trading'),
+        'allocation_method': 'grandfathering',
     },
 
     {
@@ -39,42 +40,34 @@ SESSION_CONFIGS = [
     },
 
     {
-        'name': 'Survey_Tax',
+        'name': 'Survey',
         'app_sequence': [config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
-        'display_name': "問卷：碳稅",
-        'treatment': 'tax',
+        'display_name': "問卷",
+    },
+
+    
+    {
+        'name': 'Experiment_Carbon_Grandfathering',
+        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'),config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
+        'num_demo_participants': config.players_per_group,
+        'display_name': "正式實驗：祖父權力",
+        'allocation_method': 'grandfathering',
     },
 
     {
-        'name': 'Survey_Trade',
-        'app_sequence': [config.get_stage_name_in_url('survey')],
+        'name': 'Experiment_Carbon_Equal',
+        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'),config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
-        'display_name': "問卷：碳權交易",
-        'treatment': 'trade',
-    },
-    
-    
-    {
-        'name': 'Experiment_Carbon_Tax',
-        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
-        'num_demo_participants': config.players_per_group,
-        'display_name': "正式實驗：碳稅",
-        'treatment': 'tax',
+        'display_name': "正式實驗：平均分配",
+        'allocation_method': 'equal',
     },
 
-    {
-        'name': 'Experiment_Carbon_Trade',
-        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'), config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
-        'num_demo_participants': config.players_per_group,
-        'display_name': "正式實驗：碳權交易",
-        'treatment': 'trade',
-    },
 ]
 
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=1.50, participation_fee=150.00, doc=""
+    real_world_currency_per_point=1.0, participation_fee=150.00, doc=""
 )
 
 PARTICIPANT_FIELDS = []

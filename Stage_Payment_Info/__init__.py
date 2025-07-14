@@ -34,13 +34,14 @@ class Player(BasePlayer):
 
         # 報酬來自 control 與 carbon 兩部分
         control = participant.vars.get("control_summary", {})
-        carbon = participant.vars.get(
-            "carbon_trade_summary" if treatment == "trade" else "carbon_tax_summary", {}
-        )
+        tax = participant.vars.get("carbon_tax_summary", {})
+        trade = participant.vars.get("carbon_trade_summary", {})
+        
 
-        total_profit = control.get("profit", 50) + carbon.get("profit", 60)
-        total_emission = control.get("emission", 12) + carbon.get("emission", 11)
-        total_group_emission = control.get("group_emission", 50) + carbon.get("group_emission", 30)
+
+        total_profit = control.get("profit", 50) + tax.get("profit", 60) + trade.get("profit", 70)
+        total_emission = control.get("emission", 12) + tax.get("emission", 11) + trade.get("emission", 13)
+        total_group_emission = control.get("group_emission", 50) + tax.get("group_emission", 30) + trade.get("group_emission", 80)
         real_emission = total_group_emission * session.config.get("carbon_real_world_rate", 0.1)
 
         # 使用 cu() 包裝，才能使用 oTree 的貨幣轉換方法
@@ -50,7 +51,8 @@ class Player(BasePlayer):
 
         return {
             'control': control,
-            'carbon': carbon,
+            'tax': tax,
+            'trade': trade,
             'total_profit': total_profit,
             'total_emission': total_emission,
             'total_group_emission': total_group_emission,
@@ -69,7 +71,8 @@ class PaymentInfo(Page):
 
         return dict(
             control_profit=info['control'].get("profit", 50),
-            carbon_profit=info['carbon'].get("profit", 60),
+            tax_profit=info['tax'].get("profit", 60),
+            trade_profit=info['trade'].get("profit", 70),
             total_profit=info['total_profit'],
             total_profit_formatted=f"{info['total_profit']:,.0f} 法幣",
             total_emission_formatted=f"{info['total_emission']:.0f} 單位碳排",
