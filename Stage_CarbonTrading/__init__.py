@@ -272,7 +272,8 @@ def creating_session(subsession: Subsession) -> None:
     subsession.dominant_mc = param['dominant_mc']
     subsession.non_dominant_mc = param['non_dominant_mc']
 
-    subsession.allocation_method = subsession.session.config.get('allocation_method')
+    allocation_method = subsession.session.config.get('allocation_method')
+    subsession.allocation_method = allocation_method
     
     initialize_roles(subsession, allocation_method)
 
