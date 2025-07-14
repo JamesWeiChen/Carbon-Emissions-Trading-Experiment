@@ -60,9 +60,9 @@ class Subsession(BaseSubsession):
     tax_rate = models.IntegerField()
     dominant_mc = models.IntegerField()
     non_dominant_mc = models.IntegerField()
-    treatment = models.StringField()
+    allocation_method = models.StringField()
 
-def initialize_roles(subsession: Subsession, treatment) -> None:
+def initialize_roles(subsession: Subsession, allocation_method) -> None:
     """使用共享工具庫和配置文件初始化角色"""
 
     # 設定每回合的開始時間（確保每回合都重置時間）
@@ -74,7 +74,7 @@ def initialize_roles(subsession: Subsession, treatment) -> None:
 
     # 計算社會最適產量和碳權分配
     players = subsession.get_players()
-    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price, subsession.carbon_multiplier, treatment)
+    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price, subsession.carbon_multiplier, allocation_method)
     
     # 儲存結果到 subsession
     subsession.total_optimal_emissions = allowance_allocation['TE_opt_total']
@@ -154,7 +154,7 @@ def calculate_optimal_allowance_allocation(
     players: List[BasePlayer], 
     market_price: float,
     carbon_multiplier: float,
-    treatment: str,
+    allocation_method: str,
 ) -> Dict[str, Any]:
     """
     計算社會最適產量和碳權分配
@@ -215,13 +215,13 @@ def calculate_optimal_allowance_allocation(
 
     allocations = [0] * N
 
-    if treatment == "equal":
+    if allocation_method == "equal":
         all_indices = list(range(N))
         alloc_map = _allocate_discrete_share(all_indices, cap_total_int)
         for i in range(N):
             allocations[i] = alloc_map.get(i, 0)
 
-    elif treatment == "grandfathering":
+    elif allocation_method == "grandfathering":
         dominant_cap_share = config.grandfathering_rule.get("dominant_share_of_cap", 0.3)
         dominant_indices = [i for i, p in enumerate(players) if getattr(p, 'is_dominant', 0) == 1]
         non_dominant_indices = [i for i in range(N) if i not in dominant_indices]
@@ -272,9 +272,9 @@ def creating_session(subsession: Subsession) -> None:
     subsession.dominant_mc = param['dominant_mc']
     subsession.non_dominant_mc = param['non_dominant_mc']
 
-    subsession.treatment = subsession.session.config.get('treatment')
+    subsession.allocation_method = subsession.session.config.get('allocation_method')
     
-    initialize_roles(subsession, treatment)
+    initialize_roles(subsession, allocation_method)
 
 class Group(BaseGroup):
     buy_orders = models.LongStringField(initial='[]')
@@ -701,8 +701,8 @@ class Introduction(Page):
         )
 
 def wrapped_initialize_roles(subsession: Subsession):
-    treatment = subsession.session.config.get("treatment")
-    initialize_roles(subsession, treatment)
+    allocation_method = subsession.session.config.get("allocation_method")
+    initialize_roles(subsession, allocation_method)
 
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
