@@ -62,7 +62,7 @@ class Subsession(BaseSubsession):
     non_dominant_mc = models.IntegerField()
     treatment = models.StringField()
 
-def initialize_roles(subsession: Subsession) -> None:
+def initialize_roles(subsession: Subsession, treatment) -> None:
     """使用共享工具庫和配置文件初始化角色"""
 
     # 設定每回合的開始時間（確保每回合都重置時間）
@@ -71,17 +71,16 @@ def initialize_roles(subsession: Subsession) -> None:
 
     # 初始化玩家角色（會用到 subsession.market_price）
     initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
-    
+
     # 計算社會最適產量和碳權分配
     players = subsession.get_players()
-    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price, subsession.carbon_multiplier)
+    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price, subsession.carbon_multiplier, treatment)
     
     # 儲存結果到 subsession
     subsession.total_optimal_emissions = allowance_allocation['TE_opt_total']
     subsession.carbon_multiplier = allowance_allocation['r']
     subsession.cap_total = allowance_allocation['cap_total']
     subsession.allocation_details = json.dumps(allowance_allocation['firm_details'])
-    subsession.treatment = allowance_allocation['treatment']
     
     for i, p in enumerate(players):
         # 設置市場價格
@@ -156,7 +155,8 @@ def initialize_roles(subsession: Subsession) -> None:
 def calculate_optimal_allowance_allocation(
     players: List[BasePlayer], 
     market_price: float,
-    carbon_multiplier: float
+    carbon_multiplier: float,
+    treatmnent: str,
 ) -> Dict[str, Any]:
     """
     計算社會最適產量和碳權分配
@@ -217,9 +217,6 @@ def calculate_optimal_allowance_allocation(
 
     allocations = [0] * N
 
-    
-    treatment = session.config.get("treatment", "equal")
-
     if treatment == "equal":
         all_indices = list(range(N))
         alloc_map = _allocate_discrete_share(all_indices, cap_total_int)
@@ -255,7 +252,6 @@ def calculate_optimal_allowance_allocation(
         'cap_total': cap_total_int,
         'TE_mkt_total': TE_mkt_total,
         'allocations': allocations,
-        'treatment': treatment,
         'config': {
             'market_price': p,
             'social_cost_per_unit_carbon': c,
@@ -281,7 +277,9 @@ def creating_session(subsession: Subsession) -> None:
     subsession.dominant_mc = param['dominant_mc']
     subsession.non_dominant_mc = param['non_dominant_mc']
 
-    initialize_roles(subsession)
+    treatment = subsession.session.config.get('treatment')
+    
+    initialize_roles(subsession, treatment)
 
 class Group(BaseGroup):
     buy_orders = models.LongStringField(initial='[]')
