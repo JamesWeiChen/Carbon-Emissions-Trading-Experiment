@@ -214,15 +214,16 @@ def calculate_optimal_allowance_allocation(
     cap_total_int = int(round(cap_total)) if config.carbon_trading_round_cap_total else int(cap_total)
 
     allocations = [0] * N
-    allocation_method = config.carbon_trading_allocation_method
 
-    if allocation_method == "equal_with_random_remainder":
+    treatment = session.config.get("grandfather", "equal")
+
+    if treatment == "equal":
         all_indices = list(range(N))
         alloc_map = _allocate_discrete_share(all_indices, cap_total_int)
         for i in range(N):
             allocations[i] = alloc_map.get(i, 0)
 
-    elif allocation_method == "grandfathering":
+    elif treatment == "grandfather":
         dominant_cap_share = config.grandfathering_rule.get("dominant_share_of_cap", 0.3)
         dominant_indices = [i for i, p in enumerate(players) if getattr(p, 'is_dominant', 0) == 1]
         non_dominant_indices = [i for i in range(N) if i not in dominant_indices]
