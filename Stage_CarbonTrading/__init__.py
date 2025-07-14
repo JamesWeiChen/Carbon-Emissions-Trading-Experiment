@@ -156,7 +156,7 @@ def calculate_optimal_allowance_allocation(
     players: List[BasePlayer], 
     market_price: float,
     carbon_multiplier: float,
-    treatmnent: str,
+    treatment: str,
 ) -> Dict[str, Any]:
     """
     計算社會最適產量和碳權分配
