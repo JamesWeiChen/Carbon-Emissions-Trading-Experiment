@@ -56,25 +56,26 @@ SESSION_CONFIGS = [
     
     
     {
-        'name': 'Experiment_Carbon_Tax',
-        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
+        'name': 'Experiment_Carbon_Grandfather',
+        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'),config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
-        'display_name': "正式實驗：碳稅",
-        'treatment': 'tax',
+        'display_name': "正式實驗：祖父權力",
+        'treatment': 'grandfather',
     },
 
     {
-        'name': 'Experiment_Carbon_Trade',
-        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'), config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
+        'name': 'Experiment_Carbon_Equal',
+        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'),config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
-        'display_name': "正式實驗：碳權交易",
-        'treatment': 'trade',
+        'display_name': "正式實驗：平均分配",
+        'treatment': 'equal',
     },
+
 ]
 
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=1.50, participation_fee=150.00, doc=""
+    real_world_currency_per_point=1.0, participation_fee=150.00, doc=""
 )
 
 PARTICIPANT_FIELDS = []
