@@ -131,7 +131,7 @@ class ReadyWaitPage(WaitPage):
     
     @staticmethod
     def after_all_players_arrive(subsession: Subsession):
-        subsession.start_time = int(time.time())
+        subsession.start_time = int(time.time()+2) #延遲兩秒
         print(f"[MUDA] 所有人準備就緒，start_time 設為 {subsession.start_time}")
 
 class TradingMarket(Page):
