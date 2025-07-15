@@ -700,17 +700,17 @@ class Introduction(Page):
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
 
-    @staticmethod
-    def after_all_players_arrive(subsession: Subsession):
-        subsession.start_time = int(time.time())
-        print(f"碳權交易 所有人準備就緒，start_time 設為 {subsession.start_time}")
+    #@staticmethod
+    #def after_all_players_arrive(subsession: Subsession):
+    #    subsession.start_time = int(time.time())
+    #    print(f"碳權交易 所有人準備就緒，start_time 設為 {subsession.start_time}")
 
 class TradingMarket(Page):
     timeout_seconds = C.TRADING_TIME
 
     @staticmethod  
     def vars_for_template(player):
-
+        
         return dict(
             cash=int(player.current_cash),
             permits=int(player.current_permits),
@@ -949,12 +949,24 @@ class TradingMarket(Page):
             player.current_permits = max(player.current_permits, 0)
 
     @staticmethod
-    def js_vars(player):
+    def js_vars(player: Player) -> Dict[str, Any]:
+        session = player.session
+        subsession = player.subsession
+    
+        # 只有第一位進入頁面的玩家設定 start_time
+        if 'start_time' not in session.vars:
+            session.vars['start_time'] = int(time.time())
+            subsession.start_time = session.vars['start_time']
+            print(f"Player {player.id_in_group} 設定 start_time: {session.vars['start_time']}")
+        else:
+            subsession.start_time = session.vars['start_time']
+    
         return {
-            'start_time': player.group.subsession.start_time,
             'player_id': player.id_in_group,
-            'timeout_seconds': C.TRADING_TIME
+            'start_time': subsession.start_time,
+            'item_name': C.ITEM_NAME,
         }
+
 
 class ProductionDecision(Page):
     form_model = 'player'
