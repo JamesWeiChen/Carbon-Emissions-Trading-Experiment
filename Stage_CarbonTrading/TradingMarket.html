@@ -41,10 +41,10 @@
                 </div>
                 <div class="card-body">
                     <ul class="list-group">
-                        <li class="list-group-item">現金：<b id="cash" class="info-highlight text-success">{{ cash }}</b></li>
-                        <li class="list-group-item">碳權持有：<b id="permits" class="info-highlight text-primary">{{ permits }}</b></li>
-                        <li class="list-group-item">單位碳排放：<b class="text-warning">{{ carbon_emission_per_unit|to0 }}</b></li>
-                        <li class="list-group-item">市場價格：<b class="text-info">{{ market_price }}</b></li>
+                        <li class="list-group-item">現金：<b id="cash">{{ cash }}</b></li>
+                        <li class="list-group-item">碳權持有：<b id="permits">{{ permits }}</b></li>
+                        <li class="list-group-item">單位碳排放：<b>{{ carbon_emission_per_unit|to0 }}</b></li>
+                        <li class="list-group-item">市場價格：<b>{{ market_price }}</b></li>
                     </ul>
                 </div>
             </div>
