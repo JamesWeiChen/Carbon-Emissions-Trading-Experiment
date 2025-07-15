@@ -147,6 +147,7 @@ def calculate_production_cost(player: BasePlayer, production_quantity: int) -> f
         total_cost += unit_marginal_cost + unit_disturbance
     
     random.seed()  # 重置種子
+    total_cost = round(total_cost, 2)
     return total_cost
 
 def calculate_control_payoffs(group: BaseGroup) -> None:
