@@ -144,7 +144,11 @@ class Introduction(Page):
 
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
-    after_all_players_arrive = initialize_roles
+    @staticmethod
+    def after_all_players_arrive(subsession):
+        subsession.start_time = int(time.time())
+        print(f"MUDA 第{subsession.round_number}回合開始時間已設定")
+    
 
 class TradingMarket(Page):
     form_model = 'player'
@@ -407,11 +411,6 @@ def _format_orders(orders: List[List], current_player_id: int) -> List[Dict[str,
 
 class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs
-    
-    @staticmethod
-    def after_all_players_arrive(subsession):
-        subsession.start_time = int(time.time())
-        print(f"MUDA 第{subsession.round_number}回合開始時間已設定")
 
 class Results(Page):
     @staticmethod
