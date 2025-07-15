@@ -65,10 +65,6 @@ class Subsession(BaseSubsession):
 def initialize_roles(subsession: Subsession, allocation_method) -> None:
     """使用共享工具庫和配置文件初始化角色"""
 
-    # 設定每回合的開始時間（確保每回合都重置時間）
-    subsession.start_time = int(time.time())
-    print(f"第{subsession.round_number}回合開始時間已設定")
-
     # 初始化玩家角色（會用到 subsession.market_price）
     initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
 
@@ -1055,6 +1051,10 @@ class ProductionDecision(Page):
 
 class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs
+    @staticmethod
+    def after_all_players_arrive(subsession):
+        subsession.start_time = int(time.time())
+        print(f"碳權交易第{subsession.round_number}回合開始時間已設定")
 
 # 碳交易組 Results 類
 class Results(Page):
