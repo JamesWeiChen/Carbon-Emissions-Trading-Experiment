@@ -61,7 +61,7 @@
                                    data-current-permits="{{ current_permits }}">
                                 <thead>
                                     <tr>
-                                        <th>生產數量 (q)</th><th>每單位生產成本</th><th>每單位碳排放</th>
+                                        <th>生產數量</th><th>單位生產成本</th><th>單位碳排放</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -75,12 +75,12 @@
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header bg-success text-white">
-                            <h5>收益與成本</h5>
+                            <h5>收益與碳排估算</h5>
                         </div>
                         <div class="card-body">
                             <p><strong>單位市場價格：</strong> {{ unit_income }}</p>
                             <p><strong>總成本：</strong> <span id="mc-display2">0.00</span></p>
-                            <p><strong>可用碳權：</strong> {{ current_permits }} 單位</p>
+                            <p><strong>可用碳權：</strong> {{ current_permits }}</p>
                             <p><strong>淨利潤：</strong> <span id="net-profit">0</span></p>
                             <p><strong>總碳排放：</strong> <span id="card-emissions">0</span></p>
                         </div>
@@ -210,6 +210,16 @@ function updateProfitEstimate(qty) {
         profitElement.className = 'text-danger';
     } else {
         profitElement.className = '';
+    }
+
+    // 新增：根據總碳排加上顏色 class
+    const emissionsElement = document.getElementById('card-emissions');
+    if (totalEmissions > 0) {
+        emissionsElement.className = 'text-danger'; // 紅色
+    } else if (totalEmissions == 0) {
+        emissionsElement.className = 'text-success'; // 綠色
+    } else {
+        emissionsElement.className = '';
     }
 }
 
