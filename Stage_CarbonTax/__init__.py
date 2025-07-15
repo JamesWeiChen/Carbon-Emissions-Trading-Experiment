@@ -37,6 +37,10 @@ class Subsession(BaseSubsession):
 def creating_session(subsession: Subsession) -> None:
     
     subsession.set_group_matrix([subsession.get_players()]) # 設定分組
+
+    # 選擇報酬回合（僅第 1 輪）
+    if "selected_round" not in subsession.session.vars:
+        subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
     
     param = get_parameter_set_for_round(subsession.session, subsession.round_number) # 抓參數組合
 
@@ -47,6 +51,10 @@ def creating_session(subsession: Subsession) -> None:
     subsession.non_dominant_mc = param['non_dominant_mc']
 
     initialize_roles(subsession)
+
+    # 將 selected_round 指派給所有玩家
+    for player in subsession.get_players():
+        player.selected_round = subsession.session.vars["selected_round"]
 
 class Group(BaseGroup):
     pass
@@ -81,9 +89,9 @@ def initialize_roles(subsession: Subsession) -> None:
     """初始化角色分配"""
     initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
 
-def before_next_round(subsession: Subsession):
-    """每一回合開始前重新分配 dominant firm 等角色"""
-    initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
+#def before_next_round(subsession: Subsession):
+#    """每一回合開始前重新分配 dominant firm 等角色"""
+#    initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
 
 class Introduction(Page):
     @staticmethod
@@ -103,7 +111,7 @@ class Introduction(Page):
 
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
-    after_all_players_arrive = initialize_roles
+    # after_all_players_arrive = initialize_roles
 
 class ProductionDecision(Page):
     form_model = 'player'
