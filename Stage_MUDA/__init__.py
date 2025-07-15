@@ -54,17 +54,13 @@ def creating_session(subsession: Subsession) -> None:
     
     # 初始化玩家
     for p in subsession.get_players():
+        p.selected_round = subsession.session.vars["selected_round"]
         _initialize_player(p)
 
 def _initialize_player(player: BasePlayer) -> None:
     """初始化單個玩家"""
-    # 設置現金
-    if C.RESET_CASH_EACH_ROUND or player.round_number == 1:
-        player.current_cash = C.INITIAL_CAPITAL
-    else:
-        player.current_cash = player.in_round(player.round_number - 1).final_cash
-        
-    player.initial_capital = player.current_cash
+    player.current_cash = C.INITIAL_CAPITAL
+    player.initial_capital = C.INITIAL_CAPITAL
     player.current_items = random.randint(3, 8)
         
     # 設定個人碳權價值
@@ -104,22 +100,6 @@ class Player(BasePlayer):
     submitted_offers = models.LongStringField(initial='[]')
     selected_round = models.IntegerField()
 
-def initialize_roles(subsession: Subsession) -> None:
-    """初始化角色分配"""
-    
-    # 設定每回合的開始時間（確保每回合都重置時間）
-    subsession.start_time = int(time.time())
-    print(f"MUDA 第{subsession.round_number}回合開始時間已設定")
-    
-    for p in subsession.get_players():
-        _initialize_player(p)
-        
-        # 所有人共用 session.vars["selected_round"]
-        if p.round_number == 1:
-            p.selected_round = subsession.session.vars["selected_round"]
-        else:
-            p.selected_round = p.in_round(1).selected_round
-
 def set_payoffs(group: BaseGroup) -> None:
     """設置玩家報酬"""
     for p in group.get_players():
@@ -148,7 +128,11 @@ class Introduction(Page):
 
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
-    after_all_players_arrive = initialize_roles
+    
+    @staticmethod
+    def after_all_players_arrive(subsession: Subsession):
+        subsession.start_time = int(time.time()+2) #延遲兩秒
+        print(f"[MUDA] 所有人準備就緒，start_time 設為 {subsession.start_time}")
 
 class TradingMarket(Page):
     form_model = 'player'

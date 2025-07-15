@@ -65,10 +65,6 @@ class Subsession(BaseSubsession):
 def initialize_roles(subsession: Subsession, allocation_method) -> None:
     """使用共享工具庫和配置文件初始化角色"""
 
-    # 設定每回合的開始時間（確保每回合都重置時間）
-    subsession.start_time = int(time.time())
-    print(f"第{subsession.round_number}回合開始時間已設定")
-
     # 初始化玩家角色（會用到 subsession.market_price）
     initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
 
@@ -701,21 +697,20 @@ class Introduction(Page):
             reset_cash=C.RESET_CASH_EACH_ROUND,
         )
 
-def wrapped_initialize_roles(subsession: Subsession):
-    allocation_method = subsession.session.config.get("allocation_method")
-    initialize_roles(subsession, allocation_method)
-
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
-    after_all_players_arrive = wrapped_initialize_roles
 
+    @staticmethod
+    def after_all_players_arrive(subsession: Subsession):
+        subsession.start_time = int(time.time()+2) #延遲 2 秒配合下一頁開始時間
+        print(f"碳權交易 所有人準備就緒，start_time 設為 {subsession.start_time}")
 
 class TradingMarket(Page):
     timeout_seconds = C.TRADING_TIME
 
-    @staticmethod
+    @staticmethod  
     def vars_for_template(player):
-
+        
         return dict(
             cash=int(player.current_cash),
             permits=int(player.current_permits),
@@ -955,11 +950,13 @@ class TradingMarket(Page):
 
     @staticmethod
     def js_vars(player):
+
         return {
             'start_time': player.group.subsession.start_time,
             'player_id': player.id_in_group,
             'timeout_seconds': C.TRADING_TIME
         }
+
 
 class ProductionDecision(Page):
     form_model = 'player'
