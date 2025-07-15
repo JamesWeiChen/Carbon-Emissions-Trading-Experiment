@@ -455,9 +455,9 @@ def _process_carbon_trading_order(
     
     return {'update_all': True}
 
-def before_next_round(subsession: Subsession):
-    """每回合重新初始化 dominant firm、成本係數、碳排係數等屬性"""
-    initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
+#def before_next_round(subsession: Subsession):
+#    """每回合重新初始化 dominant firm、成本係數、碳排係數等屬性"""
+#    initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
 
 def _process_accept_carbon_offer(
     player: Player,

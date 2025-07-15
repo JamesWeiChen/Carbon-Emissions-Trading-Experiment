@@ -73,7 +73,7 @@
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header bg-success text-white">
-                            <h5>收益與成本</h5>
+                            <h5>收益與碳排估算</h5>
                         </div>
                         <div class="card-body">
                             <p><strong>單位市場價格：</strong> {{ unit_income }}</p>
@@ -199,7 +199,7 @@ function updateProfitEstimate(qty) {
     // 更新顯示
     document.getElementById('mc-display2').innerText = totalCost.toFixed(2);
     document.getElementById('card-emissions').innerText = Math.round(totalEmissions);
-    document.getElementById('total-carbon-tax').innerText = totalCarbonTax.toFixed(2);
+    document.getElementById('total-carbon-tax').innerText = totalCarbonTax.toFixed(0);
     
     const profitElement = document.getElementById('net-profit');
     profitElement.innerText = netProfit.toFixed(2);
@@ -211,6 +211,16 @@ function updateProfitEstimate(qty) {
         profitElement.className = 'text-danger';
     } else {
         profitElement.className = '';
+    }
+
+    // 新增：根據總碳排加上顏色 class
+    const emissionsElement = document.getElementById('card-emissions');
+    if (totalEmissions > 0) {
+        emissionsElement.className = 'text-danger'; // 紅色
+    } else if (totalEmissions == 0) {
+        emissionsElement.className = 'text-success'; // 綠色
+    } else {
+        emissionsElement.className = '';
     }
 }
 
