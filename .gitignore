@@ -1,2 +1,91 @@
 # 忽略 Windows 自動產生的桌面設定檔
 desktop.ini
+
+# Python 相關
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# oTree 相關
+venv
+staticfiles
+./db.sqlite3
+*.sqlite3
+_static_root
+_bots*s
+__temp*
+*.otreezip
+
+# IDE 與編輯器
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.atom/
+
+# 系統文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# 日誌文件
+*.log
+logs/
+
+# 環境變數與配置
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 臨時文件
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# 備份文件
+*.bak
+*.backup
+
+# 部署相關
+merge.ps1
+
+# 測試相關
+.coverage
+.pytest_cache/
+.tox/
+
+# 文檔生成
+docs/_build/
+
+# MacOS
+*.DS_Store
+
+# Windows
+*.lnk
+Thumbs.db
