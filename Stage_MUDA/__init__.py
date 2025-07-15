@@ -379,19 +379,19 @@ def _record_submitted_offer(player: Player, direction: str, price: int, quantity
     })
     player.submitted_offers = json.dumps(submitted_offers)
 
-def _format_orders(orders: List[List], current_player_id: int) -> List[Dict[str, Any]]:
-    """格式化訂單列表"""
-    formatted_orders = []
-    for i, order in enumerate(orders):
-        player_id, price, quantity = int(order[0]), float(order[1]), int(order[2])
-        formatted_orders.append({
-            'index': i,
-            'player_id': player_id,
-            'price': price,
-            'quantity': quantity,
-            'is_mine': player_id == current_player_id
-        })
-    return formatted_orders
+# def _format_orders(orders: List[List], current_player_id: int) -> List[Dict[str, Any]]:
+#     """格式化訂單列表"""
+#     formatted_orders = []
+#     for i, order in enumerate(orders):
+#         player_id, price, quantity = int(order[0]), float(order[1]), int(order[2])
+#         formatted_orders.append({
+#             'index': i,
+#             'player_id': player_id,
+#             'price': price,
+#             'quantity': quantity,
+#             'is_mine': player_id == current_player_id
+#         })
+#     return formatted_orders
 
 class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs
