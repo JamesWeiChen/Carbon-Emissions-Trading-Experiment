@@ -678,7 +678,7 @@ def set_payoffs(group: BaseGroup):
         profit = total_final_value - p.initial_capital
         
         p.revenue = revenue
-        p.total_cost = float(cost)  # 轉換為浮點數
+        p.total_cost = round(float(cost), 2)  # 轉換為浮點數
         p.net_profit = float(profit)  # 修改：使用新的利潤計算
         p.final_cash = final_cash_after_production + revenue  # 最終現金（包含收入）
         p.payoff = profit
