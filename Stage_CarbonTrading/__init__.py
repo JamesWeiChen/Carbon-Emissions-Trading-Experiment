@@ -702,7 +702,7 @@ class ReadyWaitPage(WaitPage):
 
     @staticmethod
     def after_all_players_arrive(subsession: Subsession):
-        subsession.start_time = int(time.time())
+        subsession.start_time = int(time.time()+2) #延遲 2 秒配合下一頁開始時間
         print(f"碳權交易 所有人準備就緒，start_time 設為 {subsession.start_time}")
 
 class TradingMarket(Page):
