@@ -412,7 +412,6 @@ class ResultsWaitPage(WaitPage):
     def after_all_players_arrive(subsession):
         subsession.start_time = int(time.time())
         print(f"MUDA 第{subsession.round_number}回合開始時間已設定")
-        set_payoffs(subsession.get_group())
 
 class Results(Page):
     @staticmethod
