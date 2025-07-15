@@ -699,6 +699,10 @@ class Introduction(Page):
 
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
+    @staticmethod
+    def after_all_players_arrive(subsession):
+        subsession.start_time = int(time.time())
+        print(f"碳權交易 第{subsession.round_number}回合開始時間已設定")
 
 class TradingMarket(Page):
     timeout_seconds = C.TRADING_TIME
@@ -1051,10 +1055,6 @@ class ProductionDecision(Page):
 
 class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs
-    @staticmethod
-    def after_all_players_arrive(subsession):
-        subsession.start_time = int(time.time())
-        print(f"碳權交易第{subsession.round_number}回合開始時間已設定")
 
 # 碳交易組 Results 類
 class Results(Page):
