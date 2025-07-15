@@ -54,17 +54,13 @@ def creating_session(subsession: Subsession) -> None:
     
     # 初始化玩家
     for p in subsession.get_players():
+        p.selected_round = subsession.session.vars["selected_round"]
         _initialize_player(p)
 
 def _initialize_player(player: BasePlayer) -> None:
     """初始化單個玩家"""
-    # 設置現金
-    if C.RESET_CASH_EACH_ROUND or player.round_number == 1:
-        player.current_cash = C.INITIAL_CAPITAL
-    else:
-        player.current_cash = player.in_round(player.round_number - 1).final_cash
-        
-    player.initial_capital = player.current_cash
+    player.current_cash = C.INITIAL_CAPITAL
+    player.initial_capital = C.INITIAL_CAPITAL
     player.current_items = random.randint(3, 8)
         
     # 設定個人碳權價值
@@ -103,18 +99,6 @@ class Player(BasePlayer):
     total_value = models.CurrencyField()
     submitted_offers = models.LongStringField(initial='[]')
     selected_round = models.IntegerField()
-
-def initialize_roles(subsession: Subsession) -> None:
-    """初始化角色分配"""
-    
-    for p in subsession.get_players():
-        _initialize_player(p)
-        
-        # 所有人共用 session.vars["selected_round"]
-        if p.round_number == 1:
-            p.selected_round = subsession.session.vars["selected_round"]
-        else:
-            p.selected_round = p.in_round(1).selected_round
 
 def set_payoffs(group: BaseGroup) -> None:
     """設置玩家報酬"""
