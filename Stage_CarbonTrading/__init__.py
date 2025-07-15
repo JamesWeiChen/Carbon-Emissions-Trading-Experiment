@@ -701,13 +701,13 @@ class Introduction(Page):
             reset_cash=C.RESET_CASH_EACH_ROUND,
         )
 
-def wrapped_initialize_roles(subsession: Subsession):
-    allocation_method = subsession.session.config.get("allocation_method")
-    initialize_roles(subsession, allocation_method)
+#def wrapped_initialize_roles(subsession: Subsession):
+#    allocation_method = subsession.session.config.get("allocation_method")
+#    initialize_roles(subsession, allocation_method)
 
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
-    after_all_players_arrive = wrapped_initialize_roles
+    # after_all_players_arrive = wrapped_initialize_roles
 
 
 class TradingMarket(Page):
