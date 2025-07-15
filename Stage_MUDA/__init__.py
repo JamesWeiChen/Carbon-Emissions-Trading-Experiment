@@ -128,11 +128,6 @@ class Introduction(Page):
 
 class ReadyWaitPage(WaitPage):
     wait_for_all_groups = True
-    @staticmethod
-    def after_all_players_arrive(subsession):
-        subsession.start_time = int(time.time())
-        print(f"MUDA 第{subsession.round_number}回合開始時間已設定")
-    
 
 class TradingMarket(Page):
     form_model = 'player'
@@ -140,6 +135,13 @@ class TradingMarket(Page):
     timeout_seconds = C.TRADING_TIME
 
     @staticmethod
+    def is_displayed(player):
+        # 只在每回合第一次進入時設定
+        if player.id_in_group == 1:
+            player.subsession.start_time = int(time.time())
+            print(f"MUDA 第{player.round_number}回合開始時間已設定")
+        return True
+        
     def vars_for_template(player: Player) -> Dict[str, Any]:
         
         personal_value = player.field_maybe_none('personal_item_value') or player.subsession.item_market_price
