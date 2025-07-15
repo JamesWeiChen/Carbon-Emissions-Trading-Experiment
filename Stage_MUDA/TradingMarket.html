@@ -948,7 +948,7 @@ function updateMarket(data) {
                 return typeof timeB === 'string' ? timeB.localeCompare(timeA) : timeB - timeA;
             });
             
-            sortedHistory.forEach(t => {
+            sortedHistory.reverse().forEach(t => {
                 const row = document.createElement('tr');
                 
                 // 時間 - 修正時間格式處理
@@ -1526,7 +1526,7 @@ function processOtreeResponse(data) {
             // 按照時間戳排序，最新的在最上面
             const sortedHistory = [...playerData.trade_history].sort((a, b) => b.timestamp - a.timestamp);
             
-            sortedHistory.forEach(t => {
+            sortedHistory.reverse().forEach(t => {
                 const row = document.createElement('tr');
                 
                 // 時間 - 修正時間格式處理
