@@ -603,7 +603,7 @@ function updateTradeHistory(tradeHistory) {
             return typeof timeB === 'string' ? timeB.localeCompare(timeA) : timeB - timeA;
         });
         
-        sortedHistory.forEach(trade => {
+        sortedHistory.reverse().forEach(trade => {
             const row = document.createElement('tr');
             
             // 時間 - 修正時間格式處理
