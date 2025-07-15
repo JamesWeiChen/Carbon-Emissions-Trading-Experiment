@@ -616,7 +616,11 @@ class DatabaseCleaner:
                 self.export_cleaned_data()
             
             # 計算總結
-            total_issues = sum(len(correction.get('corrections', 0)) for correction in self.cleaning_report['corrections_made'])
+            # corrections 欄位紀錄的是修正次數（整數），不應再取長度
+            total_issues = sum(
+                correction.get('corrections', 0)
+                for correction in self.cleaning_report['corrections_made']
+            )
             total_warnings = len(self.cleaning_report['warnings'])
             
             self.cleaning_report['summary'] = {
