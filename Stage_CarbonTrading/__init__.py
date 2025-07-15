@@ -949,14 +949,12 @@ class TradingMarket(Page):
             player.current_permits = max(player.current_permits, 0)
 
     @staticmethod
-    def js_vars(player: Player) -> Dict[str, Any]:
-        session = player.session
-        subsession = player.subsession
-    
+    def js_vars(player)
+
         return {
+            'start_time': player.group.subsession.start_time,
             'player_id': player.id_in_group,
-            'start_time': subsession.start_time,
-            'item_name': C.ITEM_NAME,
+            'timeout_seconds': C.TRADING_TIME
         }
 
 
