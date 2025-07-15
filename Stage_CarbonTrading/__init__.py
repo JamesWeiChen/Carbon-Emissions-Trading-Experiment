@@ -949,7 +949,7 @@ class TradingMarket(Page):
             player.current_permits = max(player.current_permits, 0)
 
     @staticmethod
-    def js_vars(player)
+    def js_vars(player):
 
         return {
             'start_time': player.group.subsession.start_time,
