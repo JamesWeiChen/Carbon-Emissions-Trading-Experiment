@@ -140,7 +140,6 @@ class TradingMarket(Page):
     timeout_seconds = C.TRADING_TIME
 
     @staticmethod
-        
     def vars_for_template(player: Player) -> Dict[str, Any]:
         
         personal_value = player.field_maybe_none('personal_item_value') or player.subsession.item_market_price
