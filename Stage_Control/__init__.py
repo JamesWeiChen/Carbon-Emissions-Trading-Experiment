@@ -71,7 +71,7 @@ class Player(BasePlayer):
     
     # 財務相關
     revenue = models.CurrencyField()
-    total_cost = models.DecimalField(decimal_places=2)
+    total_cost = models.FloatField()
     net_profit = models.FloatField()
     initial_capital = models.CurrencyField()
     current_cash = models.CurrencyField()
