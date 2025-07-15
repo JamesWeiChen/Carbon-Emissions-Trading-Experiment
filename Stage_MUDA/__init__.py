@@ -80,8 +80,8 @@ class Player(BasePlayer):
     sell_price = models.FloatField(min=0)
     
     # 財務相關
-    cash = models.CurrencyField()
-    items = models.IntegerField()
+    # cash = models.CurrencyField()
+    # items = models.IntegerField()
     initial_capital = models.CurrencyField()
     final_cash = models.CurrencyField()
     current_cash = models.CurrencyField()
