@@ -107,10 +107,6 @@ class Player(BasePlayer):
 def initialize_roles(subsession: Subsession) -> None:
     """初始化角色分配"""
     
-    # 設定每回合的開始時間（確保每回合都重置時間）
-    subsession.start_time = int(time.time())
-    print(f"MUDA 第{subsession.round_number}回合開始時間已設定")
-    
     for p in subsession.get_players():
         _initialize_player(p)
         
@@ -411,6 +407,12 @@ def _format_orders(orders: List[List], current_player_id: int) -> List[Dict[str,
 
 class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs
+    
+    @staticmethod
+    def after_all_players_arrive(subsession):
+        subsession.start_time = int(time.time())
+        print(f"MUDA 第{subsession.round_number}回合開始時間已設定")
+        set_payoffs(subsession.get_group())
 
 class Results(Page):
     @staticmethod
