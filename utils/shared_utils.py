@@ -349,6 +349,11 @@ def calculate_final_payoff_info(
     
     # 計算組別總排放
     group_emissions = _calculate_group_emissions(selected_round_player)
+
+    if additional_info_func:
+        additional_info = additional_info_func(selected_round_player)
+        tax = player.carbon_tax_paid
+        profit = revenue - cost - tax
     
     # 構建報酬資訊
     final_payoff_info = {
@@ -369,7 +374,6 @@ def calculate_final_payoff_info(
     
     # 添加額外資訊
     if additional_info_func:
-        additional_info = additional_info_func(selected_round_player)
         final_payoff_info.update(additional_info)
     
     return final_payoff_info
