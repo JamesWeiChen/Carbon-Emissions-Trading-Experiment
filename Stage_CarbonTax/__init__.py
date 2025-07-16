@@ -235,7 +235,7 @@ def _calculate_group_emissions(player: Player) -> float:
 
 def _carbon_tax_cost_calculator(selected_player: Player) -> float:
     """計算包含碳稅的總成本"""
-    base_cost = calculate_production_cost(selected_player, selected_player.production)
+    base_cost = selected_player.totoal_cost
     emissions = selected_player.production * selected_player.carbon_emission_per_unit
     tax = emissions * selected_player.subsession.tax_rate
     return base_cost + tax
