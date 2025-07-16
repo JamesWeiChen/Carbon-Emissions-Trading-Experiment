@@ -30,15 +30,12 @@ class Player(BasePlayer):
     def calculate_payment_info(player):
         participant = player.participant
         session = player.session
-        treatment = session.config.get("treatment", "tax")
-
+        
         # 報酬來自 control 與 carbon 兩部分
         control = participant.vars.get("control_summary", {})
         tax = participant.vars.get("carbon_tax_summary", {})
         trade = participant.vars.get("carbon_trade_summary", {})
         
-
-
         total_profit = control.get("profit", 50) + tax.get("profit", 60) + trade.get("profit", 70)
         total_emission = control.get("emission", 12) + tax.get("emission", 11) + trade.get("emission", 13)
         total_group_emission = control.get("group_emission", 50) + tax.get("group_emission", 30) + trade.get("group_emission", 80)
