@@ -105,6 +105,7 @@ def _assign_player_attributes(player: BasePlayer, is_dominant: bool, initial_cap
     player.initial_capital = initial_capital
     player.current_cash = initial_capital
     player.market_price = ss.market_price
+    player.disturbance_vector = _calculate_disturbance_values(player)
 
 def _generate_market_price() -> Currency:
     """生成市場價格"""
@@ -398,7 +399,8 @@ def _calculate_group_emissions(player: BasePlayer) -> float:
 
 def get_production_template_vars(
     player: BasePlayer, 
-    treatment: str, 
+    treatment: str,
+    disturbance_vector,
     additional_vars: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
@@ -413,7 +415,7 @@ def get_production_template_vars(
         模板變數字典
     """
     # 計算擾動值
-    disturbance_values = _calculate_disturbance_values(player)
+    disturbance_values = disturbance_vector.tolist()
     
     # 構建基本變數
     base_vars = {
@@ -434,6 +436,7 @@ def get_production_template_vars(
     
     return base_vars
 
+""" 舊的函數
 def _calculate_disturbance_values(player: BasePlayer) -> List[float]:
     """計算擾動值列表"""
     random.seed(player.id_in_group * 1000 + player.round_number)
@@ -445,26 +448,28 @@ def _calculate_disturbance_values(player: BasePlayer) -> List[float]:
     
     random.seed()
     return disturbance_values
+"""
+
+def _calculate_disturbance_values(player: BasePlayer) -> np.ndarray:
+    """
+    依據 player 產生已四捨五入（至 2 位小數）的 NumPy 擾動向量
+    """
+    seed = player.id_in_group * 1000 + player.round_number
+    rng = np.random.default_rng(seed)
+    disturbance_range = config.random_disturbance_range
+    disturbance_vetor = np.round(rng.uniform(*disturbance_range, size=player.max_production), 2)
+
+    return disturbance_vetor
+
 
 def generate_production_cost_table(player: BasePlayer) -> List[float]:
     """
-    生成每單位生產數量的邊際成本（含擾動），只回傳浮點數 list
-
-    Args:
-        player: 玩家物件
-
-    Returns:
-        List[float]: 每單位 Q 的 round(marginal_cost, 2)
+    使用向量方式計算每單位的邊際成本，返回已 round 過的 list。
+    邊際成本 = 擾動值 + 線性成本 a*q
     """
-    random.seed(player.id_in_group * 1000 + player.round_number)
-    disturbance_range = config.random_disturbance_range
+    a = player.marginal_cost_coefficient
+    q_array = np.arange(1, player.max_production + 1)
+    marginal_cost_vector = player.disturbance_vector + a * q_array
 
-    marginal_costs = []
-    for q in range(1, player.max_production + 1):
-        unit_marginal_cost = player.marginal_cost_coefficient * q
-        unit_disturbance = round(random.uniform(*disturbance_range), 3)
-        marginal_cost = unit_marginal_cost + unit_disturbance
-        marginal_costs.append(round(marginal_cost, 2))
-
-    random.seed()  # 重置種子
-    return marginal_costs
+    #random.seed()  # 重置種子
+    return marginal_cost_vector.tolist()
