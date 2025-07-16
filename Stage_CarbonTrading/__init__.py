@@ -917,7 +917,37 @@ class TradingMarket(Page):
                 'profit': rev - total_cost,  # 保持浮點數精度
             })
         random.seed()  # 重置隨機種子
-
+        
+        # 解析 disturbance_values
+        try:
+            disturbance_vector = np.array(json.loads(player.disturbance_values))
+        except Exception as e:
+            print("❌ 無法解析 disturbance_values:", e)
+            disturbance_vector = np.zeros(player.max_production)  # 或 return []
+        
+        max_q = player.max_production
+        a = player.marginal_cost_coefficient
+        market_price = player.market_price
+        
+        if len(disturbance_vector) < max_q:
+            print(f"⚠️ disturbance 長度不足: {len(disturbance_vector)} < {max_q}")
+            disturbance_vector = np.pad(disturbance_vector, (0, max_q - len(disturbance_vector)), constant_values=0)
+        
+        q = np.arange(1, max_q + 1)  # 生產量 1 到 max_q
+        marginal_costs = a * q + disturbance_vector[:max_q]
+        cumulative_cost = np.cumsum(marginal_costs)
+        revenue = market_price * q
+        profit = revenue - cumulative_cost
+        
+        profit_table = [
+            {
+                'quantity': int(qi),
+                'marginal_cost': round(mc, 2),
+                'profit': round(float(p), 2)
+            }
+            for qi, mc, p in zip(q, marginal_costs, profit)
+        ]
+        
         result = {
             'type': 'update',
             'cash': available_cash,
