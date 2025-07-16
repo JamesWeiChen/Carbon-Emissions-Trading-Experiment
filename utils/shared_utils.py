@@ -432,7 +432,6 @@ def get_production_template_vars(
 
 """ 舊的函數
 def _calculate_disturbance_values(player: BasePlayer) -> List[float]:
-    """計算擾動值列表"""
     random.seed(player.id_in_group * 1000 + player.round_number)
     disturbance_range = config.random_disturbance_range
     
