@@ -890,33 +890,41 @@ class TradingMarket(Page):
         except:
             price_history = []
 
-        # 添加獲利預估表
-        profit_table = []
-        # 重新使用相同的隨機種子以確保一致性
-        random.seed(player.id_in_group * 1000 + player.round_number)
-        for q in range(1, player.max_production + 1):
-            # 計算總成本：累加每個單位的邊際成本和擾動
-            total_cost = 0
-            temp_seed = player.id_in_group * 1000 + player.round_number
-            random.seed(temp_seed)
-            for i in range(1, q + 1):
-                unit_marginal_cost = player.marginal_cost_coefficient * i
-                unit_disturbance = random.uniform(-1, 1)
-                total_cost += unit_marginal_cost + unit_disturbance
-            
-            # 計算第q個單位的邊際成本（用於表格顯示）
-            random.seed(temp_seed)
-            for i in range(1, q):  # 跳過前面的隨機數
-                random.uniform(-1, 1)
-            q_unit_marginal_cost = player.marginal_cost_coefficient * q + random.uniform(-1, 1)
-            
-            rev = q * player.market_price
-            profit_table.append({
-                'quantity': q,
-                'marginal_cost': round(q_unit_marginal_cost, 2),
-                'profit': rev - total_cost,  # 保持浮點數精度
-            })
-        random.seed()  # 重置隨機種子
+        
+
+        def generate_profit_table(player):
+            # 將 JSON 字串轉回向量
+            disturbance_vector = np.array(json.loads(player.disturbance_values))  # shape: (max_q,)
+            a = player.marginal_cost_coefficient
+            market_price = player.market_price
+            max_q = player.max_production
+        
+            # 生產數量向量 [1, 2, ..., max_q]
+            q = np.arange(1, max_q + 1)
+        
+            # 邊際成本向量（每單位的 MC + 擾動）
+            marginal_costs = a * q + disturbance_vector
+        
+            # 累積總成本：第 q 單位的總成本為 sum(1 到 q 的 marginal cost)
+            cumulative_cost = np.cumsum(marginal_costs)
+        
+            # 總收益
+            revenue = q * market_price
+        
+            # 利潤
+            profit = revenue - cumulative_cost
+        
+            # 建立輸出表格（list of dicts）
+            profit_table = [
+                {
+                    'quantity': int(qi),
+                    'marginal_cost': round(mc, 2),
+                    'profit': float(p)
+                }
+                for qi, mc, p in zip(q, marginal_costs, profit)
+            ]
+        
+            return profit_table
 
         result = {
             'type': 'update',
