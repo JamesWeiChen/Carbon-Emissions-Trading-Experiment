@@ -137,19 +137,17 @@ def calculate_production_cost(player: BasePlayer, production_quantity: int) -> f
     if production_quantity <= 0:
         return 0.0
     
-    # 使用固定種子確保相同輸入得到相同結果
-    random.seed(player.id_in_group * 1000 + player.round_number)
-    
     total_cost = 0.0
-    disturbance_range = config.random_disturbance_range
+
+    disturbance_vector = np.array(json.loads(player.disturbance_values))
     
-    for i in range(1, production_quantity + 1):
-        unit_marginal_cost = player.marginal_cost_coefficient * i
-        unit_disturbance = random.uniform(*disturbance_range)
-        total_cost += unit_marginal_cost + unit_disturbance
-    
-    random.seed()  # 重置種子
+    a = player.marginal_cost_coefficient
+    q = np.arange(1, production_quantity + 1)
+    dist = disturbance_vector[:production_quantity]  # 預先計算好、已四捨五入的 vector
+
+    total_cost = float(np.sum(a * q + dist))
     total_cost = round(total_cost, 2)
+    
     return total_cost
 
 def calculate_control_payoffs(group: BaseGroup) -> None:
