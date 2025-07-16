@@ -1137,21 +1137,12 @@ class Results(Page):
             # 獲取被選中回合的數據
             selected_round_player = player.in_round(selected_round)
             
-            # 重新計算被選中回合的成本（確保一致性）
-            random.seed(player.id_in_group * 1000 + selected_round)
-            selected_cost = 0
-            for i in range(1, selected_round_player.production + 1):
-                unit_marginal_cost = selected_round_player.marginal_cost_coefficient * i
-                unit_disturbance = round(random.uniform(-1, 1), 3)
-                selected_cost += unit_marginal_cost + unit_disturbance
-            random.seed()
-            
             selected_revenue = selected_round_player.production * selected_round_player.market_price
             selected_emissions = selected_round_player.production * selected_round_player.carbon_emission_per_unit
             
             # 修改：使用新的利潤計算方式
             # 計算被選中回合的最終總資金
-            selected_final_cash_after_production = selected_round_player.current_cash - selected_cost
+            selected_final_cash_after_production = selected_round_player.current_cash - selected_round_player.total_cost
             selected_total_final_value = selected_final_cash_after_production + selected_revenue
             selected_profit = selected_total_final_value - selected_round_player.initial_capital
             
@@ -1169,7 +1160,7 @@ class Results(Page):
                 'production': selected_round_player.production,
                 'market_price': selected_round_player.market_price,
                 'revenue': selected_revenue,
-                'cost': selected_cost,
+                'cost': selected_round_player.total_cost,
                 'profit': selected_profit,
                 'emissions': selected_emissions,
                 'group_emissions': selected_group_emissions,
