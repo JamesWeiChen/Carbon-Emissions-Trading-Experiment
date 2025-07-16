@@ -890,8 +890,6 @@ class TradingMarket(Page):
         except:
             price_history = []
 
-        
-
         def generate_profit_table(player):
             # 將 JSON 字串轉回向量
             disturbance_vector = np.array(json.loads(player.disturbance_values))  # shape: (max_q,)
@@ -925,6 +923,8 @@ class TradingMarket(Page):
             ]
         
             return profit_table
+           
+        profit_table = generate_profit_table(player)
 
         result = {
             'type': 'update',
