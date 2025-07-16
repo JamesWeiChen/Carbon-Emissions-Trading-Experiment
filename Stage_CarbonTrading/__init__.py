@@ -5,6 +5,7 @@ import math
 import time
 import sys
 import os
+import numpy as np
 from typing import Dict, Any, List, Tuple, Optional, Union
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.shared_utils import (
