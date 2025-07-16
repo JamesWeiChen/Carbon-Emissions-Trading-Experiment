@@ -105,7 +105,7 @@ def _assign_player_attributes(player: BasePlayer, is_dominant: bool, initial_cap
     player.initial_capital = initial_capital
     player.current_cash = initial_capital
     player.market_price = ss.market_price
-    player.disturbance_vector = _calculate_disturbance_values(player)
+    player.disturbance_values = _calculate_disturbance_values(player)
 
 def _generate_market_price() -> Currency:
     """生成市場價格"""
@@ -400,7 +400,7 @@ def _calculate_group_emissions(player: BasePlayer) -> float:
 def get_production_template_vars(
     player: BasePlayer, 
     treatment: str,
-    disturbance_vector,
+    disturbance_values,
     additional_vars: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
@@ -414,9 +414,6 @@ def get_production_template_vars(
     Returns:
         模板變數字典
     """
-    # 計算擾動值
-    disturbance_values = disturbance_vector.tolist()
-    
     # 構建基本變數
     base_vars = {
         'max_production': player.max_production,
@@ -457,9 +454,10 @@ def _calculate_disturbance_values(player: BasePlayer) -> np.ndarray:
     seed = player.id_in_group * 1000 + player.round_number
     rng = np.random.default_rng(seed)
     disturbance_range = config.random_disturbance_range
-    disturbance_vetor = np.round(rng.uniform(*disturbance_range, size=player.max_production), 2)
-
-    return disturbance_vetor
+    disturbance_vector = np.round(rng.uniform(*disturbance_range, size=player.max_production), 2)
+    disturbance_values = disturbance_vector.tolist()
+    
+    return disturbance_values
 
 
 def generate_production_cost_table(player: BasePlayer) -> List[float]:
