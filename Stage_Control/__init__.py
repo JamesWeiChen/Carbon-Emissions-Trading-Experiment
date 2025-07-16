@@ -68,7 +68,7 @@ class Player(BasePlayer):
     # 市場和生產
     market_price = models.CurrencyField()
     production = models.IntegerField(min=0, max=C.MAX_PRODUCTION)
-    disturbance_values = models.StringField()
+    disturbance_values = models.LongStringField()
     
     # 財務相關
     revenue = models.CurrencyField()
@@ -79,7 +79,7 @@ class Player(BasePlayer):
     final_cash = models.CurrencyField()
     
     # 新增：記錄生產成本表
-    production_cost_table = models.LongStringField(initial='[]')
+    # production_cost_table = models.LongStringField(initial='[]')
     
     # 隨機選中的回合用於最終報酬
     selected_round = models.IntegerField()
