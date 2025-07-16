@@ -242,7 +242,7 @@ def _carbon_tax_cost_calculator(selected_player: Player) -> float:
 
 def _carbon_tax_additional_info(selected_player: Player) -> Dict[str, Any]:
     """提供碳稅相關的額外資訊"""
-    tax = player.carbon_tax_paid
+    tax = selected_player.carbon_tax_paid
     return {
         'tax_rate': selected_player.subsession.tax_rate,
         'tax': tax,
