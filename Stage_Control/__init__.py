@@ -120,7 +120,7 @@ class Results(Page):
     @staticmethod
     def vars_for_template(player: Player) -> Dict[str, Any]:
         # 計算基本數據
-        production_cost = _get_production_cost(player)
+        production_cost = player.total_cost
         total_emissions = player.production * player.carbon_emission_per_unit
         group_emissions = _calculate_group_emissions(player)
         
