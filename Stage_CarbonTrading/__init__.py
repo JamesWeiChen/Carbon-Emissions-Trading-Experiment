@@ -1053,15 +1053,15 @@ class Results(Page):
         # 安全地訪問total_cost，如果為None則重新計算
         if player.field_maybe_none('total_cost') is not None:
             production_cost = player.total_cost
-        else:
-            # 如果total_cost為None，重新計算（使用新的累加邏輯）
-            random.seed(player.id_in_group * 1000 + player.round_number)
-            production_cost = 0
-            for i in range(1, player.production + 1):
-                unit_marginal_cost = player.marginal_cost_coefficient * i
-                unit_disturbance = round(random.uniform(-1, 1), 3)  # 四捨五入到3位小數，與前端一致
-                production_cost += unit_marginal_cost + unit_disturbance
-            random.seed()  # 重置隨機種子
+#        else:
+#            # 如果total_cost為None，重新計算（使用新的累加邏輯）
+#            random.seed(player.id_in_group * 1000 + player.round_number)
+#            production_cost = 0
+#            for i in range(1, player.production + 1):
+#                unit_marginal_cost = player.marginal_cost_coefficient * i
+#                unit_disturbance = round(random.uniform(-1, 1), 3)  # 四捨五入到3位小數，與前端一致
+#                production_cost += unit_marginal_cost + unit_disturbance
+#            random.seed()  # 重置隨機種子
         
         # 計算個人碳排放量
         total_emissions = player.production * player.carbon_emission_per_unit
@@ -1078,13 +1078,15 @@ class Results(Page):
         # 計算最終邊際成本（第production個單位的邊際成本）
         final_marginal_cost = 0
         if player.production > 0:
-            # 使用相同的隨機種子計算最後一個單位的邊際成本
-            random.seed(player.id_in_group * 1000 + player.round_number)
-            for i in range(1, player.production):  # 跳過前面的隨機數
-                random.uniform(-1, 1)
-            final_unit_disturbance = random.uniform(-1, 1)
-            final_marginal_cost = int(player.marginal_cost_coefficient * player.production + final_unit_disturbance)
-            random.seed()  # 重置隨機種子
+            final_unit_disturbance = np.array(json.loads(player.disturbance_values))[player.production - 1]
+#            # 使用相同的隨機種子計算最後一個單位的邊際成本
+#            random.seed(player.id_in_group * 1000 + player.round_number)
+#            for i in range(1, player.production):  # 跳過前面的隨機數
+#                random.uniform(-1, 1)
+#            final_unit_disturbance = random.uniform(-1, 1)
+
+        final_marginal_cost = int(player.marginal_cost_coefficient * player.production + final_unit_disturbance)
+#        random.seed()  # 重置隨機種子
         
         # 計算平均成本
         avg_cost = 0
