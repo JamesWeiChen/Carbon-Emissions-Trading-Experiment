@@ -342,7 +342,7 @@ def calculate_final_payoff_info(
     selected_round_player = player.in_round(selected_round)
     
     # 計算選中回合的數據
-    cost = _calculate_cost_for_round(selected_round_player, cost_calculator_func)
+    cost = selected_round_player.total_cost
     revenue = selected_round_player.production * selected_round_player.market_price
     profit = revenue - cost
     emissions = selected_round_player.production * selected_round_player.carbon_emission_per_unit
