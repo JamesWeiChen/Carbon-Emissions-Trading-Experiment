@@ -1144,6 +1144,7 @@ class Results(Page):
             selected_final_cash_after_production = selected_round_player.current_cash - selected_round_player.total_cost
             selected_total_final_value = selected_final_cash_after_production + selected_revenue
             selected_profit = selected_total_final_value - selected_round_player.initial_capital
+            selected_cost = selected_round_player.total_cost
             
             # 計算被選中回合全體玩家的碳排放量
             selected_group_emissions = 0
