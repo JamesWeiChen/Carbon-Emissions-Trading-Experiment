@@ -455,7 +455,7 @@ def _calculate_disturbance_values(player: BasePlayer) -> np.ndarray:
     rng = np.random.default_rng(seed)
     disturbance_range = config.random_disturbance_range
     disturbance_vector = np.round(rng.uniform(*disturbance_range, size=player.max_production), 2)
-    disturbance_values = disturbance_vector.tolist()
+    disturbance_values = json.dumps(disturbance_vector.tolist())
     
     return disturbance_values
 
