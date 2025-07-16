@@ -352,8 +352,8 @@ def calculate_final_payoff_info(
 
     if additional_info_func:
         additional_info = additional_info_func(selected_round_player)
-        tax = player.carbon_tax_paid
-        profit = revenue - cost - tax
+        tax = selected_round_player.carbon_tax_paid
+        profit = profit - tax
     
     # 構建報酬資訊
     final_payoff_info = {
