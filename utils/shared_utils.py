@@ -430,29 +430,17 @@ def get_production_template_vars(
     
     return base_vars
 
-""" 舊的函數
-def _calculate_disturbance_values(player: BasePlayer) -> List[float]:
-    random.seed(player.id_in_group * 1000 + player.round_number)
-    disturbance_range = config.random_disturbance_range
-    
-    disturbance_values = []
-    for q in range(1, player.max_production + 1):
-        disturbance_values.append(round(random.uniform(*disturbance_range), 3))
-    
-    random.seed()
-    return disturbance_values
-"""
-
 def _calculate_disturbance_values(player: BasePlayer) -> np.ndarray:
     """
     依據 player 產生已四捨五入（至 2 位小數）的 NumPy 擾動向量
     """
-    seed = player.id_in_group * 1000 + player.round_number
-    rng = np.random.default_rng(seed)
+    # seed = player.id_in_group * 1000 + player.round_number
+    # rng = np.random.default_rng(seed)
+    rng = np.random.default_rng()  # 改成無種子，讓每次都隨機
     disturbance_range = config.random_disturbance_range
     disturbance_vector = np.round(rng.uniform(*disturbance_range, size=player.max_production), 2)
     disturbance_values = json.dumps(disturbance_vector.tolist())
-    
+
     return disturbance_values
 
 
