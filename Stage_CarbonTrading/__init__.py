@@ -5,6 +5,7 @@ import math
 import time
 import sys
 import os
+import numpy as np
 from typing import Dict, Any, List, Tuple, Optional, Union
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.shared_utils import (
@@ -283,6 +284,7 @@ class Player(BasePlayer):
     
     # 其他現有欄位
     marginal_cost_coefficient = models.IntegerField()
+    disturbance_values = models.LongStringField()
     carbon_emission_per_unit = models.IntegerField()
     market_price = models.CurrencyField()
     production = models.IntegerField(min=0, max=C.MAX_PRODUCTION)
@@ -300,9 +302,6 @@ class Player(BasePlayer):
     total_sold = models.IntegerField(default=0)     # 總賣出數量：玩家在本回合賣出的碳權總數
     total_spent = models.CurrencyField(default=0)   # 總支出金額：玩家在本回合買入碳權花費的總金額
     total_earned = models.CurrencyField(default=0)  # 總收入金額：玩家在本回合賣出碳權獲得的總金額
-    
-    # 新增：記錄生產成本表
-    production_cost_table = models.LongStringField(initial='[]')
     
     selected_round = models.IntegerField()  # 新增：隨機選中的回合用於最終報酬
     # 新增：社會最適產量相關欄位
@@ -678,7 +677,7 @@ def set_payoffs(group: BaseGroup):
         profit = total_final_value - p.initial_capital
         
         p.revenue = revenue
-        p.total_cost = float(cost)  # 轉換為浮點數
+        p.total_cost = round(float(cost), 2)  # 轉換為浮點數
         p.net_profit = float(profit)  # 修改：使用新的利潤計算
         p.final_cash = final_cash_after_production + revenue  # 最終現金（包含收入）
         p.payoff = profit
@@ -722,6 +721,7 @@ class TradingMarket(Page):
             treatment='trading',
             treatment_text='碳交易',
             reset_cash=C.RESET_CASH_EACH_ROUND,
+            disturbance_values=json.loads(player.disturbance_values),
         )
 
     @staticmethod
@@ -891,34 +891,38 @@ class TradingMarket(Page):
         except:
             price_history = []
 
-        # 添加獲利預估表
+       # 添加獲利預估表
         profit_table = []
-        # 重新使用相同的隨機種子以確保一致性
-        random.seed(player.id_in_group * 1000 + player.round_number)
-        for q in range(1, player.max_production + 1):
-            # 計算總成本：累加每個單位的邊際成本和擾動
-            total_cost = 0
-            temp_seed = player.id_in_group * 1000 + player.round_number
-            random.seed(temp_seed)
-            for i in range(1, q + 1):
-                unit_marginal_cost = player.marginal_cost_coefficient * i
-                unit_disturbance = random.uniform(-1, 1)
-                total_cost += unit_marginal_cost + unit_disturbance
-            
-            # 計算第q個單位的邊際成本（用於表格顯示）
-            random.seed(temp_seed)
-            for i in range(1, q):  # 跳過前面的隨機數
-                random.uniform(-1, 1)
-            q_unit_marginal_cost = player.marginal_cost_coefficient * q + random.uniform(-1, 1)
-            
-            rev = q * player.market_price
-            profit_table.append({
-                'quantity': q,
-                'marginal_cost': round(q_unit_marginal_cost, 2),
-                'profit': rev - total_cost,  # 保持浮點數精度
-            })
-        random.seed()  # 重置隨機種子
-
+        # 解析 disturbance_values
+        try:
+            disturbance_vector = np.array(json.loads(player.disturbance_values))
+        except Exception as e:
+            print("❌ 無法解析 disturbance_values:", e)
+            disturbance_vector = np.zeros(player.max_production)  # 或 return []
+        
+        max_q = player.max_production
+        a = player.marginal_cost_coefficient
+        market_price = float(player.market_price)
+        
+        if len(disturbance_vector) < max_q:
+            print(f"⚠️ disturbance 長度不足: {len(disturbance_vector)} < {max_q}")
+            disturbance_vector = np.pad(disturbance_vector, (0, max_q - len(disturbance_vector)), constant_values=0)
+        
+        q = np.arange(1, max_q + 1)  # 生產量 1 到 max_q
+        marginal_costs = a * q + disturbance_vector[:max_q]
+        cumulative_cost = np.cumsum(marginal_costs)
+        revenue = market_price * q
+        profit = revenue - cumulative_cost
+        
+        profit_table = [
+            {
+                'quantity': int(qi),
+                'marginal_cost': round(mc, 2),
+                'profit': round(float(p), 2)
+            }
+            for qi, mc, p in zip(q, marginal_costs, profit)
+        ]
+        
         result = {
             'type': 'update',
             'cash': available_cash,
@@ -1013,13 +1017,6 @@ class ProductionDecision(Page):
         except:
             price_history = []
         
-        # 為每個生產量預先計算固定的隨機擾動值
-        random.seed(player.id_in_group * 1000 + player.round_number)
-        disturbance_values = []
-        for q in range(1, player.max_production + 1):
-            disturbance_values.append(round(random.uniform(-1, 1), 3))
-        random.seed()  # 重置隨機種子
-        
         return dict(
             max_production=player.max_production,
             max_possible_production=maxp,
@@ -1035,7 +1032,7 @@ class ProductionDecision(Page):
             trade_history=my_trades,
             price_history=price_history,
             reset_cash=C.RESET_CASH_EACH_ROUND,
-            disturbance_values=disturbance_values,  # 新增：固定的擾動值列表
+            disturbance_values=json.loads(player.disturbance_values),  # 新增：固定的擾動值列表
         )
 
     @staticmethod
@@ -1045,16 +1042,6 @@ class ProductionDecision(Page):
             cost = (player.marginal_cost_coefficient * player.production**2) / 2
             # 現金用於交易，不扣除生產成本
             # player.current_cash -= cost
-        
-        # 記錄生產成本表
-        if not timeout_happened:
-            from utils.shared_utils import generate_production_cost_table
-            import json
-            
-            cost_table = generate_production_cost_table(player)
-            player.production_cost_table = json.dumps(cost_table)
-
-
 
 class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs
@@ -1066,15 +1053,15 @@ class Results(Page):
         # 安全地訪問total_cost，如果為None則重新計算
         if player.field_maybe_none('total_cost') is not None:
             production_cost = player.total_cost
-        else:
-            # 如果total_cost為None，重新計算（使用新的累加邏輯）
-            random.seed(player.id_in_group * 1000 + player.round_number)
-            production_cost = 0
-            for i in range(1, player.production + 1):
-                unit_marginal_cost = player.marginal_cost_coefficient * i
-                unit_disturbance = round(random.uniform(-1, 1), 3)  # 四捨五入到3位小數，與前端一致
-                production_cost += unit_marginal_cost + unit_disturbance
-            random.seed()  # 重置隨機種子
+#        else:
+#            # 如果total_cost為None，重新計算（使用新的累加邏輯）
+#            random.seed(player.id_in_group * 1000 + player.round_number)
+#            production_cost = 0
+#            for i in range(1, player.production + 1):
+#                unit_marginal_cost = player.marginal_cost_coefficient * i
+#                unit_disturbance = round(random.uniform(-1, 1), 3)  # 四捨五入到3位小數，與前端一致
+#                production_cost += unit_marginal_cost + unit_disturbance
+#            random.seed()  # 重置隨機種子
         
         # 計算個人碳排放量
         total_emissions = player.production * player.carbon_emission_per_unit
@@ -1091,13 +1078,15 @@ class Results(Page):
         # 計算最終邊際成本（第production個單位的邊際成本）
         final_marginal_cost = 0
         if player.production > 0:
-            # 使用相同的隨機種子計算最後一個單位的邊際成本
-            random.seed(player.id_in_group * 1000 + player.round_number)
-            for i in range(1, player.production):  # 跳過前面的隨機數
-                random.uniform(-1, 1)
-            final_unit_disturbance = random.uniform(-1, 1)
-            final_marginal_cost = int(player.marginal_cost_coefficient * player.production + final_unit_disturbance)
-            random.seed()  # 重置隨機種子
+            final_unit_disturbance = np.array(json.loads(player.disturbance_values))[player.production - 1]
+#            # 使用相同的隨機種子計算最後一個單位的邊際成本
+#            random.seed(player.id_in_group * 1000 + player.round_number)
+#            for i in range(1, player.production):  # 跳過前面的隨機數
+#                random.uniform(-1, 1)
+#            final_unit_disturbance = random.uniform(-1, 1)
+
+        final_marginal_cost = int(player.marginal_cost_coefficient * player.production + final_unit_disturbance)
+#        random.seed()  # 重置隨機種子
         
         # 計算平均成本
         avg_cost = 0
@@ -1147,23 +1136,15 @@ class Results(Page):
             # 獲取被選中回合的數據
             selected_round_player = player.in_round(selected_round)
             
-            # 重新計算被選中回合的成本（確保一致性）
-            random.seed(player.id_in_group * 1000 + selected_round)
-            selected_cost = 0
-            for i in range(1, selected_round_player.production + 1):
-                unit_marginal_cost = selected_round_player.marginal_cost_coefficient * i
-                unit_disturbance = round(random.uniform(-1, 1), 3)
-                selected_cost += unit_marginal_cost + unit_disturbance
-            random.seed()
-            
             selected_revenue = selected_round_player.production * selected_round_player.market_price
             selected_emissions = selected_round_player.production * selected_round_player.carbon_emission_per_unit
             
             # 修改：使用新的利潤計算方式
             # 計算被選中回合的最終總資金
-            selected_final_cash_after_production = selected_round_player.current_cash - selected_cost
+            selected_final_cash_after_production = selected_round_player.current_cash - selected_round_player.total_cost
             selected_total_final_value = selected_final_cash_after_production + selected_revenue
             selected_profit = selected_total_final_value - selected_round_player.initial_capital
+            selected_cost = selected_round_player.total_cost
             
             # 計算被選中回合全體玩家的碳排放量
             selected_group_emissions = 0
@@ -1179,7 +1160,7 @@ class Results(Page):
                 'production': selected_round_player.production,
                 'market_price': selected_round_player.market_price,
                 'revenue': selected_revenue,
-                'cost': selected_cost,
+                'cost': selected_round_player.total_cost,
                 'profit': selected_profit,
                 'emissions': selected_emissions,
                 'group_emissions': selected_group_emissions,

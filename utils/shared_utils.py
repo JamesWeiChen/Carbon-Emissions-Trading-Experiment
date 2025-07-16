@@ -8,6 +8,7 @@ import time
 import math
 import sys
 import os
+import numpy as np
 from typing import List, Dict, Any, Optional, Tuple, Union
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from configs.config import config, ConfigConstants
@@ -104,6 +105,7 @@ def _assign_player_attributes(player: BasePlayer, is_dominant: bool, initial_cap
     player.initial_capital = initial_capital
     player.current_cash = initial_capital
     player.market_price = ss.market_price
+    player.disturbance_values = _calculate_disturbance_values(player)
 
 def _generate_market_price() -> Currency:
     """生成市場價格"""
@@ -135,18 +137,17 @@ def calculate_production_cost(player: BasePlayer, production_quantity: int) -> f
     if production_quantity <= 0:
         return 0.0
     
-    # 使用固定種子確保相同輸入得到相同結果
-    random.seed(player.id_in_group * 1000 + player.round_number)
-    
     total_cost = 0.0
-    disturbance_range = config.random_disturbance_range
+
+    disturbance_vector = np.array(json.loads(player.disturbance_values))
     
-    for i in range(1, production_quantity + 1):
-        unit_marginal_cost = player.marginal_cost_coefficient * i
-        unit_disturbance = random.uniform(*disturbance_range)
-        total_cost += unit_marginal_cost + unit_disturbance
+    a = player.marginal_cost_coefficient
+    q = np.arange(1, production_quantity + 1)
+    dist = disturbance_vector[:production_quantity]  # 預先計算好、已四捨五入的 vector
+
+    total_cost = float(np.sum(a * q + dist))
+    total_cost = round(total_cost, 2)
     
-    random.seed()  # 重置種子
     return total_cost
 
 def calculate_control_payoffs(group: BaseGroup) -> None:
@@ -341,13 +342,18 @@ def calculate_final_payoff_info(
     selected_round_player = player.in_round(selected_round)
     
     # 計算選中回合的數據
-    cost = _calculate_cost_for_round(selected_round_player, cost_calculator_func)
+    cost = selected_round_player.total_cost
     revenue = selected_round_player.production * selected_round_player.market_price
     profit = revenue - cost
     emissions = selected_round_player.production * selected_round_player.carbon_emission_per_unit
     
     # 計算組別總排放
     group_emissions = _calculate_group_emissions(selected_round_player)
+
+    if additional_info_func:
+        additional_info = additional_info_func(selected_round_player)
+        tax = selected_round_player.carbon_tax_paid
+        profit = profit - tax
     
     # 構建報酬資訊
     final_payoff_info = {
@@ -368,7 +374,6 @@ def calculate_final_payoff_info(
     
     # 添加額外資訊
     if additional_info_func:
-        additional_info = additional_info_func(selected_round_player)
         final_payoff_info.update(additional_info)
     
     return final_payoff_info
@@ -396,7 +401,7 @@ def _calculate_group_emissions(player: BasePlayer) -> float:
 
 def get_production_template_vars(
     player: BasePlayer, 
-    treatment: str, 
+    treatment: str,
     additional_vars: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
@@ -410,9 +415,6 @@ def get_production_template_vars(
     Returns:
         模板變數字典
     """
-    # 計算擾動值
-    disturbance_values = _calculate_disturbance_values(player)
-    
     # 構建基本變數
     base_vars = {
         'max_production': player.max_production,
@@ -423,7 +425,7 @@ def get_production_template_vars(
         'treatment': treatment,
         'treatment_text': config.get_treatment_name(treatment),
         'unit_income': int(player.market_price),
-        'disturbance_values': disturbance_values,
+        'disturbance_values': json.loads(player.disturbance_values),
     }
     
     # 合併額外變數
@@ -432,60 +434,28 @@ def get_production_template_vars(
     
     return base_vars
 
-def _calculate_disturbance_values(player: BasePlayer) -> List[float]:
-    """計算擾動值列表"""
-    random.seed(player.id_in_group * 1000 + player.round_number)
+def _calculate_disturbance_values(player: BasePlayer) -> np.ndarray:
+    """
+    依據 player 產生已四捨五入（至 2 位小數）的 NumPy 擾動向量
+    """
+    # seed = player.id_in_group * 1000 + player.round_number
+    # rng = np.random.default_rng(seed)
+    rng = np.random.default_rng()  # 改成無種子，讓每次都隨機
     disturbance_range = config.random_disturbance_range
-    
-    disturbance_values = []
-    for q in range(1, player.max_production + 1):
-        disturbance_values.append(round(random.uniform(*disturbance_range), 3))
-    
-    random.seed()
+    disturbance_vector = np.round(rng.uniform(*disturbance_range, size=player.max_production), 2)
+    disturbance_values = json.dumps(disturbance_vector.tolist())
+
     return disturbance_values
 
-def generate_production_cost_table(player: BasePlayer) -> List[Dict[str, Any]]:
+
+def generate_production_cost_table(player: BasePlayer) -> List[float]:
     """
-    生成完整的生產成本表
-    
-    Args:
-        player: 玩家物件
-        
-    Returns:
-        成本表列表，每個元素包含：
-        - quantity: 生產數量
-        - marginal_cost: 邊際成本（含擾動）
-        - total_cost: 累積總成本
-        - unit_emission: 單位碳排放
-        - total_emission: 總碳排放
+    使用向量方式計算每單位的邊際成本，返回已 round 過的 list。
+    邊際成本 = 擾動值 + 線性成本 a*q
     """
-    # 使用固定種子確保一致性
-    random.seed(player.id_in_group * 1000 + player.round_number)
-    disturbance_range = config.random_disturbance_range
-    
-    cost_table = []
-    cumulative_cost = 0.0
-    
-    for q in range(1, player.max_production + 1):
-        # 計算該單位的邊際成本
-        unit_marginal_cost = player.marginal_cost_coefficient * q
-        unit_disturbance = round(random.uniform(*disturbance_range), 3)
-        marginal_cost = unit_marginal_cost + unit_disturbance
-        
-        # 累積總成本
-        cumulative_cost += marginal_cost
-        
-        # 計算碳排放
-        unit_emission = player.carbon_emission_per_unit
-        total_emission = q * unit_emission
-        
-        cost_table.append({
-            'quantity': q,
-            'marginal_cost': round(marginal_cost, 2),
-            'total_cost': round(cumulative_cost, 2),
-            'unit_emission': unit_emission,
-            'total_emission': total_emission
-        })
-    
-    random.seed()  # 重置種子
-    return cost_table 
+    a = player.marginal_cost_coefficient
+    q_array = np.arange(1, player.max_production + 1)
+    marginal_cost_vector = player.disturbance_vector + a * q_array
+
+    #random.seed()  # 重置種子
+    return marginal_cost_vector.tolist()

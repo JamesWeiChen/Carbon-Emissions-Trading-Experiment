@@ -69,6 +69,7 @@ class Player(BasePlayer):
     # 市場和生產
     market_price = models.CurrencyField()
     production = models.IntegerField(min=0, max=C.MAX_PRODUCTION)
+    disturbance_values = models.LongStringField()
     
     # 財務相關
     revenue = models.CurrencyField()
@@ -80,7 +81,7 @@ class Player(BasePlayer):
     final_cash = models.CurrencyField()
     
     # 新增：記錄生產成本表
-    production_cost_table = models.LongStringField(initial='[]')
+    # production_cost_table = models.LongStringField(initial='[]')
     
     # 隨機選中的回合用於最終報酬
     selected_round = models.IntegerField()
@@ -131,18 +132,7 @@ class ProductionDecision(Page):
             player, 
             treatment='carbon_tax',
             additional_vars=additional_vars
-        )
-    
-    @staticmethod
-    def before_next_page(player: Player, timeout_happened: bool) -> None:
-        """在進入下一頁前記錄生產成本表"""
-        if not timeout_happened:
-            # 生成並儲存成本表
-            from utils.shared_utils import generate_production_cost_table
-            import json
-            
-            cost_table = generate_production_cost_table(player)
-            player.production_cost_table = json.dumps(cost_table)
+        )         
 
 class ResultsWaitPage(WaitPage):
     after_all_players_arrive = calculate_carbon_tax_payoffs
@@ -151,7 +141,7 @@ class Results(Page):
     @staticmethod
     def vars_for_template(player: Player) -> Dict[str, Any]:
         # 計算基本數據
-        production_cost = _get_production_cost(player)
+        production_cost = player.total_cost
         carbon_tax = _get_carbon_tax(player)
         total_emissions = player.production * player.carbon_emission_per_unit
         group_emissions = _calculate_group_emissions(player)
@@ -245,15 +235,14 @@ def _calculate_group_emissions(player: Player) -> float:
 
 def _carbon_tax_cost_calculator(selected_player: Player) -> float:
     """計算包含碳稅的總成本"""
-    base_cost = calculate_production_cost(selected_player, selected_player.production)
+    base_cost = selected_player.totoal_cost
     emissions = selected_player.production * selected_player.carbon_emission_per_unit
     tax = emissions * selected_player.subsession.tax_rate
     return base_cost + tax
 
 def _carbon_tax_additional_info(selected_player: Player) -> Dict[str, Any]:
     """提供碳稅相關的額外資訊"""
-    emissions = selected_player.production * selected_player.carbon_emission_per_unit
-    tax = emissions * selected_player.subsession.tax_rate
+    tax = selected_player.carbon_tax_paid
     return {
         'tax_rate': selected_player.subsession.tax_rate,
         'tax': tax,
