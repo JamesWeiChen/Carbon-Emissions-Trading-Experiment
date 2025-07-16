@@ -283,6 +283,7 @@ class Player(BasePlayer):
     
     # 其他現有欄位
     marginal_cost_coefficient = models.IntegerField()
+    disturbance_values = models.LongStringField()
     carbon_emission_per_unit = models.IntegerField()
     market_price = models.CurrencyField()
     production = models.IntegerField(min=0, max=C.MAX_PRODUCTION)
@@ -300,9 +301,6 @@ class Player(BasePlayer):
     total_sold = models.IntegerField(default=0)     # 總賣出數量：玩家在本回合賣出的碳權總數
     total_spent = models.CurrencyField(default=0)   # 總支出金額：玩家在本回合買入碳權花費的總金額
     total_earned = models.CurrencyField(default=0)  # 總收入金額：玩家在本回合賣出碳權獲得的總金額
-    
-    # 新增：記錄生產成本表
-    production_cost_table = models.LongStringField(initial='[]')
     
     selected_round = models.IntegerField()  # 新增：隨機選中的回合用於最終報酬
     # 新增：社會最適產量相關欄位
@@ -722,6 +720,7 @@ class TradingMarket(Page):
             treatment='trading',
             treatment_text='碳交易',
             reset_cash=C.RESET_CASH_EACH_ROUND,
+            disturbance_values=json.loads(player.disturbance_values),
         )
 
     @staticmethod
@@ -1013,13 +1012,6 @@ class ProductionDecision(Page):
         except:
             price_history = []
         
-        # 為每個生產量預先計算固定的隨機擾動值
-        random.seed(player.id_in_group * 1000 + player.round_number)
-        disturbance_values = []
-        for q in range(1, player.max_production + 1):
-            disturbance_values.append(round(random.uniform(-1, 1), 3))
-        random.seed()  # 重置隨機種子
-        
         return dict(
             max_production=player.max_production,
             max_possible_production=maxp,
@@ -1035,7 +1027,7 @@ class ProductionDecision(Page):
             trade_history=my_trades,
             price_history=price_history,
             reset_cash=C.RESET_CASH_EACH_ROUND,
-            disturbance_values=disturbance_values,  # 新增：固定的擾動值列表
+            disturbance_values=json.loads(player.disturbance_values),  # 新增：固定的擾動值列表
         )
 
     @staticmethod
@@ -1045,16 +1037,6 @@ class ProductionDecision(Page):
             cost = (player.marginal_cost_coefficient * player.production**2) / 2
             # 現金用於交易，不扣除生產成本
             # player.current_cash -= cost
-        
-        # 記錄生產成本表
-        if not timeout_happened:
-            from utils.shared_utils import generate_production_cost_table
-            import json
-            
-            cost_table = generate_production_cost_table(player)
-            player.production_cost_table = json.dumps(cost_table)
-
-
 
 class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs
