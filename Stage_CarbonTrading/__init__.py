@@ -902,7 +902,7 @@ class TradingMarket(Page):
         
         max_q = player.max_production
         a = player.marginal_cost_coefficient
-        market_price = player.market_price
+        market_price = float(player.market_price)
         
         if len(disturbance_vector) < max_q:
             print(f"⚠️ disturbance 長度不足: {len(disturbance_vector)} < {max_q}")
