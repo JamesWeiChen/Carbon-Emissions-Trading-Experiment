@@ -445,48 +445,25 @@ def _calculate_disturbance_values(player: BasePlayer) -> List[float]:
     random.seed()
     return disturbance_values
 
-def generate_production_cost_table(player: BasePlayer) -> List[Dict[str, Any]]:
+def generate_production_cost_table(player: BasePlayer) -> List[float]:
     """
-    生成完整的生產成本表
-    
+    生成每單位生產數量的邊際成本（含擾動），只回傳浮點數 list
+
     Args:
         player: 玩家物件
-        
+
     Returns:
-        成本表列表，每個元素包含：
-        - quantity: 生產數量
-        - marginal_cost: 邊際成本（含擾動）
-        - total_cost: 累積總成本
-        - unit_emission: 單位碳排放
-        - total_emission: 總碳排放
+        List[float]: 每單位 Q 的 round(marginal_cost, 2)
     """
-    # 使用固定種子確保一致性
     random.seed(player.id_in_group * 1000 + player.round_number)
     disturbance_range = config.random_disturbance_range
-    
-    cost_table = []
-    cumulative_cost = 0.0
-    
+
+    marginal_costs = []
     for q in range(1, player.max_production + 1):
-        # 計算該單位的邊際成本
         unit_marginal_cost = player.marginal_cost_coefficient * q
         unit_disturbance = round(random.uniform(*disturbance_range), 3)
         marginal_cost = unit_marginal_cost + unit_disturbance
-        
-        # 累積總成本
-        cumulative_cost += marginal_cost
-        
-        # 計算碳排放
-        unit_emission = player.carbon_emission_per_unit
-        total_emission = q * unit_emission
-        
-        cost_table.append({
-            'quantity': q,
-            'marginal_cost': round(marginal_cost, 2),
-            'total_cost': round(cumulative_cost, 2),
-            'unit_emission': unit_emission,
-            'total_emission': total_emission
-        })
-    
+        marginal_costs.append(round(marginal_cost, 2))
+
     random.seed()  # 重置種子
-    return cost_table 
+    return marginal_costs
