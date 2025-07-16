@@ -892,32 +892,6 @@ class TradingMarket(Page):
 
        # 添加獲利預估表
         profit_table = []
-        # 重新使用相同的隨機種子以確保一致性
-        random.seed(player.id_in_group * 1000 + player.round_number)
-        for q in range(1, player.max_production + 1):
-            # 計算總成本：累加每個單位的邊際成本和擾動
-            total_cost = 0
-            temp_seed = player.id_in_group * 1000 + player.round_number
-            random.seed(temp_seed)
-            for i in range(1, q + 1):
-                unit_marginal_cost = player.marginal_cost_coefficient * i
-                unit_disturbance = random.uniform(-1, 1)
-                total_cost += unit_marginal_cost + unit_disturbance
-            
-            # 計算第q個單位的邊際成本（用於表格顯示）
-            random.seed(temp_seed)
-            for i in range(1, q):  # 跳過前面的隨機數
-                random.uniform(-1, 1)
-            q_unit_marginal_cost = player.marginal_cost_coefficient * q + random.uniform(-1, 1)
-            
-            rev = q * player.market_price
-            profit_table.append({
-                'quantity': q,
-                'marginal_cost': round(q_unit_marginal_cost, 2),
-                'profit': rev - total_cost,  # 保持浮點數精度
-            })
-        random.seed()  # 重置隨機種子
-        
         # 解析 disturbance_values
         try:
             disturbance_vector = np.array(json.loads(player.disturbance_values))
