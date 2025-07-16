@@ -400,7 +400,6 @@ def _calculate_group_emissions(player: BasePlayer) -> float:
 def get_production_template_vars(
     player: BasePlayer, 
     treatment: str,
-    disturbance_values,
     additional_vars: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
@@ -424,7 +423,7 @@ def get_production_template_vars(
         'treatment': treatment,
         'treatment_text': config.get_treatment_name(treatment),
         'unit_income': int(player.market_price),
-        'disturbance_values': disturbance_values,
+        'disturbance_values': json.loads(player.disturbance_values),
     }
     
     # 合併額外變數
