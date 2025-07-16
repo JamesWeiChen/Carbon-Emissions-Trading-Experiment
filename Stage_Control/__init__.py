@@ -68,6 +68,7 @@ class Player(BasePlayer):
     # 市場和生產
     market_price = models.CurrencyField()
     production = models.IntegerField(min=0, max=C.MAX_PRODUCTION)
+    disturbance_values = models.StringField()
     
     # 財務相關
     revenue = models.CurrencyField()
