@@ -36,7 +36,7 @@ class Player(BasePlayer):
         tax = participant.vars.get("carbon_tax_summary", {})
         trade = participant.vars.get("carbon_trade_summary", {})
         
-        total_profit = control.get("profit", 50) + tax.get("profit", 60) + trade.get("profit", 70)
+        total_profit = control.get("profit", cu(50)) + tax.get("profit", cu(60)) + trade.get("profit", cu(70))
         total_emission = control.get("emission", 12) + tax.get("emission", 11) + trade.get("emission", 13)
         total_group_emission = control.get("group_emission", 50) + tax.get("group_emission", 30) + trade.get("group_emission", 80)
         real_emission = total_group_emission * session.config.get("carbon_real_world_rate", 0.1)
