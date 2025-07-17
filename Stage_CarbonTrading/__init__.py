@@ -650,17 +650,24 @@ def cancel_player_orders(group, player_id, order_type):
 
 def set_payoffs(group: BaseGroup):
     for p in group.get_players():
+        
         if p.production is None:
             p.production = 0
         
-        # 使用與前端相同的邏輯：累加每個單位的邊際成本和擾動
-        random.seed(p.id_in_group * 1000 + p.round_number)
-        cost = 0
-        for i in range(1, p.production + 1):
-            unit_marginal_cost = p.marginal_cost_coefficient * i
-            unit_disturbance = round(random.uniform(-1, 1), 3)  # 四捨五入到3位小數，與前端一致
-            cost += unit_marginal_cost + unit_disturbance
-        random.seed()  # 重置隨機種子
+        if production_quantity <= 0:
+            return 0.0
+    
+        cost = 0.0
+    
+        disturbance_vector = np.array(json.loads(p.disturbance_values))
+        
+        a = player.marginal_cost_coefficient
+        q = np.arange(1, p.production + 1)
+        dist = disturbance_vector[:p.production]  # 預先計算好、已四捨五入的 vector
+    
+        cost = float(np.sum(a * q + dist))
+        cost = round(cost, 2)
+        
         revenue = p.production * p.market_price
         
         # 修改利潤計算：改為總資金減去初始資金
