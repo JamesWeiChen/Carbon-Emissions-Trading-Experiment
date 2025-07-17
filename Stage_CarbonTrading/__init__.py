@@ -1035,11 +1035,11 @@ class ProductionDecision(Page):
             disturbance_values=json.loads(player.disturbance_values),  # 新增：固定的擾動值列表
         )
 
-    @staticmethod
-    def before_next_page(player, timeout_happened):
-        # 在進入下一頁前更新玩家的現金，扣除生產成本
-        if player.production is not None and player.production > 0:
-            cost = (player.marginal_cost_coefficient * player.production**2) / 2
+#    @staticmethod
+#    def before_next_page(player, timeout_happened):
+#        # 在進入下一頁前更新玩家的現金，扣除生產成本
+#        if player.production is not None and player.production > 0:
+#            cost = (player.marginal_cost_coefficient * player.production**2) / 2
             # 現金用於交易，不扣除生產成本
             # player.current_cash -= cost
 
