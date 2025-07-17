@@ -650,36 +650,30 @@ def cancel_player_orders(group, player_id, order_type):
 
 def set_payoffs(group: BaseGroup):
     for p in group.get_players():
-        if p.production is None:
-            p.production = 0
-        
-        # 使用與前端相同的邏輯：累加每個單位的邊際成本和擾動
-        random.seed(p.id_in_group * 1000 + p.round_number)
-        cost = 0
-        for i in range(1, p.production + 1):
-            unit_marginal_cost = p.marginal_cost_coefficient * i
-            unit_disturbance = round(random.uniform(-1, 1), 3)  # 四捨五入到3位小數，與前端一致
-            cost += unit_marginal_cost + unit_disturbance
-        random.seed()  # 重置隨機種子
-        revenue = p.production * p.market_price
-        
-        # 修改利潤計算：改為總資金減去初始資金
-        # 總資金 = 當前現金 + 剩餘碳權價值（按市場價格計算）
-        # 注意：這裡假設碳權的市場價格為一個固定值，您可能需要根據實際情況調整
-        # 暫時使用一個合理的碳權價格估算，或者只計算現金部分
-        
-        # 計算最終現金（扣除生產成本後）
-        final_cash_after_production = p.current_cash - cost
-        
-        # 計算利潤：最終總資金 - 初始資金
-        # 這裡我們將利潤定義為：(最終現金 + 生產收入) - 初始資金
-        total_final_value = final_cash_after_production + revenue
-        profit = total_final_value - p.initial_capital
-        
+        # 預設生產為 0（如果尚未設值）
+        production = p.production or 0
+
+        # 計算成本（若生產量為 0，成本直接為 0）
+        if production > 0:
+            q = np.arange(1, production + 1)
+            dist = np.array(json.loads(p.disturbance_values))[:production]
+            mc = p.marginal_cost_coefficient
+            cost = float(np.sum(mc * q + dist))
+        else:
+            cost = 0.0
+
+        cost = round(cost, 2)
+        revenue = production * p.market_price
+
+        # 最終現金與利潤計算
+        final_cash = p.current_cash - cost + revenue
+        profit = final_cash - p.initial_capital
+
+        # 儲存結果
         p.revenue = revenue
-        p.total_cost = round(float(cost), 2)  # 轉換為浮點數
-        p.net_profit = float(profit)  # 修改：使用新的利潤計算
-        p.final_cash = final_cash_after_production + revenue  # 最終現金（包含收入）
+        p.total_cost = cost
+        p.net_profit = float(profit)
+        p.final_cash = final_cash
         p.payoff = profit
 
 class Introduction(Page):
@@ -1035,11 +1029,11 @@ class ProductionDecision(Page):
             disturbance_values=json.loads(player.disturbance_values),  # 新增：固定的擾動值列表
         )
 
-    @staticmethod
-    def before_next_page(player, timeout_happened):
-        # 在進入下一頁前更新玩家的現金，扣除生產成本
-        if player.production is not None and player.production > 0:
-            cost = (player.marginal_cost_coefficient * player.production**2) / 2
+#    @staticmethod
+#    def before_next_page(player, timeout_happened):
+#        # 在進入下一頁前更新玩家的現金，扣除生產成本
+#        if player.production is not None and player.production > 0:
+#            cost = (player.marginal_cost_coefficient * player.production**2) / 2
             # 現金用於交易，不扣除生產成本
             # player.current_cash -= cost
 
@@ -1079,13 +1073,12 @@ class Results(Page):
         final_marginal_cost = 0
         if player.production > 0:
             final_unit_disturbance = np.array(json.loads(player.disturbance_values))[player.production - 1]
+            final_marginal_cost = int(player.marginal_cost_coefficient * player.production + final_unit_disturbance)
 #            # 使用相同的隨機種子計算最後一個單位的邊際成本
 #            random.seed(player.id_in_group * 1000 + player.round_number)
 #            for i in range(1, player.production):  # 跳過前面的隨機數
 #                random.uniform(-1, 1)
 #            final_unit_disturbance = random.uniform(-1, 1)
-
-        final_marginal_cost = int(player.marginal_cost_coefficient * player.production + final_unit_disturbance)
 #        random.seed()  # 重置隨機種子
         
         # 計算平均成本
@@ -1199,7 +1192,7 @@ class Results(Page):
             treatment='trading',
             treatment_text='碳交易',
             production_cost=production_cost,  # 原始數值
-            production_cost_formatted=f"{int(round(production_cost))}",  # 格式化顯示
+            production_cost_formatted=f"{int(round(production_cost))} 法幣",  # 格式化顯示
             remaining_rounds=C.NUM_ROUNDS - player.round_number,
             total_emissions=total_emissions,
             group_emissions=group_emissions,

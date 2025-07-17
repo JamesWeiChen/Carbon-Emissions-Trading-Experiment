@@ -10,7 +10,7 @@
         padding-left: 0;
         padding-right: 0;
     }
-    </style>
+</style>
 
 <style>
     .custom-wide-container {
@@ -63,8 +63,9 @@
                                 </div>
                                 <div class="card-body">
                                     <p class="text-center"><strong>{{ current_total_final_value_formatted }} - {{ initial_capital_formatted }} = {{ current_profit_formatted }}</strong></p>
-                                    <p class="small text-muted text-center">最終總資金 - 初始資金 = 利潤</p>
-                                    <p class="small text-muted text-center">最終總資金 = 現金({{ current_cash }}) + 生產收入({{ revenue }}) - 生產成本({{ production_cost_formatted }})</p>
+                                    <p class="small text-muted text-center">最終總資金 - 初始資金 = 淨利</p>
+                                    <p class="small text-muted text-center">最終總資金 = 現金({{ current_cash }}) + 生產淨利</p>
+                                    <p class="small text-muted text-center">生產淨利   = 市場價格({{ market_price }}) × 生產量({{ player.production }}) - 生產成本({{ production_cost_formatted }})</p>
                                 </div>
                             </div>
                         </div>
