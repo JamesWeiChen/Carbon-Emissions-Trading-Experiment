@@ -59,7 +59,7 @@
                                    data-max-production="{{ max_production }}">
                                 <thead>
                                     <tr>
-                                        <th>生產數量</th><th>單位生產成本</th><th>單位碳排放</th>
+                                        <th>生產量</th><th>生產成本</th><th>碳排放</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -76,12 +76,12 @@
                             <h5>收益與碳排估算</h5>
                         </div>
                         <div class="card-body">
-                            <p><strong>單位市場價格：</strong> {{ unit_income }}</p>
-                            <p><strong>總成本：</strong> <span id="mc-display2">0.00</span></p>
+                            <p><strong>單位市場價格：</strong> {{ unit_income }} 法幣</p>
+                            <p><strong>總成本：</strong> <span id="mc-display2">0.00</span> 法幣</p>
                             <p><strong>碳稅率：</strong> {{ tax_rate }} 法幣/單位碳排</p>
-                            <p><strong>碳稅總額：</strong> <span id="total-carbon-tax">0.00</span></p>
-                            <p><strong>淨利潤：</strong> <span id="net-profit">0</span></p>
-                            <p><strong>總碳排放：</strong> <span id="card-emissions">0</span></p>
+                            <p><strong>碳稅總額：</strong> <span id="total-carbon-tax">0.00</span> 法幣</p>
+                            <p><strong>淨利潤：</strong> <span id="net-profit">0</span> 法幣</p>
+                            <p><strong>總碳排放：</strong> <span id="card-emissions">0</span> 單位</p>
                         </div>
                     </div>
                 </div>

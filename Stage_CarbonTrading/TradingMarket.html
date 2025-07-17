@@ -260,11 +260,19 @@
                     <table class="table table-sm" id="emissions-table">
                         <thead>
                             <tr>
-                                <th>生產數量</th><th>單位生產成本</th><th>單位碳排放</th>
+                                <th>生產量</th>
+                                <th>生產成本</th>
+                                <th>碳排放</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- 碳排放數據會在JS中填充 -->
+                            {{ for item in profit_table }}
+                            <tr>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.marginal_cost }}</td>
+                                <td>{{ carbon_emission_per_unit }}</td>
+                            </tr>
+                            {{ endfor }}
                         </tbody>
                     </table>
                 </div>
@@ -859,33 +867,6 @@ function updateMarket(data) {
             row.appendChild(cell);
             historyTb.appendChild(row);
         }
-        
-        // 更新生產表
-        const profitTb = document.querySelector('#emissions-table tbody');
-        profitTb.innerHTML = '';
-        if (data.profit_table && data.profit_table.length > 0) {
-            data.profit_table.forEach(item => {
-                let row = document.createElement('tr');
-                
-                // 生產數量
-                let cell1 = document.createElement('td');
-                cell1.textContent = item.quantity;
-                row.appendChild(cell1);
-                
-                // 邊際成本
-                let cell2 = document.createElement('td');
-                cell2.textContent = item.marginal_cost;
-                row.appendChild(cell2);
-                
-                // 碳排放
-                let cell3 = document.createElement('td');
-                const emissions = data.carbon_emission_per_unit || 1;
-                cell3.textContent = emissions;
-                row.appendChild(cell3);
-                
-                profitTb.appendChild(row);
-            });
-        }
 
     } catch (error) {
         log(`更新市場錯誤: ${error.message}`);
@@ -1375,33 +1356,6 @@ function processOtreeResponse(data) {
             cell.className = 'text-center text-muted';
             row.appendChild(cell);
             sellTb.appendChild(row);
-        }
-        
-        // 更新生產表
-        const profitTb = document.querySelector('#emissions-table tbody');
-        profitTb.innerHTML = '';
-        if (playerData.profit_table && playerData.profit_table.length > 0) {
-            playerData.profit_table.forEach(item => {
-                let row = document.createElement('tr');
-                
-                // 生產數量
-                let cell1 = document.createElement('td');
-                cell1.textContent = item.quantity;
-                row.appendChild(cell1);
-                
-                // 邊際成本
-                let cell2 = document.createElement('td');
-                cell2.textContent = item.marginal_cost;
-                row.appendChild(cell2);
-                
-                // 碳排放
-                let cell3 = document.createElement('td');
-                const emissions = playerData.carbon_emission_per_unit || 1;
-                cell3.textContent = emissions;
-                row.appendChild(cell3);
-                
-                profitTb.appendChild(row);
-            });
         }
         
         // 明確返回成功

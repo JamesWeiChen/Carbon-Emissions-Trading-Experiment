@@ -703,6 +703,27 @@ class TradingMarket(Page):
 
     @staticmethod  
     def vars_for_template(player):
+
+        try:
+            disturbance_vector = np.array(json.loads(player.disturbance_values))
+        except Exception as e:
+            disturbance_vector = np.zeros(player.max_production)
+        max_q = player.max_production
+        a = player.marginal_cost_coefficient
+        market_price = float(player.market_price)
+        q = np.arange(1, max_q + 1)
+        marginal_costs = a * q + disturbance_vector[:max_q]
+        cumulative_cost = np.cumsum(marginal_costs)
+        revenue = market_price * q
+        profit = revenue - cumulative_cost
+        profit_table = [
+            {
+                'quantity': int(qi),
+                'marginal_cost': round(mc, 2),
+                'profit': round(float(p), 2)
+            }
+            for qi, mc, p in zip(q, marginal_costs, profit)
+        ]
         
         return dict(
             cash=int(player.current_cash),
@@ -716,6 +737,7 @@ class TradingMarket(Page):
             treatment_text='碳交易',
             reset_cash=C.RESET_CASH_EACH_ROUND,
             disturbance_values=json.loads(player.disturbance_values),
+            profit_table = profit_table,
         )
 
     @staticmethod
@@ -884,38 +906,6 @@ class TradingMarket(Page):
             price_history = json.loads(player.subsession.price_history)
         except:
             price_history = []
-
-       # 添加獲利預估表
-        profit_table = []
-        # 解析 disturbance_values
-        try:
-            disturbance_vector = np.array(json.loads(player.disturbance_values))
-        except Exception as e:
-            print("❌ 無法解析 disturbance_values:", e)
-            disturbance_vector = np.zeros(player.max_production)  # 或 return []
-        
-        max_q = player.max_production
-        a = player.marginal_cost_coefficient
-        market_price = float(player.market_price)
-        
-        if len(disturbance_vector) < max_q:
-            print(f"⚠️ disturbance 長度不足: {len(disturbance_vector)} < {max_q}")
-            disturbance_vector = np.pad(disturbance_vector, (0, max_q - len(disturbance_vector)), constant_values=0)
-        
-        q = np.arange(1, max_q + 1)  # 生產量 1 到 max_q
-        marginal_costs = a * q + disturbance_vector[:max_q]
-        cumulative_cost = np.cumsum(marginal_costs)
-        revenue = market_price * q
-        profit = revenue - cumulative_cost
-        
-        profit_table = [
-            {
-                'quantity': int(qi),
-                'marginal_cost': round(mc, 2),
-                'profit': round(float(p), 2)
-            }
-            for qi, mc, p in zip(q, marginal_costs, profit)
-        ]
         
         result = {
             'type': 'update',
@@ -929,7 +919,7 @@ class TradingMarket(Page):
             'sell_offers': public_sell_offers,
             'trade_history': my_trades,  # 確保這裡返回交易歷史
             'price_history': price_history,
-            'profit_table': profit_table,
+            #'profit_table': profit_table,
             'locked_cash': locked_cash,
             'locked_permits': locked_permits,
             'reset_cash': C.RESET_CASH_EACH_ROUND,
