@@ -191,10 +191,10 @@ class Results(Page):
             'marginal_cost_coefficient': player.marginal_cost_coefficient,
             
             # 格式化數值
-            'production_cost_formatted': f"{int(round(production_cost)) 法幣}",
+            'production_cost_formatted': f"{int(round(production_cost))} 法幣",
             'carbon_tax_formatted': f"{int(round(carbon_tax))}",
             'revenue_formatted': f"{int(round(float(player.revenue)))}",
-            'net_profit_formatted': f"{int(round(player.net_profit)) 法幣}",
+            'net_profit_formatted': f"{int(round(player.net_profit))} 法幣",
             'total_emissions_formatted': f"{int(round(total_emissions))}",
             'group_emissions_formatted': f"{int(round(group_emissions))}",
             
