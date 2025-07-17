@@ -192,7 +192,7 @@ class Results(Page):
             
             # 格式化數值
             'production_cost_formatted': f"{int(round(production_cost))} 法幣",
-            'carbon_tax_formatted': f"{int(round(carbon_tax))}",
+            'carbon_tax_formatted': f"{int(round(carbon_tax))} 法幣",
             'revenue_formatted': f"{int(round(float(player.revenue)))}",
             'net_profit_formatted': f"{int(round(player.net_profit))} 法幣",
             'total_emissions_formatted': f"{int(round(total_emissions))}",
