@@ -650,43 +650,30 @@ def cancel_player_orders(group, player_id, order_type):
 
 def set_payoffs(group: BaseGroup):
     for p in group.get_players():
-        
-        if p.production is None:
-            p.production = 0
-        
-        if production_quantity <= 0:
-            return 0.0
-    
-        cost = 0.0
-    
-        disturbance_vector = np.array(json.loads(p.disturbance_values))
-        
-        a = player.marginal_cost_coefficient
-        q = np.arange(1, p.production + 1)
-        dist = disturbance_vector[:p.production]  # 預先計算好、已四捨五入的 vector
-    
-        cost = float(np.sum(a * q + dist))
+        # 預設生產為 0（如果尚未設值）
+        production = p.production or 0
+
+        # 計算成本（若生產量為 0，成本直接為 0）
+        if production > 0:
+            q = np.arange(1, production + 1)
+            dist = np.array(json.loads(p.disturbance_values))[:production]
+            mc = p.marginal_cost_coefficient
+            cost = float(np.sum(mc * q + dist))
+        else:
+            cost = 0.0
+
         cost = round(cost, 2)
-        
-        revenue = p.production * p.market_price
-        
-        # 修改利潤計算：改為總資金減去初始資金
-        # 總資金 = 當前現金 + 剩餘碳權價值（按市場價格計算）
-        # 注意：這裡假設碳權的市場價格為一個固定值，您可能需要根據實際情況調整
-        # 暫時使用一個合理的碳權價格估算，或者只計算現金部分
-        
-        # 計算最終現金（扣除生產成本後）
-        final_cash_after_production = p.current_cash - cost
-        
-        # 計算利潤：最終總資金 - 初始資金
-        # 這裡我們將利潤定義為：(最終現金 + 生產收入) - 初始資金
-        total_final_value = final_cash_after_production + revenue
-        profit = total_final_value - p.initial_capital
-        
+        revenue = production * p.market_price
+
+        # 最終現金與利潤計算
+        final_cash = p.current_cash - cost + revenue
+        profit = final_cash - p.initial_capital
+
+        # 儲存結果
         p.revenue = revenue
-        p.total_cost = round(float(cost), 2)  # 轉換為浮點數
-        p.net_profit = float(profit)  # 修改：使用新的利潤計算
-        p.final_cash = final_cash_after_production + revenue  # 最終現金（包含收入）
+        p.total_cost = cost
+        p.net_profit = profit
+        p.final_cash = final_cash
         p.payoff = profit
 
 class Introduction(Page):
