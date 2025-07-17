@@ -716,7 +716,6 @@ class TradingMarket(Page):
             treatment_text='碳交易',
             reset_cash=C.RESET_CASH_EACH_ROUND,
             disturbance_values=json.loads(player.disturbance_values),
-            profit_table=TradingMarket.market_state(player)['profit_table'],
         )
 
     @staticmethod
