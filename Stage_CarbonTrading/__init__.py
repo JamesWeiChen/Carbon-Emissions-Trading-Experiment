@@ -1079,13 +1079,12 @@ class Results(Page):
         final_marginal_cost = 0
         if player.production > 0:
             final_unit_disturbance = np.array(json.loads(player.disturbance_values))[player.production - 1]
+            final_marginal_cost = int(player.marginal_cost_coefficient * player.production + final_unit_disturbance)
 #            # 使用相同的隨機種子計算最後一個單位的邊際成本
 #            random.seed(player.id_in_group * 1000 + player.round_number)
 #            for i in range(1, player.production):  # 跳過前面的隨機數
 #                random.uniform(-1, 1)
 #            final_unit_disturbance = random.uniform(-1, 1)
-
-        final_marginal_cost = int(player.marginal_cost_coefficient * player.production + final_unit_disturbance)
 #        random.seed()  # 重置隨機種子
         
         # 計算平均成本
