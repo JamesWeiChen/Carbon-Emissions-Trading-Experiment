@@ -1192,7 +1192,7 @@ class Results(Page):
             treatment='trading',
             treatment_text='碳交易',
             production_cost=production_cost,  # 原始數值
-            production_cost_formatted=f"{int(round(production_cost))}",  # 格式化顯示
+            production_cost_formatted=f"{int(round(production_cost))} 法幣",  # 格式化顯示
             remaining_rounds=C.NUM_ROUNDS - player.round_number,
             total_emissions=total_emissions,
             group_emissions=group_emissions,
