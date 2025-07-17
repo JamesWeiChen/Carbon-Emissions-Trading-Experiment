@@ -672,7 +672,7 @@ def set_payoffs(group: BaseGroup):
         # 儲存結果
         p.revenue = revenue
         p.total_cost = cost
-        p.net_profit = profit
+        p.net_profit = float(profit)
         p.final_cash = final_cash
         p.payoff = profit
 
