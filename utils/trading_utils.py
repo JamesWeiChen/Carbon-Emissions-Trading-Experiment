@@ -177,6 +177,9 @@ def execute_trade(
         quantity: 交易數量
         item_field: 物品欄位名稱
     """
+    # 確保價格為整數
+    price = int(price)
+    
     # 更新現金
     buyer.current_cash -= price * quantity
     seller.current_cash += price * quantity
@@ -216,7 +219,7 @@ def execute_trade(
         'timestamp': timestamp,  # MM:SS 格式
         'buyer_id': buyer.id_in_group,
         'seller_id': seller.id_in_group,
-        'price': int(price),
+        'price': price,  # 已經轉換為整數
         'quantity': int(quantity)
     }
     
@@ -298,7 +301,8 @@ def process_new_order(
             
             try:
                 seller = group.get_player_by_id(seller_id)
-                execute_trade(group, player, seller, float(best_order[1]), quantity, item_field)
+                trade_price = int(float(best_order[1]))  # 確保交易價格為整數
+                execute_trade(group, player, seller, trade_price, quantity, item_field)
                 
                 # 保留：交易成功時取消雙方其他訂單
                 cancel_player_orders(group, player.id_in_group, 'buy')
@@ -313,13 +317,13 @@ def process_new_order(
                 )]
                 save_orders(group, buy_orders, sell_orders)
                 
-                # 修改：添加自動交易成功通知
+                # 修改：添加自動交易成功通知，價格顯示為整數
                 return {
                     'type': 'trade_executed', 
                     'update_all': True,
                     'notifications': {
-                        player.id_in_group: f'交易成功：您以價格 {best_order[1]} 買入了 {quantity} 個{item_name}',
-                        seller_id: f'交易成功：您以價格 {best_order[1]} 賣出了 {quantity} 個{item_name}'
+                        player.id_in_group: f'交易成功：您以價格 {trade_price} 買入了 {quantity} 個{item_name}',
+                        seller_id: f'交易成功：您以價格 {trade_price} 賣出了 {quantity} 個{item_name}'
                     }
                 }
                 
@@ -343,7 +347,8 @@ def process_new_order(
             
             try:
                 buyer = group.get_player_by_id(buyer_id)
-                execute_trade(group, buyer, player, float(best_order[1]), quantity, item_field)
+                trade_price = int(float(best_order[1]))  # 確保交易價格為整數
+                execute_trade(group, buyer, player, trade_price, quantity, item_field)
                 
                 # 保留：交易成功時取消雙方其他訂單
                 cancel_player_orders(group, buyer_id, 'buy')
@@ -358,13 +363,13 @@ def process_new_order(
                 )]
                 save_orders(group, buy_orders, sell_orders)
                 
-                # 修改：添加自動交易成功通知
+                # 修改：添加自動交易成功通知，價格顯示為整數
                 return {
                     'type': 'trade_executed', 
                     'update_all': True,
                     'notifications': {
-                        player.id_in_group: f'交易成功：您以價格 {best_order[1]} 賣出了 {quantity} 個{item_name}',
-                        buyer_id: f'交易成功：您以價格 {best_order[1]} 買入了 {quantity} 個{item_name}'
+                        player.id_in_group: f'交易成功：您以價格 {trade_price} 賣出了 {quantity} 個{item_name}',
+                        buyer_id: f'交易成功：您以價格 {trade_price} 買入了 {quantity} 個{item_name}'
                     }
                 }
                 
@@ -412,6 +417,9 @@ def process_accept_offer(
                 player.id_in_group: '不能接受自己的訂單'
             }
         }
+    
+    # 確保價格為整數
+    price = int(price)
     
     try:
         if offer_type == 'sell':
