@@ -185,8 +185,20 @@ class TradingMarket(Page):
                 C.ITEM_NAME, 'current_items'
             )
             
+            # 修改：添加對 notifications 的處理
+            if result.get('notifications'):
+                market_states = {}
+                for p in group.get_players():
+                    state = TradingMarket.market_state(p)
+                    if p.id_in_group in result['notifications']:
+                        state['notification'] = {
+                            'type': 'success' if result.get('type') == 'trade_executed' else 'error',
+                            'message': result['notifications'][p.id_in_group]
+                        }
+                    market_states[p.id_in_group] = state
+                return market_states
             # 如果需要更新所有玩家
-            if result.get('update_all'):
+            elif result.get('update_all'):
                 return {p.id_in_group: TradingMarket.market_state(p) 
                         for p in group.get_players()}
             else:
