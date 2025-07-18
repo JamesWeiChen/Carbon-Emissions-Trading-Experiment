@@ -270,7 +270,7 @@ def process_new_order(
             return {
                 'type': 'fail',
                 'notifications': {
-                    player.id_in_group: f'市場上已經存在相同價格 {price} 與數量 {quantity} 個 {item_name} 的買單！'
+                    player.id_in_group: f'市場上已經存在相同價格({price})與數量({quantity})的{item_name}買單！'
                 }
             }
     else:  # sell
@@ -278,7 +278,7 @@ def process_new_order(
             return {
                 'type': 'fail',
                 'notifications': {
-                    player.id_in_group: f'市場上已經存在相同價格 {price} 與數量 {quantity} 個 {item_name} 的賣單！'
+                    player.id_in_group: f'市場上已經存在相同價格({price})與數量({quantity})的{item_name}賣單！'
                 }
             }
     
