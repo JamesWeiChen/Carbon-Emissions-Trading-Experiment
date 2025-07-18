@@ -740,6 +740,8 @@ class TradingMarket(Page):
             profit_table = profit_table,
         )
 
+    # 在 live_method 中的修改部分
+    
     @staticmethod
     def live_method(player: Player, data: Dict[str, Any]) -> Dict[int, Dict[str, Any]]:
         """處理即時交易請求"""
@@ -762,13 +764,25 @@ class TradingMarket(Page):
                   f"價格={price}, 數量={quantity}, "
                   f"現金={player.current_cash}, 碳權={player.current_permits}")
             
-            # 使用新的處理函數
-            result = _process_carbon_trading_order(
-                player, group, direction, price, quantity
+            # 修改：使用統一的 process_new_order 函數
+            result = process_new_order(
+                player, group, direction, price, quantity, 
+                "碳權", 'current_permits'  # 使用碳權相關參數
             )
             
-            # 如果需要更新所有玩家
-            if result.get('update_all'):
+            # 處理通知
+            if result.get('notifications'):
+                market_states = {}
+                for p in group.get_players():
+                    state = TradingMarket.market_state(p)
+                    if p.id_in_group in result['notifications']:
+                        state['notification'] = {
+                            'type': 'success',
+                            'message': result['notifications'][p.id_in_group]
+                        }
+                    market_states[p.id_in_group] = state
+                return market_states
+            elif result.get('update_all'):
                 return {p.id_in_group: TradingMarket.market_state(p) 
                         for p in group.get_players()}
             else:
@@ -784,20 +798,30 @@ class TradingMarket(Page):
             print(f"玩家 {player.id_in_group} 接受{offer_type}單: "
                   f"對象玩家={target_id}, 價格={price}, 數量={quantity}")
             
-            # 使用新的處理函數
-            result = _process_accept_carbon_offer(
-                player, group, offer_type, target_id, price, quantity
+            # 修改：使用統一的 process_accept_offer 函數
+            result = process_accept_offer(
+                player, group, offer_type, target_id, price, quantity,
+                "碳權", 'current_permits'  # 使用碳權相關參數
             )
             
             # 處理通知
             if result.get('notifications'):
-                return _create_notification_states(group, result['notifications'])
+                market_states = {}
+                for p in group.get_players():
+                    state = TradingMarket.market_state(p)
+                    if p.id_in_group in result['notifications']:
+                        state['notification'] = {
+                            'type': 'success',
+                            'message': result['notifications'][p.id_in_group]
+                        }
+                    market_states[p.id_in_group] = state
+                return market_states
             elif result.get('update_all'):
                 return {p.id_in_group: TradingMarket.market_state(p) 
                         for p in group.get_players()}
             else:
                 return result
-
+    
         # 處理取消訂單
         elif data.get('type') == 'cancel_offer':
             direction = data.get('direction')
