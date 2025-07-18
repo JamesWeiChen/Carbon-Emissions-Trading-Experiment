@@ -776,17 +776,17 @@ class TradingMarket(Page):
                 for p in group.get_players():
                     state = TradingMarket.market_state(p)
                     if p.id_in_group in result['notifications']:
+                        # 修改：根據 result.type 決定通知類型
+                        notification_type = 'success'
+                        if result.get('type') == 'fail':
+                            notification_type = 'error'  # 前端會轉換為 danger
+                        
                         state['notification'] = {
-                            'type': 'success',
+                            'type': notification_type,
                             'message': result['notifications'][p.id_in_group]
                         }
                     market_states[p.id_in_group] = state
                 return market_states
-            elif result.get('update_all'):
-                return {p.id_in_group: TradingMarket.market_state(p) 
-                        for p in group.get_players()}
-            else:
-                return result
         
         # 處理接受訂單
         elif data.get('type') == 'accept_offer':
