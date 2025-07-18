@@ -1099,7 +1099,15 @@ function processOtreeResponse(data) {
         log(`接收原始數據: ${JSON.stringify(data).slice(0,200)}...`);
         
         // 重置重試計數器
-        pingRetryCount = 0;
+        if (typeof pingRetryCount !== 'undefined') {
+            pingRetryCount = 0;
+        }
+        
+        // 重置處理狀態
+        if (isProcessingAction) {
+            isProcessingAction = false;
+            log('收到回應，重置處理狀態');
+        }
         
         // 如果正在顯示連接相關的狀態，清除它
         const statusEl = document.getElementById('status-message');
@@ -1136,7 +1144,55 @@ function processOtreeResponse(data) {
         
         if (!playerData) {
             log('未找到有效的玩家數據');
+            // 重置處理狀態並顯示錯誤
+            if (isProcessingAction) {
+                isProcessingAction = false;
+                document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+                showStatus('數據接收異常，請重試', 'danger', 3000);
+            }
             return false;
+        }
+        
+        // 檢查是否為錯誤回應
+        if (playerData.type === 'error') {
+            log(`收到錯誤回應: ${playerData.message}`);
+            if (isProcessingAction) {
+                isProcessingAction = false;
+                document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+            }
+            showStatus(playerData.message || '操作失敗，請重試', 'danger', 5000);
+            // 仍然更新基本資源顯示
+            if (playerData.cash !== undefined) {
+                document.getElementById('cash').innerText = playerData.cash;
+            }
+            if (playerData.permits !== undefined) {
+                document.getElementById('permits').innerText = playerData.permits;
+            }
+            return true; // 返回 true 表示已處理
+        }
+        
+        // 處理 notifications（新格式）
+        if (playerData.notifications && playerData.notifications[playerId]) {
+            const message = playerData.notifications[playerId];
+            let alertType = 'info';  // 預設類型
+            
+            // 根據回應類型決定警告樣式
+            if (playerData.type === 'fail') {
+                alertType = 'danger';  // 錯誤訊息用紅色
+            } else if (playerData.type === 'trade_executed') {
+                alertType = 'success';  // 成功訊息用綠色
+            }
+            
+            showStatus(message, alertType, 5000);
+            log(`顯示通知: [${alertType}] ${message}`);
+        }
+        // 處理舊格式的 notification（相容性）
+        else if (playerData.notification) {
+            let notificationType = playerData.notification.type || 'info';
+            if (notificationType === 'error') {
+                notificationType = 'danger';
+            }
+            showStatus(playerData.notification.message, notificationType, 5000);
         }
         
         // 更新顯示可用資源
@@ -1160,13 +1216,40 @@ function processOtreeResponse(data) {
             playerData.my_sell_offers || []
         );
         
-        // 賣單保留量顯示已移除 - 因為賣單邏輯改為無限制掛單
+        // 買單邏輯改為無限制掛單，不再顯示現金保留量
+        // if (reservedCash > 0) {
+        //     const cashEl = document.getElementById('cash').parentNode;
+        //     if (!document.getElementById('reserved-cash-info')) {
+        //         const reservedInfo = document.createElement('small');
+        //         reservedInfo.id = 'reserved-cash-info';
+        //         reservedInfo.className = 'text-muted d-block';
+        //         reservedInfo.innerHTML = `(其中 <b>${reservedCash}</b> 已用於買單)`;
+        //         cashEl.appendChild(reservedInfo);
+        //     } else {
+        //         document.getElementById('reserved-cash-info').innerHTML = 
+        //             `(其中 <b>${reservedCash}</b> 已用於買單)`;
+        //     }
+        // } else if (document.getElementById('reserved-cash-info')) {
+        //     document.getElementById('reserved-cash-info').remove();
+        // }
+        
+        if (reservedPermits > 0) {
+            const permitsEl = document.getElementById('permits').parentNode;
+            if (!document.getElementById('reserved-permits-info')) {
+                const reservedInfo = document.createElement('small');
+                reservedInfo.id = 'reserved-permits-info';
+                reservedInfo.className = 'text-muted d-block';
+                reservedInfo.innerHTML = `(其中 <b>${reservedPermits}</b> 已用於賣單)`;
+                permitsEl.appendChild(reservedInfo);
+            } else {
+                document.getElementById('reserved-permits-info').innerHTML = 
+                    `(其中 <b>${reservedPermits}</b> 已用於賣單)`;
+            }
+        } else if (document.getElementById('reserved-permits-info')) {
+            document.getElementById('reserved-permits-info').remove();
+        }
 
         updateSellButtonState();
-
-        if (playerData.notification) {
-            showStatus(playerData.notification.message, playerData.notification.type, 5000);
-        }
 
         // 更新我的買單列表
         const myBuyTb = document.querySelector('#my-buy-orders-body');
@@ -1358,13 +1441,81 @@ function processOtreeResponse(data) {
             sellTb.appendChild(row);
         }
         
+        // 更新交易歷史
+        const historyTb = document.querySelector('#trade-history-body');
+        historyTb.innerHTML = '';
+        if (playerData.trade_history && playerData.trade_history.length) {
+            // 對交易歷史排序，最新的在最上面
+            const sortedHistory = [...playerData.trade_history].sort((a, b) => {
+                // 兼容不同格式的時間戳
+                const timeA = a.timestamp || a.time || 0;
+                const timeB = b.timestamp || b.time || 0;
+                return typeof timeB === 'string' ? timeB.localeCompare(timeA) : timeB - timeA;
+            });
+            
+            sortedHistory.forEach(trade => {
+                const row = document.createElement('tr');
+                
+                // 時間
+                const timeCell = document.createElement('td');
+                // 優先使用已格式化的時間，否則轉換時間戳
+                timeCell.textContent = trade.time || 
+                                      (typeof trade.timestamp === 'string' ? trade.timestamp : 
+                                       new Date(trade.timestamp * 1000).toLocaleTimeString());
+                timeCell.className = 'small';
+                row.appendChild(timeCell);
+                
+                // 價格
+                const priceCell = document.createElement('td');
+                priceCell.textContent = trade.price;
+                priceCell.className = 'font-weight-bold';
+                row.appendChild(priceCell);
+                
+                // 數量
+                const quantityCell = document.createElement('td');
+                quantityCell.textContent = trade.quantity;
+                row.appendChild(quantityCell);
+                
+                // 類型
+                const typeCell = document.createElement('td');
+                
+                // 簡化顯示：根據當前玩家角色顯示買入或賣出
+                if (trade.buyer_id == playerId) {
+                    typeCell.textContent = '買入';
+                    typeCell.className = 'text-success font-weight-bold';
+                    row.className = 'table-success';
+                } else if (trade.seller_id == playerId) {
+                    typeCell.textContent = '賣出';
+                    typeCell.className = 'text-danger font-weight-bold';
+                    row.className = 'table-danger';
+                } else {
+                    // 其他玩家交易顯示為其他交易，使用中性樣式
+                    typeCell.textContent = '其他交易';
+                    typeCell.className = 'text-muted';
+                    row.className = 'table-light';
+                }
+                row.appendChild(typeCell);
+                
+                historyTb.appendChild(row);
+            });
+        } else {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 4;
+            cell.textContent = '尚無交易記錄';
+            cell.className = 'text-center text-muted';
+            row.appendChild(cell);
+            historyTb.appendChild(row);
+        }
+
         // 明確返回成功
         return true;
 
     } catch (error) {
-        log(`更新市場錯誤: ${error.message}`);
+        log(`處理回傳錯誤: ${error.message}`);
         showStatus(`更新失敗: ${error.message}`, 'danger', 5000);
         isProcessingAction = false;
+        return false;
     }
 }
 
