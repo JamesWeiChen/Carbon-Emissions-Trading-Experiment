@@ -609,10 +609,6 @@ function updateMarket(data) {
 
         updateSellButtonState();
 
-        if (data.notification) {
-            showStatus(data.notification.message, data.notification.type, 5000);
-        }
-
         // 更新我的買單列表
         const myBuyTb = document.querySelector('#my-buy-orders-body');
         myBuyTb.innerHTML = '';
