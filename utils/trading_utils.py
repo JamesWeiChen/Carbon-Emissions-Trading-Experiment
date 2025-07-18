@@ -23,6 +23,10 @@ class InvalidOrderError(TradingError):
     """無效訂單錯誤"""
     pass
 
+class DuplicateOrderError(TradingError):
+    """重複訂單錯誤"""
+    pass
+
 def parse_orders(group: BaseGroup) -> Tuple[List[List], List[List]]:
     """
     解析買賣訂單
@@ -51,6 +55,31 @@ def save_orders(group: BaseGroup, buy_orders: List[List], sell_orders: List[List
     """儲存買賣訂單"""
     group.buy_orders = json.dumps(buy_orders)
     group.sell_orders = json.dumps(sell_orders)
+
+def check_duplicate_order(
+    orders: List[List],
+    player_id: int,
+    price: int,
+    quantity: int
+) -> bool:
+    """
+    檢查是否存在重複訂單
+    
+    Args:
+        orders: 訂單列表
+        player_id: 玩家ID
+        price: 價格
+        quantity: 數量
+        
+    Returns:
+        True 如果存在重複訂單，False 否則
+    """
+    for order in orders:
+        if (int(order[0]) == player_id and 
+            float(order[1]) == price and 
+            int(order[2]) == quantity):
+            return True
+    return False
 
 def validate_order(
     player: BasePlayer, 
@@ -235,6 +264,20 @@ def process_new_order(
     
     # 解析現有訂單
     buy_orders, sell_orders = parse_orders(group)
+    
+    # 檢查重複訂單
+    if direction == 'buy':
+        if check_duplicate_order(buy_orders, player.id_in_group, price, quantity):
+            return {player.id_in_group: {
+                'type': 'fail',
+                'message': f'您已經掛了相同的買單！價格 {price}，數量 {quantity} 個{item_name}'
+            }}
+    else:  # sell
+        if check_duplicate_order(sell_orders, player.id_in_group, price, quantity):
+            return {player.id_in_group: {
+                'type': 'fail',
+                'message': f'您已經掛了相同的賣單！價格 {price}，數量 {quantity} 個{item_name}'
+            }}
     
     # 移除：不再自動取消之前的同方向訂單，允許掛多個買單/賣單
     # cancel_player_orders(group, player.id_in_group, direction)
@@ -454,4 +497,4 @@ def calculate_locked_resources(
         if int(order[0]) == player_id
     )
     
-    return locked_cash, locked_items 
+    return locked_cash, locked_items
