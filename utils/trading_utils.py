@@ -226,78 +226,6 @@ def execute_trade(
     print(f"成功交易: 買方{buyer.id_in_group} <- 賣方{seller.id_in_group}, "
           f"價格{price}, 數量{quantity}")
 
-def execute_trade(
-    group: BaseGroup,
-    buyer: BasePlayer,
-    seller: BasePlayer,
-    price: float,
-    quantity: int,
-    item_field: str = 'current_items'
-) -> None:
-    """
-    執行交易
-    
-    Args:
-        group: 組別物件
-        buyer: 買方玩家
-        seller: 賣方玩家
-        price: 交易價格
-        quantity: 交易數量
-        item_field: 物品欄位名稱
-    """
-    # 確保價格為整數
-    price = int(price)
-    
-    # 更新現金
-    buyer.current_cash -= price * quantity
-    seller.current_cash += price * quantity
-    
-    # 更新物品數量
-    current_buyer_items = getattr(buyer, item_field)
-    current_seller_items = getattr(seller, item_field)
-    setattr(buyer, item_field, current_buyer_items + quantity)
-    setattr(seller, item_field, current_seller_items - quantity)
-    
-    # 更新統計數據
-    if hasattr(buyer, 'total_bought'):
-        buyer.total_bought += quantity
-        buyer.total_spent += price * quantity
-    if hasattr(seller, 'total_sold'):
-        seller.total_sold += quantity
-        seller.total_earned += price * quantity
-    
-    # 記錄成交訂單到 subsession
-    try:
-        executed_trades = json.loads(group.subsession.executed_trades)
-    except (json.JSONDecodeError, AttributeError):
-        executed_trades = []
-    
-    # 計算時間戳（格式：MM:SS）
-    current_time = int(time.time())
-    if hasattr(group.subsession, 'start_time') and group.subsession.start_time:
-        elapsed_seconds = current_time - group.subsession.start_time
-        minutes = elapsed_seconds // 60
-        seconds = elapsed_seconds % 60
-        timestamp = f"{minutes:02d}:{seconds:02d}"
-    else:
-        timestamp = "00:00"
-    
-    # 創建成交記錄
-    executed_trade = {
-        'timestamp': timestamp,  # MM:SS 格式
-        'buyer_id': buyer.id_in_group,
-        'seller_id': seller.id_in_group,
-        'price': price,  # 已經是整數
-        'quantity': int(quantity)
-    }
-    
-    executed_trades.append(executed_trade)
-    group.subsession.executed_trades = json.dumps(executed_trades)
-    
-    print(f"成功交易: 買方{buyer.id_in_group} <- 賣方{seller.id_in_group}, "
-          f"價格{price}, 數量{quantity}")
-
-# 在 process_new_order 函數中的修改
 def process_new_order(
     player: BasePlayer,
     group: BaseGroup,
@@ -309,8 +237,53 @@ def process_new_order(
 ) -> Dict[int, Dict[str, Any]]:
     """
     處理新訂單
+    
+    Args:
+        player: 玩家物件
+        group: 組別物件
+        direction: 'buy' 或 'sell'
+        price: 價格
+        quantity: 數量
+        item_name: 物品名稱
+        item_field: 物品欄位名稱
+        
+    Returns:
+        需要廣播給所有玩家的狀態更新
     """
-    # ... 前面的代碼保持不變 ...
+    # 驗證訂單
+    try:
+        validate_order(player, direction, price, quantity, item_name)
+    except TradingError as e:
+        return {
+            'type': 'fail',
+            'notifications': {
+                player.id_in_group: str(e)
+            }
+        }
+    
+    # 解析現有訂單
+    buy_orders, sell_orders = parse_orders(group)
+    
+    # 檢查重複訂單
+    if direction == 'buy':
+        if check_duplicate_order(buy_orders, price, quantity):
+            return {
+                'type': 'fail',
+                'notifications': {
+                    player.id_in_group: f'市場上已有價格 {price} 且數量 {quantity} 的買單！'
+                }
+            }
+    else:  # sell
+        if check_duplicate_order(sell_orders, price, quantity):
+            return {
+                'type': 'fail',
+                'notifications': {
+                    player.id_in_group: f'市場上已有價格 {price} 且數量 {quantity} 的賣單！'
+                }
+            }
+    
+    # 移除：不再自動取消之前的同方向訂單，允許掛多個買單/賣單
+    # cancel_player_orders(group, player.id_in_group, direction)
     
     # 尋找匹配的訂單
     if direction == 'buy':
@@ -325,9 +298,7 @@ def process_new_order(
             
             try:
                 seller = group.get_player_by_id(seller_id)
-                # 確保交易價格為整數
-                trade_price = int(float(best_order[1]))
-                execute_trade(group, player, seller, trade_price, quantity, item_field)
+                execute_trade(group, player, seller, float(best_order[1]), quantity, item_field)
                 
                 # 保留：交易成功時取消雙方其他訂單
                 cancel_player_orders(group, player.id_in_group, 'buy')
@@ -342,13 +313,13 @@ def process_new_order(
                 )]
                 save_orders(group, buy_orders, sell_orders)
                 
-                # 修改：添加自動交易成功通知，價格顯示為整數
+                # 修改：添加自動交易成功通知
                 return {
                     'type': 'trade_executed', 
                     'update_all': True,
                     'notifications': {
-                        player.id_in_group: f'交易成功：您以價格 {int(float(best_order[1]))} 買入了 {quantity} 個{item_name}',
-                        seller_id: f'交易成功：您以價格 {int(float(best_order[1]))} 賣出了 {quantity} 個{item_name}'
+                        player.id_in_group: f'交易成功：您以價格 {best_order[1]} 買入了 {quantity} 個{item_name}',
+                        seller_id: f'交易成功：您以價格 {best_order[1]} 賣出了 {quantity} 個{item_name}'
                     }
                 }
                 
@@ -372,9 +343,7 @@ def process_new_order(
             
             try:
                 buyer = group.get_player_by_id(buyer_id)
-                # 確保交易價格為整數
-                trade_price = int(float(best_order[1]))
-                execute_trade(group, buyer, player, trade_price, quantity, item_field)
+                execute_trade(group, buyer, player, float(best_order[1]), quantity, item_field)
                 
                 # 保留：交易成功時取消雙方其他訂單
                 cancel_player_orders(group, buyer_id, 'buy')
@@ -389,13 +358,13 @@ def process_new_order(
                 )]
                 save_orders(group, buy_orders, sell_orders)
                 
-                # 修改：添加自動交易成功通知，價格顯示為整數
+                # 修改：添加自動交易成功通知
                 return {
                     'type': 'trade_executed', 
                     'update_all': True,
                     'notifications': {
-                        player.id_in_group: f'交易成功：您以價格 {int(float(best_order[1]))} 賣出了 {quantity} 個{item_name}',
-                        buyer_id: f'交易成功：您以價格 {int(float(best_order[1]))} 買入了 {quantity} 個{item_name}'
+                        player.id_in_group: f'交易成功：您以價格 {best_order[1]} 賣出了 {quantity} 個{item_name}',
+                        buyer_id: f'交易成功：您以價格 {best_order[1]} 買入了 {quantity} 個{item_name}'
                     }
                 }
                 
@@ -410,105 +379,6 @@ def process_new_order(
     print(f"成功添加{direction}單: 玩家{player.id_in_group}, 價格{price}, 數量{quantity}")
     return {'type': 'order_added', 'update_all': True}
 
-# 在 process_accept_offer 函數中的修改  
-def process_accept_offer(
-    player: BasePlayer,
-    group: BaseGroup,
-    offer_type: str,
-    target_id: int,
-    price: float,
-    quantity: int,
-    item_name: str = "物品",
-    item_field: str = 'current_items'
-) -> Dict[int, Dict[str, Any]]:
-    """
-    處理接受訂單
-    """
-    if target_id == player.id_in_group:
-        return {
-            'type': 'fail',
-            'notifications': {
-                player.id_in_group: '不能接受自己的訂單'
-            }
-        }
-    
-    # 確保價格為整數
-    price = int(price)
-    
-    try:
-        if offer_type == 'sell':
-            # 接受賣單（玩家是買方）
-            seller = group.get_player_by_id(target_id)
-            execute_trade(group, player, seller, price, quantity, item_field)
-            
-            # 保留：交易成功時取消雙方其他訂單
-            cancel_player_orders(group, player.id_in_group, 'buy')
-            cancel_player_orders(group, target_id, 'sell')
-            
-            # 移除已成交的訂單
-            buy_orders, sell_orders = parse_orders(group)
-            sell_orders = [o for o in sell_orders if not (
-                int(o[0]) == target_id and 
-                float(o[1]) == price and 
-                int(o[2]) == quantity
-            )]
-            save_orders(group, buy_orders, sell_orders)
-            
-            return {
-                'type': 'trade_executed',
-                'update_all': True,
-                'notifications': {
-                    player.id_in_group: f'交易成功：您以價格 {price} 買入了 {quantity} 個{item_name}',
-                    target_id: f'交易成功：您以價格 {price} 賣出了 {quantity} 個{item_name}'
-                }
-            }
-            
-        else:  # offer_type == 'buy'
-            # 接受買單（玩家是賣方）
-            # 先驗證賣方有足夠的物品
-            current_items = getattr(player, item_field)
-            if current_items < quantity:
-                return {
-                    'type': 'fail',
-                    'notifications': {
-                        player.id_in_group: f'您的{item_name}不足'
-                    }
-                }
-            
-            buyer = group.get_player_by_id(target_id)
-            execute_trade(group, buyer, player, price, quantity, item_field)
-            
-            # 保留：交易成功時取消雙方其他訂單
-            cancel_player_orders(group, target_id, 'buy')
-            cancel_player_orders(group, player.id_in_group, 'sell')
-            
-            # 移除已成交的訂單
-            buy_orders, sell_orders = parse_orders(group)
-            buy_orders = [o for o in buy_orders if not (
-                int(o[0]) == target_id and 
-                float(o[1]) == price and 
-                int(o[2]) == quantity
-            )]
-            save_orders(group, buy_orders, sell_orders)
-            
-            return {
-                'type': 'trade_executed',
-                'update_all': True,
-                'notifications': {
-                    player.id_in_group: f'交易成功：您以價格 {price} 賣出了 {quantity} 個{item_name}',
-                    target_id: f'交易成功：您以價格 {price} 買入了 {quantity} 個{item_name}'
-                }
-            }
-            
-    except Exception as e:
-        print(f"接受訂單失敗: {e}")
-        return {
-            'type': 'fail',
-            'notifications': {
-                player.id_in_group: '交易失敗：找不到交易對象'
-            }
-        }
-        
 def process_accept_offer(
     player: BasePlayer,
     group: BaseGroup,
