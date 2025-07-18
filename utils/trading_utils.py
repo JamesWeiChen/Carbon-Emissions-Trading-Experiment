@@ -254,12 +254,10 @@ def process_new_order(
     try:
         validate_order(player, direction, price, quantity, item_name)
     except TradingError as e:
-        return {
+        return {player.id_in_group: {
             'type': 'fail',
-            'notifications': {
-                player.id_in_group: str(e)
-            }
-        }
+            'message': str(e)
+        }}
     
     # 解析現有訂單
     buy_orders, sell_orders = parse_orders(group)
@@ -267,20 +265,16 @@ def process_new_order(
     # 檢查重複訂單
     if direction == 'buy':
         if check_duplicate_order(buy_orders, price, quantity):
-            return {
+            return {player.id_in_group: {
                 'type': 'fail',
-                'notifications': {
-                    player.id_in_group: f'市場上已經存在相同的買單！價格 {price}，數量 {quantity} 個{item_name}'
-                }
-            }
+                'message': f'市場上已經存在相同的買單！價格 {price}，數量 {quantity} 個{item_name}'
+            }}
     else:  # sell
         if check_duplicate_order(sell_orders, price, quantity):
-            return {
+            return {player.id_in_group: {
                 'type': 'fail',
-                'notifications': {
-                    player.id_in_group: f'市場上已經存在相同的賣單！價格 {price}，數量 {quantity} 個{item_name}'
-                }
-            }
+                'message': f'市場上已經存在相同的賣單！價格 {price}，數量 {quantity} 個{item_name}'
+            }}
     
     # 移除：不再自動取消之前的同方向訂單，允許掛多個買單/賣單
     # cancel_player_orders(group, player.id_in_group, direction)
@@ -392,12 +386,10 @@ def process_accept_offer(
         需要廣播給所有玩家的狀態更新
     """
     if target_id == player.id_in_group:
-        return {
+        return {player.id_in_group: {
             'type': 'fail',
-            'notifications': {
-                player.id_in_group: '不能接受自己的訂單'
-            }
-        }
+            'message': '不能接受自己的訂單'
+        }}
     
     try:
         if offer_type == 'sell':
@@ -432,12 +424,10 @@ def process_accept_offer(
             # 先驗證賣方有足夠的物品
             current_items = getattr(player, item_field)
             if current_items < quantity:
-                return {
+                return {player.id_in_group: {
                     'type': 'fail',
-                    'notifications': {
-                        player.id_in_group: f'您的{item_name}不足'
-                    }
-                }
+                    'message': f'您的{item_name}不足'
+                }}
             
             buyer = group.get_player_by_id(target_id)
             execute_trade(group, buyer, player, price, quantity, item_field)
@@ -466,12 +456,10 @@ def process_accept_offer(
             
     except Exception as e:
         print(f"接受訂單失敗: {e}")
-        return {
+        return {player.id_in_group: {
             'type': 'fail',
-            'notifications': {
-                player.id_in_group: '交易失敗：找不到交易對象'
-            }
-        }
+            'message': '交易失敗：找不到交易對象'
+        }}
 
 def calculate_locked_resources(
     player: BasePlayer, 
