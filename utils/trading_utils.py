@@ -58,16 +58,14 @@ def save_orders(group: BaseGroup, buy_orders: List[List], sell_orders: List[List
 
 def check_duplicate_order(
     orders: List[List],
-    player_id: int,
     price: int,
     quantity: int
 ) -> bool:
     """
-    檢查是否存在重複訂單
+    檢查是否存在重複訂單（任何玩家的相同價格和數量）
     
     Args:
         orders: 訂單列表
-        player_id: 玩家ID
         price: 價格
         quantity: 數量
         
@@ -75,8 +73,7 @@ def check_duplicate_order(
         True 如果存在重複訂單，False 否則
     """
     for order in orders:
-        if (int(order[0]) == player_id and 
-            float(order[1]) == price and 
+        if (float(order[1]) == price and 
             int(order[2]) == quantity):
             return True
     return False
@@ -267,16 +264,16 @@ def process_new_order(
     
     # 檢查重複訂單
     if direction == 'buy':
-        if check_duplicate_order(buy_orders, player.id_in_group, price, quantity):
+        if check_duplicate_order(buy_orders, price, quantity):
             return {player.id_in_group: {
                 'type': 'fail',
-                'message': f'您已經掛了相同的買單！價格 {price}，數量 {quantity} 個{item_name}'
+                'message': f'市場上已經存在相同的買單！價格 {price}，數量 {quantity} 個{item_name}'
             }}
     else:  # sell
-        if check_duplicate_order(sell_orders, player.id_in_group, price, quantity):
+        if check_duplicate_order(sell_orders, price, quantity):
             return {player.id_in_group: {
                 'type': 'fail',
-                'message': f'您已經掛了相同的賣單！價格 {price}，數量 {quantity} 個{item_name}'
+                'message': f'市場上已經存在相同的賣單！價格 {price}，數量 {quantity} 個{item_name}'
             }}
     
     # 移除：不再自動取消之前的同方向訂單，允許掛多個買單/賣單
