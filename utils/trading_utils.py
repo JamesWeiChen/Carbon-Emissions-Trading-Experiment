@@ -270,7 +270,7 @@ def process_new_order(
             return {
                 'type': 'fail',
                 'notifications': {
-                    player.id_in_group: f'市場上已經存在相同價格({price})與數量({quantity})的{item_name}買單！'
+                    player.id_in_group: f'市場上已有價格 {price} 且數量 {quantity} 的買單！'
                 }
             }
     else:  # sell
@@ -278,7 +278,7 @@ def process_new_order(
             return {
                 'type': 'fail',
                 'notifications': {
-                    player.id_in_group: f'市場上已經存在相同價格({price})與數量({quantity})的{item_name}賣單！'
+                    player.id_in_group: f'市場上已有價格 {price} 且數量 {quantity} 的賣單！'
                 }
             }
     
@@ -313,8 +313,15 @@ def process_new_order(
                 )]
                 save_orders(group, buy_orders, sell_orders)
                 
-                # 返回更新狀態（需要調用者提供 market_state 函數）
-                return {'type': 'trade_executed', 'update_all': True}
+                # 修改：添加自動交易成功通知
+                return {
+                    'type': 'trade_executed', 
+                    'update_all': True,
+                    'notifications': {
+                        player.id_in_group: f'交易成功：您以價格 {best_order[1]} 買入了 {quantity} 個{item_name}',
+                        seller_id: f'交易成功：您以價格 {best_order[1]} 賣出了 {quantity} 個{item_name}'
+                    }
+                }
                 
             except Exception as e:
                 print(f"交易執行失敗: {e}")
@@ -351,8 +358,15 @@ def process_new_order(
                 )]
                 save_orders(group, buy_orders, sell_orders)
                 
-                # 返回更新狀態
-                return {'type': 'trade_executed', 'update_all': True}
+                # 修改：添加自動交易成功通知
+                return {
+                    'type': 'trade_executed', 
+                    'update_all': True,
+                    'notifications': {
+                        player.id_in_group: f'交易成功：您以價格 {best_order[1]} 賣出了 {quantity} 個{item_name}',
+                        buyer_id: f'交易成功：您以價格 {best_order[1]} 買入了 {quantity} 個{item_name}'
+                    }
+                }
                 
             except Exception as e:
                 print(f"交易執行失敗: {e}")
