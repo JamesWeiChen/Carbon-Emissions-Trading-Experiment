@@ -17,18 +17,6 @@
         <div class="card-header bg-primary text-white">
             <h2><i class="fas fa-exchange-alt"></i> 即時{{ item_name }}交易市場</h2>
         </div>
-        <!-- <div class="card-body">
-            <p id="timer" class="alert alert-warning"><b>剩餘時間：</b>
-               <span id="countdown" class="font-weight-bold">{{ timeout_seconds }}</span> 秒</p>
-            
-            <div class="alert alert-info">
-                <h5>練習回合</h5>
-                <p>這是一個交易練習回合，請在這裡熟悉{{ item_name }}的買賣操作，為正式實驗做準備。</p>
-            </div> -->
-            
-            <!-- 調試信息區域 -->
-            <!-- <div id="debug-info" class="mb-3 small text-muted" style="display: none;"></div>
-        </div> -->
     </div>
     
     <div class="row">
@@ -50,7 +38,7 @@
                 </div>
             </div>
             
-            <!-- 新增：我的掛單區塊 -->
+            <!-- 我的掛單區塊 -->
             <div class="card mt-3">
                 <div class="card-header bg-info text-white">
                     <h4>我的掛單</h4>
@@ -103,7 +91,7 @@
                 </div>
             </div>
             
-            <!-- 新增：最近交易記錄 -->
+            <!-- 最近交易記錄 -->
             <div class="card mt-3">
                 <div class="card-header bg-secondary text-white">
                     <h4>最近交易記錄</h4>
@@ -171,7 +159,7 @@
                         </div>
                     </div>
 
-                    <!-- 新增：總價格計算器 -->
+                    <!-- 總價格計算器 -->
                     <div class="form-group row">
                         <label class="col-sm-3 col-form-label">總價格：</label>
                         <div class="col-sm-9">
@@ -191,7 +179,7 @@
                 </div>
             </div>
             
-            <!-- 將狀態通知區域移至此處 -->
+            <!-- 狀態通知區域 -->
             <div id="status-container" class="mb-3 mt-3"></div>
             
             <div class="row mt-3">
@@ -243,59 +231,6 @@
             </div>
         </div>
     </div>
-    
-    <hr>
-    
-    <!-- 操作說明 -->
-    <!--
-    <div class="card mt-3">
-        <div class="card-header bg-info text-white">
-            <h5><i class="fas fa-info-circle"></i> 交易操作說明</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <h6><i class="fas fa-cart-plus text-success"></i> 提交掛單</h6>
-                    <ol>
-                        <li>選擇買入或賣出</li>
-                        <li>調整價格滑桿</li>
-                        <li>調整數量滑桿</li>
-                        <li>點擊"提交掛單"按鈕</li>
-                    </ol>
-                </div>
-                <div class="col-md-4">
-                    <h6><i class="fas fa-handshake text-primary"></i> 接受他人掛單</h6>
-                    <ol>
-                        <li>在買單或賣單列表中找到想要接受的訂單</li>
-                        <li>點擊該條目旁的"接受"按鈕</li>
-                        <li>系統會自動完成交易</li>
-                    </ol>
-                </div>
-                <div class="col-md-4">
-                    <h6><i class="fas fa-times-circle text-danger"></i> 取消掛單</h6>
-                    <ol>
-                        <li>在"我的買單"或"我的賣單"中找到要取消的掛單</li>
-                        <li>點擊該掛單旁的"取消"按鈕</li>
-                        <li>系統會自動取消掛單</li>
-                    </ol>
-                </div>
-            </div>
-            <div class="alert alert-warning mt-3">
-                <strong>交易規則提醒：</strong> 當您的買單或賣單成交後，系統會自動取消您所有同方向的掛單。例如，若您的買單成交，則其他所有買單會被取消；若您的賣單成交，則其他所有賣單會被取消。
-            </div>
-        </div>
-    </div>
-    -->
-    
-    <!-- 調試控制 -->
-    <!-- <div class="row mt-3" id="debug-controls" style="display: none;">
-        <div class="col-md-12">
-            <button id="debug-toggle" class="btn btn-sm btn-secondary" onclick="toggleDebug(); return false;">顯示調試信息</button>
-            <button class="btn btn-sm btn-info ml-2" onclick="forceRefresh(); return false;">強制刷新</button>
-            <button class="btn btn-sm btn-warning ml-2" onclick="testDataProcessing(); return false;">測試數據處理</button>
-            <button class="btn btn-sm btn-danger ml-2" onclick="location.reload(); return false;">刷新頁面</button>
-        </div>
-    </div> -->
 </div>
 
 <script>
@@ -330,9 +265,9 @@ let isProcessingAction = false;
 
 // 從模板傳入的參數
 const playerId = {{ player_id }};
-const personalItemValue = {{ personal_item_value }} || {{ market_price }};  // 個人碳權價值，如果未設定則使用市場價格
+const personalItemValue = {{ personal_item_value }} || {{ market_price }};
 let countdown = {{ timeout_seconds }};
-let startTime = {{ start_time }};  // 嘗試使用伺服器時間
+let startTime = {{ start_time }};
 
 // 如果 startTime 無效，則使用當前時間
 if (typeof startTime === 'undefined' || isNaN(startTime)) {
@@ -342,7 +277,6 @@ if (typeof startTime === 'undefined' || isNaN(startTime)) {
 
 // 取得常用元素
 const cdDisplay       = document.getElementById('countdown');
-const timerEl         = document.getElementById('timer');
 const statusContainer = document.getElementById('status-container');
 const submitBtn       = document.getElementById('submit-btn');
 
@@ -351,41 +285,6 @@ function log(message) {
     if (!DEBUG) return;
     const ts = new Date().toLocaleTimeString();
     console.log(`[${ts}] ${message}`);
-    const debugInfo = document.getElementById('debug-info');
-    if (debugInfo) {
-        const entry = document.createElement('div');
-        entry.textContent = `[${ts}] ${message}`;
-        debugInfo.appendChild(entry);
-        while (debugInfo.children.length > 20) {
-            debugInfo.removeChild(debugInfo.firstChild);
-        }
-        debugInfo.scrollTop = debugInfo.scrollHeight;
-    }
-}
-
-/** 切換 Debug 面板 **/
-function toggleDebug() {
-    const debugInfo = document.getElementById('debug-info');
-    const btn       = document.getElementById('debug-toggle');
-    if (debugInfo.style.display === 'none') {
-        debugInfo.style.display = 'block';
-        btn.textContent = '隱藏調試信息';
-    } else {
-        debugInfo.style.display = 'none';
-        btn.textContent = '顯示調試信息';
-    }
-    return false;
-}
-
-/** 強制刷新 **/
-function forceRefresh() {
-    if (isProcessingAction) return false;
-    isProcessingAction = true;
-    liveSend({ type: 'ping' });
-    showStatus('強制刷新中...', 'info', 2000);
-    log('發送強制刷新請求');
-    setTimeout(() => { isProcessingAction = false; }, 3000);
-    return false;
 }
 
 /** 切換買賣方向 **/
@@ -450,7 +349,6 @@ function showStatus(message, type = 'info', duration = 0) {
 /** 輸入驗證函數 **/
 function isNumberKey(evt) {
     var charCode = (evt.which) ? evt.which : evt.keyCode;
-    // 只允許數字鍵 (48-57)、退格鍵 (8)、刪除鍵 (46)、方向鍵 (37-40)、Tab鍵 (9)
     if (charCode > 31 && (charCode < 48 || charCode > 57)) {
         return false;
     }
@@ -458,16 +356,10 @@ function isNumberKey(evt) {
 }
 
 function validatePaste(event, input) {
-    // 阻止預設貼上行為
     event.preventDefault();
-    
-    // 取得剪貼簿內容
     const pasteData = (event.clipboardData || window.clipboardData).getData('text');
-    
-    // 檢查是否為正整數
     if (/^\d+$/.test(pasteData) && parseInt(pasteData) > 0) {
         input.value = parseInt(pasteData);
-        // 觸發相應的更新函數
         if (input.id === 'price') {
             validateAndUpdatePrice(input);
         } else if (input.id === 'quantity') {
@@ -479,16 +371,10 @@ function validatePaste(event, input) {
 
 function validateAndUpdatePrice(input) {
     let value = input.value;
-    
-    // 移除所有非數字字符
     value = value.replace(/[^\d]/g, '');
-    
-    // 如果只剩下0，清空讓用戶重新輸入
     if (value === '0') {
         value = '';
     }
-    
-    // 如果不為空，確保是正整數
     if (value !== '') {
         const intValue = parseInt(value);
         if (intValue < 1) {
@@ -497,23 +383,16 @@ function validateAndUpdatePrice(input) {
             value = intValue.toString();
         }
     }
-    
     input.value = value;
     updatePriceDisplay();
 }
 
 function validateAndUpdateQuantity(input) {
     let value = input.value;
-    
-    // 移除所有非數字字符
     value = value.replace(/[^\d]/g, '');
-    
-    // 如果只剩下0，清空讓用戶重新輸入
     if (value === '0') {
         value = '';
     }
-    
-    // 如果不為空，確保是正整數
     if (value !== '') {
         const intValue = parseInt(value);
         if (intValue < 1) {
@@ -522,12 +401,11 @@ function validateAndUpdateQuantity(input) {
             value = intValue.toString();
         }
     }
-    
     input.value = value;
     updateQuantityDisplay();
 }
 
-/** 滑桿顯示與總價更新 **/
+/** 顯示與總價更新 **/
 function updatePriceDisplay() {
     const priceInput = document.getElementById('price');
     const price = priceInput.value === '' ? '' : parseInt(priceInput.value) || '';
@@ -561,7 +439,6 @@ function updateTotalPrice() {
         el.innerText = total;
         const direction = document.getElementById('selected-direction').value;
         if (direction === 'buy') {
-            // 買單邏輯改為無限制掛單，只要單一買單不超過持有現金即可
             const cash = parseInt(document.getElementById('cash').innerText);
             el.className = total > cash
                 ? 'text-warning font-weight-bold'
@@ -572,470 +449,10 @@ function updateTotalPrice() {
     }
 }
 
-/** 計算自己未成交掛單保留量 **/
-function reservedFromOffers(buyOffers, sellOffers) {
-    let cash = 0, items = 0;
-    
-    // 買單邏輯改為無限制掛單，不再鎖定現金
-    // (buyOffers || []).forEach(o => {
-    //     cash += o.price * o.quantity;
-    // });
-    
-    // 計算賣單佔用的物品
-    (sellOffers || []).forEach(o => {
-        items += o.quantity;
-    });
-    
-    return { cash, items };
-}
-
-/** 修改更新交易歷史的函數 **/
-function updateTradeHistory(tradeHistory) {
-    const historyTb = document.querySelector('#trade-history-body');
-    historyTb.innerHTML = '';
-    
-    if (tradeHistory && tradeHistory.length > 0) {
-        // 對交易歷史排序，最新的在最上面
-        const sortedHistory = [...tradeHistory].sort((a, b) => {
-            // 兼容不同格式的時間戳
-            const timeA = a.timestamp || a.time || 0;
-            const timeB = b.timestamp || b.time || 0;
-            return typeof timeB === 'string' ? timeB.localeCompare(timeA) : timeB - timeA;
-        });
-        
-        sortedHistory.reverse().forEach(trade => {
-            const row = document.createElement('tr');
-            
-            // 時間 - 修正時間格式處理
-            const timeCell = document.createElement('td');
-            if (trade.timestamp && typeof trade.timestamp === 'string' && trade.timestamp.match(/^\d{2}:\d{2}$/)) {
-                // 如果已經是 MM:SS 格式
-                timeCell.textContent = trade.timestamp;
-            } else if (trade.time) {
-                // 如果有 time 屬性
-                timeCell.textContent = trade.time;
-            } else if (typeof trade.timestamp === 'number') {
-                // 如果是數字時間戳，轉換為分:秒格式
-                try {
-                    const elapsedSeconds = trade.timestamp - startTime;
-                    if (elapsedSeconds >= 0) {
-                        const minutes = Math.floor(elapsedSeconds / 60);
-                        const seconds = elapsedSeconds % 60;
-                        timeCell.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                    } else {
-                        timeCell.textContent = new Date(trade.timestamp * 1000).toLocaleTimeString();
-                    }
-                } catch (e) {
-                    timeCell.textContent = "時間格式錯誤";
-                    log(`時間格式錯誤: ${trade.timestamp}, ${e.message}`);
-                }
-            } else {
-                // 預設情況
-                timeCell.textContent = "未知時間";
-            }
-            timeCell.className = 'small';
-            row.appendChild(timeCell);
-            
-            // 價格
-            const priceCell = document.createElement('td');
-            priceCell.textContent = trade.price;
-            row.appendChild(priceCell);
-            
-            // 數量
-            const quantityCell = document.createElement('td');
-            quantityCell.textContent = trade.quantity;
-            row.appendChild(quantityCell);
-            
-            // 類型
-            const typeCell = document.createElement('td');
-            
-            // 簡化顯示：根據當前玩家角色顯示買入或賣出
-            if (trade.buyer_id == playerId) {
-                typeCell.textContent = '買入';
-                typeCell.className = 'text-success font-weight-bold';
-                row.className = 'table-success';
-            } else if (trade.seller_id == playerId) {
-                typeCell.textContent = '賣出';
-                typeCell.className = 'text-danger font-weight-bold';
-                row.className = 'table-danger';
-            } else {
-                // 其他玩家交易顯示為其他交易，使用中性樣式
-                typeCell.textContent = '其他交易';
-                typeCell.className = 'text-muted';
-                row.className = 'table-light';
-            }
-            row.appendChild(typeCell);
-            
-            historyTb.appendChild(row);
-        });
-    } else {
-        const row = document.createElement('tr');
-        const cell = document.createElement('td');
-        cell.colSpan = 4;
-        cell.textContent = '尚無交易記錄';
-        cell.className = 'text-center text-muted';
-        row.appendChild(cell);
-        historyTb.appendChild(row);
-    }
-}
-
-/** 更新市場數據 **/
-function updateMarket(data) {
-    try {
-        log(`更新市場數據: ${JSON.stringify(data)}`);
-        document.querySelectorAll('.btn').forEach(b => b.disabled = false);
-        isProcessingAction = false;
-
-        if (typeof data.cash === 'undefined' || typeof data.items === 'undefined') {
-            showStatus('資料格式錯誤，重新請求...', 'warning', 2000);
-            return setTimeout(() => liveSend({ type: 'ping' }), 1000);
-        }
-
-        // 計算已保留資源
-        const { cash: reservedCash, items: reservedItems } = reservedFromOffers(
-            data.my_buy_offers, 
-            data.my_sell_offers
-        );
-        
-        // 更新顯示可用資源 (總資源)
-        document.getElementById('cash').innerText = data.cash;
-        document.getElementById('items').innerText = data.items;
-        
-        // 更新總碳權價值顯示
-        const totalItemValue = data.items * personalItemValue;
-        document.getElementById('total-item-value').innerText = totalItemValue;
-        document.getElementById('items-display').innerText = data.items;
-        
-        // 添加已保留資源提示
-        // 買單邏輯改為無限制掛單，不再顯示現金保留量
-        // if (reservedCash > 0) {
-        //     const cashEl = document.getElementById('cash').parentNode;
-        //     if (!document.getElementById('reserved-cash-info')) {
-        //         const reservedInfo = document.createElement('small');
-        //         reservedInfo.id = 'reserved-cash-info';
-        //         reservedInfo.className = 'text-muted d-block';
-        //         reservedInfo.innerHTML = `(其中 <b>${reservedCash}</b> 已用於買單)`;
-        //         cashEl.appendChild(reservedInfo);
-        //     } else {
-        //         document.getElementById('reserved-cash-info').innerHTML = 
-        //             `(其中 <b>${reservedCash}</b> 已用於買單)`;
-        //     }
-        // } else if (document.getElementById('reserved-cash-info')) {
-        //     document.getElementById('reserved-cash-info').remove();
-        // }
-        
-        if (reservedItems > 0) {
-            const itemsEl = document.getElementById('items').parentNode;
-            if (!document.getElementById('reserved-items-info')) {
-                const reservedInfo = document.createElement('small');
-                reservedInfo.id = 'reserved-items-info';
-                reservedInfo.className = 'text-muted d-block';
-                reservedInfo.innerHTML = `(其中 <b>${reservedItems}</b> 已用於賣單)`;
-                itemsEl.appendChild(reservedInfo);
-            } else {
-                document.getElementById('reserved-items-info').innerHTML = 
-                    `(其中 <b>${reservedItems}</b> 已用於賣單)`;
-            }
-        } else if (document.getElementById('reserved-items-info')) {
-            document.getElementById('reserved-items-info').remove();
-        }
-
-        updateSellButtonState();
-
-        if (data.notification) {
-            showStatus(data.notification.message, data.notification.type, 5000);
-        }
-
-        // 更新我的買單列表
-        const myBuyTb = document.querySelector('#my-buy-orders-body');
-        myBuyTb.innerHTML = '';
-        if (data.my_buy_offers && data.my_buy_offers.length) {
-            data.my_buy_offers.forEach(o => {
-                const row = document.createElement('tr');
-                // 單價
-                const c1 = document.createElement('td');
-                c1.textContent = o.price;
-                c1.className = 'text-success font-weight-bold';
-                row.appendChild(c1);
-                // 數量
-                const c3 = document.createElement('td');
-                c3.textContent = o.quantity;
-                row.appendChild(c3);
-                // 總價
-                const tp = o.price * o.quantity;
-                const c2 = document.createElement('td');
-                c2.textContent = tp;
-                c2.className = 'text-primary';
-                row.appendChild(c2);
-                // 取消按鈕
-                const c4 = document.createElement('td');
-                const btn = document.createElement('button');
-                btn.className = 'btn btn-danger btn-sm';
-                btn.textContent = '取消';
-                btn.onclick = e => { e.preventDefault(); cancelOffer('buy', o.price, o.quantity); };
-                c4.appendChild(btn);
-                row.appendChild(c4);
-                myBuyTb.appendChild(row);
-            });
-        } else {
-            const row = document.createElement('tr');
-            const cell = document.createElement('td');
-            cell.colSpan = 4;
-            cell.textContent = '目前沒有買單';
-            cell.className = 'text-center text-muted';
-            row.appendChild(cell);
-            myBuyTb.appendChild(row);
-        }
-
-        // 更新我的賣單列表
-        const mySellTb = document.querySelector('#my-sell-orders-body');
-        mySellTb.innerHTML = '';
-        if (data.my_sell_offers && data.my_sell_offers.length) {
-            data.my_sell_offers.forEach(o => {
-                const row = document.createElement('tr');
-                // 單價
-                const c1 = document.createElement('td');
-                c1.textContent = o.price;
-                c1.className = 'text-danger font-weight-bold';
-                row.appendChild(c1);
-                // 數量
-                const c3 = document.createElement('td');
-                c3.textContent = o.quantity;
-                row.appendChild(c3);
-                // 總價
-                const tp = o.price * o.quantity;
-                const c2 = document.createElement('td');
-                c2.textContent = tp;
-                c2.className = 'text-primary';
-                row.appendChild(c2);
-                // 取消按鈕
-                const c4 = document.createElement('td');
-                const btn = document.createElement('button');
-                btn.className = 'btn btn-danger btn-sm';
-                btn.textContent = '取消';
-                btn.onclick = e => { e.preventDefault(); cancelOffer('sell', o.price, o.quantity); };
-                c4.appendChild(btn);
-                row.appendChild(c4);
-                mySellTb.appendChild(row);
-            });
-        } else {
-            const row = document.createElement('tr');
-            const cell = document.createElement('td');
-            cell.colSpan = 4;
-            cell.textContent = '目前沒有賣單';
-            cell.className = 'text-center text-muted';
-            row.appendChild(cell);
-            mySellTb.appendChild(row);
-        }
-
-        // 更新買單列表 (公共)
-        const buyTb = document.querySelector('#buy-offers tbody');
-        buyTb.innerHTML = '';
-        if (data.buy_offers && data.buy_offers.length) {
-            data.buy_offers.forEach(o => {
-                const row = document.createElement('tr');
-                // 單價
-                const c1 = document.createElement('td');
-                c1.textContent = o.price;
-                c1.className = 'text-success font-weight-bold';
-                row.appendChild(c1);
-                // 數量
-                const c3 = document.createElement('td');
-                c3.textContent = o.quantity;
-                row.appendChild(c3);
-                // 總價
-                const tp = o.price * o.quantity;
-                const c2 = document.createElement('td');
-                c2.textContent = tp;
-                c2.className = 'text-primary';
-                row.appendChild(c2);
-                // 操作
-                const c4 = document.createElement('td');
-                
-                // 只有當不是自己的掛單時，才顯示"接受"按鈕
-                if (o.player_id != playerId) {
-                    const btn = document.createElement('button');
-                    btn.className = 'btn btn-success btn-sm';
-                    btn.textContent = '接受';
-                    btn.onclick = e => { e.preventDefault(); acceptOffer('buy', o.player_id, o.price, o.quantity); };
-                    c4.appendChild(btn);
-                } else {
-                    // 如果是自己的掛單，顯示"我的掛單"提示
-                    const badge = document.createElement('span');
-                    badge.className = 'badge badge-secondary';
-                    badge.textContent = '我的掛單';
-                    c4.appendChild(badge);
-                }
-                
-                row.appendChild(c4);
-                buyTb.appendChild(row);
-            });
-        }
-        // 如果沒有買單顯示提示
-        if (!buyTb.hasChildNodes()) {
-            const row = document.createElement('tr');
-            const cell = document.createElement('td');
-            cell.colSpan = 4;
-            cell.textContent = '目前沒有買單';
-            cell.className = 'text-center text-muted';
-            row.appendChild(cell);
-            buyTb.appendChild(row);
-        }
-
-        // 更新賣單列表 (公共)
-        const sellTb = document.querySelector('#sell-offers tbody');
-        sellTb.innerHTML = '';
-        if (data.sell_offers && data.sell_offers.length) {
-            data.sell_offers.forEach(o => {
-                const row = document.createElement('tr');
-                // 單價
-                const c1 = document.createElement('td');
-                c1.textContent = o.price;
-                c1.className = 'text-danger font-weight-bold';
-                row.appendChild(c1);
-                // 數量
-                const c3 = document.createElement('td');
-                c3.textContent = o.quantity;
-                row.appendChild(c3);
-                // 總價
-                const tp = o.price * o.quantity;
-                const c2 = document.createElement('td');
-                c2.textContent = tp;
-                c2.className = 'text-primary';
-                row.appendChild(c2);
-                // 操作
-                const c4 = document.createElement('td');
-                
-                // 只有當不是自己的掛單時，才顯示"接受"按鈕
-                if (o.player_id != playerId) {
-                    const btn = document.createElement('button');
-                    btn.className = 'btn btn-success btn-sm';
-                    btn.textContent = '接受';
-                    btn.onclick = e => { e.preventDefault(); acceptOffer('sell', o.player_id, o.price, o.quantity); };
-                    c4.appendChild(btn);
-                } else {
-                    // 如果是自己的掛單，顯示"我的掛單"提示
-                    const badge = document.createElement('span');
-                    badge.className = 'badge badge-secondary';
-                    badge.textContent = '我的掛單';
-                    c4.appendChild(badge);
-                }
-                
-                row.appendChild(c4);
-                sellTb.appendChild(row);
-            });
-        }
-        // 如果沒有賣單顯示提示
-        if (!sellTb.hasChildNodes()) {
-            const row = document.createElement('tr');
-            const cell = document.createElement('td');
-            cell.colSpan = 4;
-            cell.textContent = '目前沒有賣單';
-            cell.className = 'text-center text-muted';
-            row.appendChild(cell);
-            sellTb.appendChild(row);
-        }
-        
-        // 更新交易歷史
-        const historyTb = document.querySelector('#trade-history-body');
-        historyTb.innerHTML = '';
-        if (data.trade_history && data.trade_history.length) {
-            // 按照時間戳排序，最新的在最上面
-            const sortedHistory = [...data.trade_history].sort((a, b) => {
-                // 兼容不同格式的時間戳
-                const timeA = a.timestamp || a.time || 0;
-                const timeB = b.timestamp || b.time || 0;
-                return typeof timeB === 'string' ? timeB.localeCompare(timeA) : timeB - timeA;
-            });
-            
-            sortedHistory.reverse().forEach(t => {
-                const row = document.createElement('tr');
-                
-                // 時間 - 修正時間格式處理
-                const c1 = document.createElement('td');
-                if (t.timestamp && typeof t.timestamp === 'string' && t.timestamp.match(/^\d{2}:\d{2}$/)) {
-                    // 如果已經是 MM:SS 格式
-                    c1.textContent = t.timestamp;
-                } else if (t.time) {
-                    // 如果有 time 屬性
-                    c1.textContent = t.time;
-                } else if (typeof t.timestamp === 'number') {
-                    // 如果是數字時間戳，轉換為分:秒格式
-                    try {
-                        const elapsedSeconds = t.timestamp - startTime;
-                        if (elapsedSeconds >= 0) {
-                            const minutes = Math.floor(elapsedSeconds / 60);
-                            const seconds = elapsedSeconds % 60;
-                            c1.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                        } else {
-                            c1.textContent = new Date(t.timestamp * 1000).toLocaleTimeString();
-                        }
-                    } catch (e) {
-                        c1.textContent = "時間格式錯誤";
-                        log(`時間格式錯誤: ${t.timestamp}, ${e.message}`);
-                    }
-                } else {
-                    // 預設情況
-                    c1.textContent = "未知時間";
-                }
-                c1.className = 'small';
-                row.appendChild(c1);
-                
-                // 價格
-                const c2 = document.createElement('td');
-                c2.textContent = t.price;
-                c2.className = 'font-weight-bold';
-                row.appendChild(c2);
-                
-                // 數量
-                const c3 = document.createElement('td');
-                c3.textContent = t.quantity;
-                row.appendChild(c3);
-                
-                // 交易類型
-                const c4 = document.createElement('td');
-                
-                // 簡化顯示：根據當前玩家角色顯示買入或賣出
-                if (t.buyer_id == playerId) {
-                    c4.textContent = '買入';
-                    c4.className = 'text-success font-weight-bold';
-                    row.className = 'table-success';
-                } else if (t.seller_id == playerId) {
-                    c4.textContent = '賣出';
-                    c4.className = 'text-danger font-weight-bold';
-                    row.className = 'table-danger';
-                } else {
-                    // 其他玩家交易顯示為其他交易，使用中性樣式
-                    c4.textContent = '其他交易';
-                    c4.className = 'text-muted';
-                    row.className = 'table-light';
-                }
-                row.appendChild(c4);
-                
-                historyTb.appendChild(row);
-            });
-        } else {
-            const row = document.createElement('tr');
-            const cell = document.createElement('td');
-            cell.colSpan = 4;
-            cell.textContent = '尚無交易記錄';
-            cell.className = 'text-center text-muted';
-            row.appendChild(cell);
-            historyTb.appendChild(row);
-        }
-
-    } catch (error) {
-        log(`更新市場錯誤: ${error.message}`);
-        showStatus(`更新失敗: ${error.message}`, 'danger', 5000);
-        isProcessingAction = false;
-    }
-}
-
-/** 提交掛單 **/
+/** 提交掛單 - 修復：統一使用 submit_offer **/
 function submitOffer() {
     if (isProcessingAction) return false;
     
-    // 先檢查輸入值是否有效
     const priceInput = document.getElementById('price');
     const quantityInput = document.getElementById('quantity');
     
@@ -1055,11 +472,10 @@ function submitOffer() {
     const price = parseInt(priceInput.value);
     const quantity = parseInt(quantityInput.value);
 
-    // 詳細日誌輸出
     log(`嘗試提交掛單: ${dir}, 價格 ${price}, 數量 ${quantity}`);
     log(`當前資源: 現金=${document.getElementById('cash').innerText}, 物品=${document.getElementById('items').innerText}`);
 
-    // 資源檢查 - 買單邏輯改為無限制掛單，只要單一買單不超過持有現金數量即可
+    // 資源檢查
     if (dir === 'buy' && price * quantity > parseInt(document.getElementById('cash').innerText)) {
         showStatus(`單一買單金額不能超過持有現金！需要 ${price * quantity}，但您只有 ${document.getElementById('cash').innerText}`, 'warning', 5000);
         return false;
@@ -1067,9 +483,8 @@ function submitOffer() {
     
     if (dir === 'sell' && parseInt(document.getElementById('items').innerText) < quantity) {
         const currentItems = parseInt(document.getElementById('items').innerText);
-        showStatus(`${item_name}不足！您想要賣出 ${quantity} 個{{ item_name }}，但目前只持有 ${currentItems} 個{{ item_name }}。請調整賣出數量。`, 'warning', 5000);
+        showStatus(`{{ item_name }}不足！您想要賣出 ${quantity} 個{{ item_name }}，但目前只持有 ${currentItems} 個{{ item_name }}。請調整賣出數量。`, 'warning', 5000);
         
-        // 自動調整數量輸入框為最大可用量
         if (currentItems > 0) {
             document.getElementById('quantity').value = currentItems;
             updateQuantityDisplay();
@@ -1083,12 +498,11 @@ function submitOffer() {
     isProcessingAction = true;
     submitBtn.disabled = true;
 
-    // 發送請求並設置超時
-    const requestData = { type:'place_order', direction: dir, price, quantity };
+    // 修復：統一使用 submit_offer
+    const requestData = { type:'submit_offer', direction: dir, price, quantity };
     log(`發送請求: ${JSON.stringify(requestData)}`);
     liveSend(requestData);
     
-    // 設置超時處理
     setTimeout(() => {
         if (isProcessingAction) {
             submitBtn.disabled = false;
@@ -1100,11 +514,10 @@ function submitOffer() {
     return false;
 }
 
-/** 接受掛單 **/
+/** 接受掛單 - 修復：統一參數名稱 **/
 function acceptOffer(type, pid, price, qty) {
     if (isProcessingAction) return false;
     
-    // 確保不能與自己交易
     if (pid == playerId) {
         showStatus('不能與自己交易！', 'danger', 3000);
         return false;
@@ -1113,7 +526,7 @@ function acceptOffer(type, pid, price, qty) {
     log(`嘗試接受掛單: ${type}, 玩家 ${pid}, 價格 ${price}, 數量 ${qty}`);
     log(`當前資源: 現金=${document.getElementById('cash').innerText}, 物品=${document.getElementById('items').innerText}`);
     
-    // 資源檢查 - 買單邏輯改為無限制掛單，只要單一買單不超過持有現金數量即可
+    // 資源檢查
     if (type === 'sell' && price * qty > parseInt(document.getElementById('cash').innerText)) {
         showStatus(`現金不足！需要 ${price * qty}，但您只有 ${document.getElementById('cash').innerText}`, 'warning', 5000);
         return false;
@@ -1121,7 +534,7 @@ function acceptOffer(type, pid, price, qty) {
     
     if (type === 'buy'  && parseInt(document.getElementById('items').innerText) < qty) {
         const currentItems = parseInt(document.getElementById('items').innerText);
-        showStatus(`${item_name}不足！您想要賣出 ${qty} 個{{ item_name }}，但目前只持有 ${currentItems} 個{{ item_name }}。無法接受此買單。`, 'warning', 5000);
+        showStatus(`{{ item_name }}不足！您想要賣出 ${qty} 個{{ item_name }}，但目前只持有 ${currentItems} 個{{ item_name }}。無法接受此買單。`, 'warning', 5000);
         return false;
     }
     
@@ -1130,6 +543,7 @@ function acceptOffer(type, pid, price, qty) {
     isProcessingAction = true;
     document.querySelectorAll('.btn').forEach(b => b.disabled = true);
     
+    // 修復：統一參數名稱
     const requestData = { type:'accept_offer', offer_type: type, player_id: pid, price, quantity: qty };
     log(`發送請求: ${JSON.stringify(requestData)}`);
     liveSend(requestData);
@@ -1145,7 +559,7 @@ function acceptOffer(type, pid, price, qty) {
     return false;
 }
 
-/** 取消掛單 **/
+/** 取消掛單 - 修復：統一使用 cancel_offer **/
 function cancelOffer(dir, price, qty) {
     if (isProcessingAction) return false;
     
@@ -1155,6 +569,7 @@ function cancelOffer(dir, price, qty) {
     isProcessingAction = true;
     document.querySelectorAll('.btn').forEach(b => b.disabled = true);
     
+    // 修復：統一使用 cancel_offer
     const requestData = { type:'cancel_offer', direction: dir, price, quantity: qty };
     log(`發送請求: ${JSON.stringify(requestData)}`);
     liveSend(requestData);
@@ -1170,46 +585,15 @@ function cancelOffer(dir, price, qty) {
     return false;
 }
 
-/** 倒計時更新 **/
-setInterval(() => {
-    if (countdown > 0) {
-        countdown -= 1;
-        cdDisplay.innerText = countdown;
-        if (countdown <= 30) {
-            timerEl.style.color = (countdown % 2 ? 'red' : 'black');
-        }
-    }
-}, 1000);
-
-/** 處理 oTree 回傳 **/
+/** 處理 oTree 回傳 - 修復：統一數據處理邏輯 **/
 function processOtreeResponse(data) {
     try {
         log(`接收原始數據: ${JSON.stringify(data).slice(0,200)}...`);
-
-        // 添加這一行：兼容 MUDA 的 items 字段
-        if (data.items !== undefined && data.permits === undefined) {
-            data.permits = data.items;
-        }
-        
-        // 重置重試計數器（如果有的話）
-        if (typeof pingRetryCount !== 'undefined') {
-            pingRetryCount = 0;
-        }
         
         // 重置處理狀態
         if (isProcessingAction) {
             isProcessingAction = false;
             log('收到回應，重置處理狀態');
-        }
-        
-        // 如果正在顯示連接相關的狀態，清除它
-        const statusEl = document.getElementById('status-message');
-        if (statusEl && (
-            statusEl.textContent.includes('連接') || 
-            statusEl.textContent.includes('同步') ||
-            statusEl.textContent.includes('重新連接')
-        )) {
-            statusEl.parentElement.style.display = 'none';
         }
         
         let playerData = null;
@@ -1218,11 +602,10 @@ function processOtreeResponse(data) {
         if (data[playerId]) { 
             playerData = data[playerId];
             log(`找到玩家 ${playerId} 的數據`);
-        } else if (data.type === 'update') { 
+        } else if (data.type === 'update' || data.type === 'market_update') { 
             playerData = data;
             log(`找到更新類型數據`);
         } else if (data.cash !== undefined && data.items !== undefined) {
-            // 直接接受具有必要字段的數據
             playerData = data;
             log('直接使用數據');
         } else {
@@ -1237,7 +620,6 @@ function processOtreeResponse(data) {
         
         if (!playerData) {
             log('未找到有效的玩家數據');
-            // 重置處理狀態並顯示錯誤
             if (isProcessingAction) {
                 isProcessingAction = false;
                 document.querySelectorAll('.btn').forEach(b => b.disabled = false);
@@ -1254,33 +636,29 @@ function processOtreeResponse(data) {
                 document.querySelectorAll('.btn').forEach(b => b.disabled = false);
             }
             showStatus(playerData.message || '操作失敗，請重試', 'danger', 5000);
-            // 仍然更新基本資源顯示
             if (playerData.cash !== undefined) {
                 document.getElementById('cash').innerText = playerData.cash;
             }
             if (playerData.items !== undefined) {
                 document.getElementById('items').innerText = playerData.items;
             }
-            return true; // 返回 true 表示已處理
+            return true;
         }
         
-        // 處理 notifications（新格式）
+        // 處理通知
         if (playerData.notifications && playerData.notifications[playerId]) {
             const message = playerData.notifications[playerId];
-            let alertType = 'info';  // 預設類型
+            let alertType = 'info';
             
-            // 根據回應類型決定警告樣式
             if (playerData.type === 'fail') {
-                alertType = 'danger';  // 錯誤訊息用紅色
+                alertType = 'danger';
             } else if (playerData.type === 'trade_executed') {
-                alertType = 'success';  // 成功訊息用綠色
+                alertType = 'success';
             }
             
             showStatus(message, alertType, 5000);
             log(`顯示通知: [${alertType}] ${message}`);
-        }
-        // 處理舊格式的 notification（相容性）
-        else if (playerData.notification) {
+        } else if (playerData.notification) {
             let notificationType = playerData.notification.type || 'info';
             if (notificationType === 'error') {
                 notificationType = 'danger';
@@ -1288,61 +666,19 @@ function processOtreeResponse(data) {
             showStatus(playerData.notification.message, notificationType, 5000);
         }
         
-        // 更新顯示可用資源
+        // 更新顯示資源
         if (playerData.cash !== undefined) {
             document.getElementById('cash').innerText = playerData.cash;
         }
         
         if (playerData.items !== undefined) {
             document.getElementById('items').innerText = playerData.items;
+            // 更新總價值顯示
+            const totalItemValue = playerData.items * personalItemValue;
+            document.getElementById('total-item-value').innerText = totalItemValue;
+            document.getElementById('items-display').innerText = playerData.items;
         }
         
-        // 更新交易歷史
-        if (playerData.trade_history) {
-            log(`更新交易歷史: ${JSON.stringify(playerData.trade_history).slice(0,200)}...`);
-            updateTradeHistory(playerData.trade_history);
-        }
-        
-        // 計算已保留資源
-        const { cash: reservedCash, items: reservedItems } = reservedFromOffers(
-            playerData.my_buy_offers || [], 
-            playerData.my_sell_offers || []
-        );
-        
-        // 添加已保留資源提示
-        // 買單邏輯改為無限制掛單，不再顯示現金保留量
-        // if (reservedCash > 0) {
-        //     const cashEl = document.getElementById('cash').parentNode;
-        //     if (!document.getElementById('reserved-cash-info')) {
-        //         const reservedInfo = document.createElement('small');
-        //         reservedInfo.id = 'reserved-cash-info';
-        //         reservedInfo.className = 'text-muted d-block';
-        //         reservedInfo.innerHTML = `(其中 <b>${reservedCash}</b> 已用於買單)`;
-        //         cashEl.appendChild(reservedInfo);
-        //     } else {
-        //         document.getElementById('reserved-cash-info').innerHTML = 
-        //             `(其中 <b>${reservedCash}</b> 已用於買單)`;
-        //     }
-        // } else if (document.getElementById('reserved-cash-info')) {
-        //     document.getElementById('reserved-cash-info').remove();
-        // }
-        
-        if (reservedItems > 0) {
-            const itemsEl = document.getElementById('items').parentNode;
-            if (!document.getElementById('reserved-items-info')) {
-                const reservedInfo = document.createElement('small');
-                reservedInfo.id = 'reserved-items-info';
-                reservedInfo.className = 'text-muted d-block';
-                reservedInfo.innerHTML = `(其中 <b>${reservedItems}</b> 已用於賣單)`;
-                itemsEl.appendChild(reservedInfo);
-            } else {
-                document.getElementById('reserved-items-info').innerHTML = 
-                    `(其中 <b>${reservedItems}</b> 已用於賣單)`;
-            }
-        } else if (document.getElementById('reserved-items-info')) {
-            document.getElementById('reserved-items-info').remove();
-        }
-
         updateSellButtonState();
 
         // 更新我的買單列表
@@ -1351,22 +687,22 @@ function processOtreeResponse(data) {
         if (playerData.my_buy_offers && playerData.my_buy_offers.length) {
             playerData.my_buy_offers.forEach(o => {
                 const row = document.createElement('tr');
-                // 單價
+                
                 const c1 = document.createElement('td');
                 c1.textContent = o.price;
                 c1.className = 'text-success font-weight-bold';
                 row.appendChild(c1);
-                // 數量
+                
                 const c3 = document.createElement('td');
                 c3.textContent = o.quantity;
                 row.appendChild(c3);
-                // 總價
+                
                 const tp = o.price * o.quantity;
                 const c2 = document.createElement('td');
                 c2.textContent = tp;
                 c2.className = 'text-primary';
                 row.appendChild(c2);
-                // 取消按鈕
+                
                 const c4 = document.createElement('td');
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-danger btn-sm';
@@ -1374,6 +710,7 @@ function processOtreeResponse(data) {
                 btn.onclick = e => { e.preventDefault(); cancelOffer('buy', o.price, o.quantity); };
                 c4.appendChild(btn);
                 row.appendChild(c4);
+                
                 myBuyTb.appendChild(row);
             });
         } else {
@@ -1392,22 +729,22 @@ function processOtreeResponse(data) {
         if (playerData.my_sell_offers && playerData.my_sell_offers.length) {
             playerData.my_sell_offers.forEach(o => {
                 const row = document.createElement('tr');
-                // 單價
+                
                 const c1 = document.createElement('td');
                 c1.textContent = o.price;
                 c1.className = 'text-danger font-weight-bold';
                 row.appendChild(c1);
-                // 數量
+                
                 const c3 = document.createElement('td');
                 c3.textContent = o.quantity;
                 row.appendChild(c3);
-                // 總價
+                
                 const tp = o.price * o.quantity;
                 const c2 = document.createElement('td');
                 c2.textContent = tp;
                 c2.className = 'text-primary';
                 row.appendChild(c2);
-                // 取消按鈕
+                
                 const c4 = document.createElement('td');
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-danger btn-sm';
@@ -1415,6 +752,7 @@ function processOtreeResponse(data) {
                 btn.onclick = e => { e.preventDefault(); cancelOffer('sell', o.price, o.quantity); };
                 c4.appendChild(btn);
                 row.appendChild(c4);
+                
                 mySellTb.appendChild(row);
             });
         } else {
@@ -1433,25 +771,24 @@ function processOtreeResponse(data) {
         if (playerData.buy_offers && playerData.buy_offers.length) {
             playerData.buy_offers.forEach(o => {
                 const row = document.createElement('tr');
-                // 單價
+                
                 const c1 = document.createElement('td');
                 c1.textContent = o.price;
                 c1.className = 'text-success font-weight-bold';
                 row.appendChild(c1);
-                // 數量
+                
                 const c3 = document.createElement('td');
                 c3.textContent = o.quantity;
                 row.appendChild(c3);
-                // 總價
+                
                 const tp = o.price * o.quantity;
                 const c2 = document.createElement('td');
                 c2.textContent = tp;
                 c2.className = 'text-primary';
                 row.appendChild(c2);
-                // 操作
+                
                 const c4 = document.createElement('td');
                 
-                // 只有當不是自己的掛單時，才顯示"接受"按鈕
                 if (o.player_id != playerId) {
                     const btn = document.createElement('button');
                     btn.className = 'btn btn-success btn-sm';
@@ -1459,7 +796,6 @@ function processOtreeResponse(data) {
                     btn.onclick = e => { e.preventDefault(); acceptOffer('buy', o.player_id, o.price, o.quantity); };
                     c4.appendChild(btn);
                 } else {
-                    // 如果是自己的掛單，顯示"我的掛單"提示
                     const badge = document.createElement('span');
                     badge.className = 'badge badge-secondary';
                     badge.textContent = '我的掛單';
@@ -1470,7 +806,7 @@ function processOtreeResponse(data) {
                 buyTb.appendChild(row);
             });
         }
-        // 如果沒有買單顯示提示
+        
         if (!buyTb.hasChildNodes()) {
             const row = document.createElement('tr');
             const cell = document.createElement('td');
@@ -1487,25 +823,24 @@ function processOtreeResponse(data) {
         if (playerData.sell_offers && playerData.sell_offers.length) {
             playerData.sell_offers.forEach(o => {
                 const row = document.createElement('tr');
-                // 單價
+                
                 const c1 = document.createElement('td');
                 c1.textContent = o.price;
                 c1.className = 'text-danger font-weight-bold';
                 row.appendChild(c1);
-                // 數量
+                
                 const c3 = document.createElement('td');
                 c3.textContent = o.quantity;
                 row.appendChild(c3);
-                // 總價
+                
                 const tp = o.price * o.quantity;
                 const c2 = document.createElement('td');
                 c2.textContent = tp;
                 c2.className = 'text-primary';
                 row.appendChild(c2);
-                // 操作
+                
                 const c4 = document.createElement('td');
                 
-                // 只有當不是自己的掛單時，才顯示"接受"按鈕
                 if (o.player_id != playerId) {
                     const btn = document.createElement('button');
                     btn.className = 'btn btn-success btn-sm';
@@ -1513,7 +848,6 @@ function processOtreeResponse(data) {
                     btn.onclick = e => { e.preventDefault(); acceptOffer('sell', o.player_id, o.price, o.quantity); };
                     c4.appendChild(btn);
                 } else {
-                    // 如果是自己的掛單，顯示"我的掛單"提示
                     const badge = document.createElement('span');
                     badge.className = 'badge badge-secondary';
                     badge.textContent = '我的掛單';
@@ -1524,7 +858,7 @@ function processOtreeResponse(data) {
                 sellTb.appendChild(row);
             });
         }
-        // 如果沒有賣單顯示提示
+        
         if (!sellTb.hasChildNodes()) {
             const row = document.createElement('tr');
             const cell = document.createElement('td');
@@ -1539,67 +873,65 @@ function processOtreeResponse(data) {
         const historyTb = document.querySelector('#trade-history-body');
         historyTb.innerHTML = '';
         if (playerData.trade_history && playerData.trade_history.length) {
-            // 按照時間戳排序，最新的在最上面
-            const sortedHistory = [...playerData.trade_history].sort((a, b) => b.timestamp - a.timestamp);
+            const sortedHistory = [...playerData.trade_history].sort((a, b) => {
+                const timeA = a.timestamp || a.time || 0;
+                const timeB = b.timestamp || b.time || 0;
+                return typeof timeB === 'string' ? timeB.localeCompare(timeA) : timeB - timeA;
+            });
             
-            sortedHistory.reverse().forEach(t => {
+            sortedHistory.forEach(trade => {
                 const row = document.createElement('tr');
                 
-                // 時間 - 修正時間格式處理
-                const c1 = document.createElement('td');
-                if (t.timestamp && typeof t.timestamp === 'string' && t.timestamp.match(/^\d{2}:\d{2}$/)) {
-                    // 如果已經是 MM:SS 格式
-                    c1.textContent = t.timestamp;
-                } else if (t.time) {
-                    // 如果有 time 屬性
-                    c1.textContent = t.time;
-                } else if (typeof t.timestamp === 'number') {
-                    // 如果是數字時間戳，轉換為分:秒格式
+                const timeCell = document.createElement('td');
+                if (trade.timestamp && typeof trade.timestamp === 'string' && trade.timestamp.match(/^\d{2}:\d{2}$/)) {
+                    timeCell.textContent = trade.timestamp;
+                } else if (trade.time) {
+                    timeCell.textContent = trade.time;
+                } else if (typeof trade.timestamp === 'number') {
                     try {
-                        const elapsedSeconds = t.timestamp - startTime;
+                        const elapsedSeconds = trade.timestamp - startTime;
                         if (elapsedSeconds >= 0) {
                             const minutes = Math.floor(elapsedSeconds / 60);
                             const seconds = elapsedSeconds % 60;
-                            c1.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                            timeCell.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                         } else {
-                            c1.textContent = new Date(t.timestamp * 1000).toLocaleTimeString();
+                            timeCell.textContent = new Date(trade.timestamp * 1000).toLocaleTimeString();
                         }
                     } catch (e) {
-                        c1.textContent = "時間格式錯誤";
-                        log(`時間格式錯誤: ${t.timestamp}, ${e.message}`);
+                        timeCell.textContent = "時間格式錯誤";
+                        log(`時間格式錯誤: ${trade.timestamp}, ${e.message}`);
                     }
                 } else {
-                    // 預設情況
-                    c1.textContent = "未知時間";
+                    timeCell.textContent = "未知時間";
                 }
-                c1.className = 'small';
-                row.appendChild(c1);
+                timeCell.className = 'small';
+                row.appendChild(timeCell);
                 
-                // 價格
-                const c2 = document.createElement('td');
-                c2.textContent = t.price;
-                c2.className = 'font-weight-bold';
-                row.appendChild(c2);
+                const priceCell = document.createElement('td');
+                priceCell.textContent = trade.price;
+                priceCell.className = 'font-weight-bold';
+                row.appendChild(priceCell);
                 
-                // 數量
-                const c3 = document.createElement('td');
-                c3.textContent = t.quantity;
-                row.appendChild(c3);
+                const quantityCell = document.createElement('td');
+                quantityCell.textContent = trade.quantity;
+                row.appendChild(quantityCell);
                 
-                // 交易類型
-                const c4 = document.createElement('td');
-                if (t.buyer_id === playerId) {
-                    c4.textContent = '買入';
-                    c4.className = 'text-success';
+                const typeCell = document.createElement('td');
+                
+                if (trade.buyer_id == playerId) {
+                    typeCell.textContent = '買入';
+                    typeCell.className = 'text-success font-weight-bold';
                     row.className = 'table-success';
-                } else if (t.seller_id === playerId) {
-                    c4.textContent = '賣出';
-                    c4.className = 'text-danger';
+                } else if (trade.seller_id == playerId) {
+                    typeCell.textContent = '賣出';
+                    typeCell.className = 'text-danger font-weight-bold';
                     row.className = 'table-danger';
                 } else {
-                    c4.textContent = '其他';
+                    typeCell.textContent = '其他交易';
+                    typeCell.className = 'text-muted';
+                    row.className = 'table-light';
                 }
-                row.appendChild(c4);
+                row.appendChild(typeCell);
                 
                 historyTb.appendChild(row);
             });
@@ -1613,7 +945,6 @@ function processOtreeResponse(data) {
             historyTb.appendChild(row);
         }
 
-        // 明確返回成功
         return true;
 
     } catch (error) {
@@ -1628,7 +959,6 @@ function processOtreeResponse(data) {
 window.liveRecv = function(data) {
     document.querySelectorAll('.btn').forEach(b => b.disabled = false);
     
-    // 檢查資料是否為空或格式不正確
     if (!data || typeof data !== 'object') {
         log('收到無效數據格式');
         showStatus('伺服器返回數據格式錯誤，正在重試...', 'warning', 2000);
@@ -1636,37 +966,14 @@ window.liveRecv = function(data) {
         return false;
     }
     
-    // 嘗試處理數據
     if (!processOtreeResponse(data)) {
         log('數據處理失敗，嘗試重新獲取');
-        
-        // 如果有定義 pingRetryCount
-        if (typeof pingRetryCount !== 'undefined') {
-            pingRetryCount++;  // 增加重試計數
-            
-            if (pingRetryCount <= 1) {
-                showStatus('正在同步交易資料...', 'info', 2000);
-            } else if (pingRetryCount <= MAX_PING_RETRIES) {
-                showStatus(`第 ${pingRetryCount} 次嘗試同步交易資料...`, 'info', 2000);
-            } else {
-                showStatus('同步失敗，請刷新頁面重試', 'danger', 0);
-                return false;
-            }
-        } else {
-            showStatus('正在同步交易資料...', 'info', 2000);
-        }
-        
+        showStatus('正在同步交易資料...', 'info', 2000);
         setTimeout(() => liveSend({ type: 'ping' }), 2000);
-    } else if (typeof pingRetryCount !== 'undefined') {
-        pingRetryCount = 0;  // 成功後重置計數器
     }
     
     return false;
 };
-
-// 添加連接重試計數器
-let pingRetryCount = 0;
-const MAX_PING_RETRIES = 5;
 
 /** 首次載入與定時 ping **/
 window.addEventListener('load', e => {
@@ -1678,18 +985,12 @@ window.addEventListener('load', e => {
     updateQuantityDisplay();
     updateTotalPrice();
     updateSellButtonState();
-    setupInputValidation();  // 設置輸入驗證
-    if (DEBUG) document.getElementById('debug-controls').style.display = 'flex';
+    setupInputValidation();
     return false;
 });
 
 setInterval(() => {
     if (!isProcessingAction) {
-        // 如果有計數器且大於0，則顯示重試信息
-        if (pingRetryCount > 0 && pingRetryCount <= MAX_PING_RETRIES) {
-            showStatus(`正在重新連接交易系統 (${pingRetryCount}/${MAX_PING_RETRIES})...`, 'warning');
-            pingRetryCount++;
-        }
         liveSend({ type: 'ping' });
     }
 }, 15000);
@@ -1703,65 +1004,11 @@ document.addEventListener('click', e => {
         return false;
     }
 });
-window.addEventListener('beforeunload', e => {
-    if (isProcessingAction) {
-        const msg = '操作尚未完成，確定要離開？';
-        e.returnValue = msg;
-        return msg;
-    }
-});
 
-// 添加這個輔助函數到 JavaScript 部分
-function getRelativeTimeString(timestamp) {
-    // 如果已經是 MM:SS 格式，直接返回
-    if (typeof timestamp === 'string' && timestamp.match(/^\d{2}:\d{2}$/)) {
-        return timestamp;
-    }
-    
-    // 確保 startTime 有效
-    if (typeof startTime !== 'number' || isNaN(startTime)) {
-        log('警告: startTime 無效或未定義');
-        return "00:00";
-    }
-    
-    // 處理數字時間戳
-    if (typeof timestamp === 'number' && !isNaN(timestamp)) {
-        try {
-            // 計算相對時間（相對於 startTime）
-            const elapsedSeconds = timestamp - startTime;
-            if (elapsedSeconds >= 0) {
-                const minutes = Math.floor(elapsedSeconds / 60);
-                const seconds = elapsedSeconds % 60;
-                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            } else {
-                // 如果時間戳早於 startTime，使用本地時間格式
-                return new Date(timestamp * 1000).toLocaleTimeString();
-            }
-        } catch (e) {
-            log(`計算相對時間錯誤: ${e.message}`);
-            return "時間錯誤";
-        }
-    }
-    
-    // 預設情況，使用當前時間
-    try {
-        const now = Math.floor(Date.now()/1000);
-        const elapsedSeconds = now - startTime;
-        const minutes = Math.floor(elapsedSeconds / 60);
-        const seconds = elapsedSeconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    } catch (e) {
-        log(`時間計算錯誤: ${e.message}`);
-        return "00:00";
-    }
-}
-
-// 添加焦點失去事件處理器，確保最終輸入有效
 function setupInputValidation() {
     const priceInput = document.getElementById('price');
     const quantityInput = document.getElementById('quantity');
     
-    // 設置失去焦點時的驗證
     priceInput.addEventListener('blur', function() {
         if (this.value !== '' && parseInt(this.value) < 1) {
             this.value = '';
@@ -1776,74 +1023,6 @@ function setupInputValidation() {
         }
     });
 }
-
-// 添加強制重置功能
-function forceReset() {
-    log('執行強制重置');
-    isProcessingAction = false;
-    document.querySelectorAll('.btn').forEach(b => b.disabled = false);
-    showStatus('已強制重置系統狀態', 'info', 3000);
-    
-    // 發送 ping 重新同步
-    setTimeout(() => {
-        liveSend({ type: 'ping' });
-    }, 1000);
-    
-    return false;
-}
-
-// 添加測試數據處理函數
-function testDataProcessing() {
-    // 創建測試數據
-    const testData = {
-        cash: 1000,
-        items: 5,
-        my_buy_offers: [{player_id: playerId, price: 50, quantity: 2}],
-        my_sell_offers: [{player_id: playerId, price: 70, quantity: 1}],
-        buy_offers: [{player_id: playerId, price: 50, quantity: 2}, {player_id: playerId+1, price: 45, quantity: 3}],
-        sell_offers: [{player_id: playerId, price: 70, quantity: 1}, {player_id: playerId+1, price: 75, quantity: 2}],
-        trade_history: [
-            {timestamp: "05:23", buyer_id: playerId, seller_id: playerId+1, price: 60, quantity: 2},
-            {timestamp: Math.floor(Date.now()/1000), buyer_id: playerId+1, seller_id: playerId, price: 65, quantity: 1}
-        ]
-    };
-    
-    // 顯示測試數據
-    log(`測試數據處理函數，使用模擬數據: ${JSON.stringify(testData)}`);
-    showStatus('正在測試數據處理...', 'info');
-    
-    // 調用處理函數
-    try {
-        const result = processOtreeResponse(testData);
-        if (result === true) {
-            showStatus('測試數據處理成功！', 'success', 3000);
-            log('測試數據處理成功，返回值: true');
-        } else {
-            showStatus('測試數據處理失敗，返回值不是 true', 'danger', 0);
-            log(`測試數據處理失敗，返回值: ${result}`);
-        }
-    } catch (error) {
-        showStatus(`測試數據處理出錯: ${error.message}`, 'danger', 0);
-        log(`測試數據處理錯誤: ${error.message}`);
-        console.error(error);
-    }
-    
-    return false;
-}
-
-// 初始化總碳權價值
-function initializeTotalItemValue() {
-    const items = parseInt(document.getElementById('items').innerText) || 0;
-    const totalValue = items * personalItemValue;
-    document.getElementById('total-item-value').innerText = totalValue;
-    document.getElementById('items-display').innerText = items;
-}
-
-// 在頁面載入完成後初始化
-document.addEventListener('DOMContentLoaded', function() {
-    initializeTotalItemValue();
-    // 其他初始化代碼...
-});
 </script>
 
 {% endblock %}
