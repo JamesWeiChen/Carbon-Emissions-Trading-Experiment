@@ -289,33 +289,19 @@ class TradingMarket(Page):
             all_sell_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
                              for pid, price, qt in sell_sorted]
             
-            # 合併顯示同單位掛單邏輯
-            public_buy_offers = []
-            public_sell_offers = []
+            # 修改：使用新的過濾函數，每個數量級別顯示最好的3筆
+            display_buy_orders = filter_top_buy_orders_for_display(buy_sorted, max_per_quantity=3)
+            display_sell_orders = filter_top_sell_orders_for_display(sell_sorted, max_per_quantity=3)
             
-            # 按數量分組，只保留每組中最高買價/最低賣價
-            qty_buy_map = {}
-            for offer in all_buy_offers:
-                qty = offer['quantity']
-                if qty not in qty_buy_map or offer['price'] > qty_buy_map[qty]['price']:
-                    qty_buy_map[qty] = offer
+            # 轉換為前端格式
+            public_buy_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
+                               for pid, price, qt in display_buy_orders]
+            public_sell_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
+                                for pid, price, qt in display_sell_orders]
             
-            qty_sell_map = {}
-            for offer in all_sell_offers:
-                qty = offer['quantity']
-                if qty not in qty_sell_map or offer['price'] < qty_sell_map[qty]['price']:
-                    qty_sell_map[qty] = offer
-            
-            # 將合併後的訂單添加到公共列表
-            for qty, offer in qty_buy_map.items():
-                public_buy_offers.append(offer)
-            
-            for qty, offer in qty_sell_map.items():
-                public_sell_offers.append(offer)
-            
-            # 排序
+            # 排序（保持原有的排序邏輯）
             public_buy_offers.sort(key=lambda x: (-x['price'], x['player_id']))
-            public_sell_offers.sort(key=lambda x: (x['price'], x['player_id']))
+            public_sell_orders.sort(key=lambda x: (x['price'], x['player_id']))
             
         except Exception as e:
             my_buy_offers = []
