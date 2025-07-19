@@ -27,7 +27,10 @@ from utils.trading_utils import (
     calculate_locked_resources,
     TradingError,
     InsufficientResourcesError,
-    InvalidOrderError
+    InvalidOrderError,
+    filter_top_orders_for_display,
+    filter_top_buy_orders_for_display,
+    filter_top_sell_orders_for_display
 )
 from configs.config import config
 
