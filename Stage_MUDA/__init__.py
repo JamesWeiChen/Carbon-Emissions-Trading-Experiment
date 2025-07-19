@@ -16,7 +16,10 @@ from utils.trading_utils import (
     save_orders,
     process_new_order,
     process_accept_offer,
-    TradingError
+    TradingError,
+    filter_top_orders_for_display,
+    filter_top_buy_orders_for_display,
+    filter_top_sell_orders_for_display
 )
 from configs.config import config
 
