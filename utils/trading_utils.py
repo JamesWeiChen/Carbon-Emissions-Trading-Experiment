@@ -274,11 +274,11 @@ def find_matching_orders(
         # 檢查價格匹配
         if is_buy_order:
             # 買單：尋找價格不高於出價的賣單
-            if order_price <= price and order_quantity >= quantity:
+            if order_price <= price and order_quantity == quantity:
                 matching_orders.append((i, order))
         else:
             # 賣單：尋找價格不低於要價的買單
-            if order_price >= price and order_quantity >= quantity:
+            if order_price >= price and order_quantity == quantity:
                 matching_orders.append((i, order))
     
     return matching_orders
