@@ -1185,6 +1185,11 @@ setInterval(() => {
 function processOtreeResponse(data) {
     try {
         log(`接收原始數據: ${JSON.stringify(data).slice(0,200)}...`);
+
+        // 添加這一行：兼容 MUDA 的 items 字段
+        if (data.items !== undefined && data.permits === undefined) {
+            data.permits = data.items;
+        }
         
         // 重置重試計數器（如果有的話）
         if (typeof pingRetryCount !== 'undefined') {
