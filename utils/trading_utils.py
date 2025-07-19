@@ -529,3 +529,86 @@ def calculate_locked_resources(
     )
     
     return locked_cash, locked_items
+
+def filter_top_orders_for_display(orders: List[List], max_per_quantity: int = 3) -> List[List]:
+    """
+    為顯示過濾訂單，每個數量級別保留最好的幾筆
+    
+    Args:
+        orders: 訂單列表 [[player_id, price, quantity], ...]
+        max_per_quantity: 每個數量級別最多保留幾筆
+        
+    Returns:
+        過濾後的訂單列表
+    """
+    if not orders:
+        return []
+    
+    # 按數量分組
+    quantity_groups = {}
+    for order in orders:
+        quantity = int(order[2])
+        if quantity not in quantity_groups:
+            quantity_groups[quantity] = []
+        quantity_groups[quantity].append(order)
+    
+    # 對每個數量組排序並取前N筆
+    filtered_orders = []
+    for quantity, group in quantity_groups.items():
+        # 排序：買單按價格降序（高價優先），賣單按價格升序（低價優先）
+        # 這裡假設是買單，如果是賣單需要調整排序方向
+        sorted_group = sorted(group, key=lambda x: float(x[1]), reverse=True)
+        # 取前max_per_quantity筆
+        filtered_orders.extend(sorted_group[:max_per_quantity])
+    
+    return filtered_orders
+
+def filter_top_buy_orders_for_display(buy_orders: List[List], max_per_quantity: int = 3) -> List[List]:
+    """
+    為顯示過濾買單，每個數量級別保留價格最高的幾筆
+    """
+    if not buy_orders:
+        return []
+    
+    # 按數量分組
+    quantity_groups = {}
+    for order in buy_orders:
+        quantity = int(order[2])
+        if quantity not in quantity_groups:
+            quantity_groups[quantity] = []
+        quantity_groups[quantity].append(order)
+    
+    # 對每個數量組按價格降序排序並取前N筆
+    filtered_orders = []
+    for quantity, group in quantity_groups.items():
+        # 買單：價格高的優先
+        sorted_group = sorted(group, key=lambda x: float(x[1]), reverse=True)
+        filtered_orders.extend(sorted_group[:max_per_quantity])
+    
+    # 按價格降序排序最終結果
+    return sorted(filtered_orders, key=lambda x: float(x[1]), reverse=True)
+
+def filter_top_sell_orders_for_display(sell_orders: List[List], max_per_quantity: int = 3) -> List[List]:
+    """
+    為顯示過濾賣單，每個數量級別保留價格最低的幾筆
+    """
+    if not sell_orders:
+        return []
+    
+    # 按數量分組
+    quantity_groups = {}
+    for order in sell_orders:
+        quantity = int(order[2])
+        if quantity not in quantity_groups:
+            quantity_groups[quantity] = []
+        quantity_groups[quantity].append(order)
+    
+    # 對每個數量組按價格升序排序並取前N筆
+    filtered_orders = []
+    for quantity, group in quantity_groups.items():
+        # 賣單：價格低的優先
+        sorted_group = sorted(group, key=lambda x: float(x[1]))
+        filtered_orders.extend(sorted_group[:max_per_quantity])
+    
+    # 按價格升序排序最終結果
+    return sorted(filtered_orders, key=lambda x: float(x[1]))
