@@ -5,11 +5,6 @@ from otree.api import *
 import json
 import time
 from typing import Dict, List, Any, Tuple, Optional
-from .shared_utils import (
-    update_price_history,
-    record_trade,
-    cancel_player_orders
-)
 
 class TradingError(Exception):
     """交易錯誤的基礎類別"""
