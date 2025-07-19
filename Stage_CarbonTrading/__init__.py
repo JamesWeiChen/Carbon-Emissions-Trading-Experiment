@@ -645,17 +645,44 @@ class TradingMarket(Page):
         sell_sorted = sorted(sell_orders, key=lambda x: (float(x[1]), int(x[0])))
         
         try:
-            # 修改：使用新的過濾函數，每個數量級別顯示最好的3筆
-            display_buy_orders = filter_top_buy_orders_for_display(buy_orders, max_per_quantity=3)
-            display_sell_orders = filter_top_sell_orders_for_display(sell_orders, max_per_quantity=3)
+            # 提取玩家自己的買單和賣單
+            my_buy_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
+                          for pid, price, qt in buy_sorted if int(pid) == player.id_in_group]
+            my_sell_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
+                           for pid, price, qt in sell_sorted if int(pid) == player.id_in_group]
             
-            # 轉換為前端格式
-            public_buy_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
-                               for pid, price, qt in display_buy_orders]
-            public_sell_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
-                                for pid, price, qt in display_sell_orders]
+            # 修改: 不排除自己的訂單，讓所有掛單參與最優價格競爭
+            all_buy_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
+                            for pid, price, qt in buy_sorted]
             
-            # 排序（保持原有的排序邏輯）
+            all_sell_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
+                             for pid, price, qt in sell_sorted]
+            
+            # 合併顯示同單位掛單邏輯
+            public_buy_offers = []
+            public_sell_offers = []
+            
+            # 按數量分組，只保留每組中最高買價/最低賣價
+            qty_buy_map = {}
+            for offer in all_buy_offers:  # 修改: 使用all_buy_offers
+                qty = offer['quantity']
+                if qty not in qty_buy_map or offer['price'] > qty_buy_map[qty]['price']:
+                    qty_buy_map[qty] = offer
+            
+            qty_sell_map = {}
+            for offer in all_sell_offers:  # 修改: 使用all_sell_offers
+                qty = offer['quantity']
+                if qty not in qty_sell_map or offer['price'] < qty_sell_map[qty]['price']:
+                    qty_sell_map[qty] = offer
+            
+            # 將合併後的訂單添加到公共列表
+            for qty, offer in qty_buy_map.items():
+                public_buy_offers.append(offer)
+            
+            for qty, offer in qty_sell_map.items():
+                public_sell_offers.append(offer)
+            
+            # 排序
             public_buy_offers.sort(key=lambda x: (-x['price'], x['player_id']))
             public_sell_offers.sort(key=lambda x: (x['price'], x['player_id']))
             
