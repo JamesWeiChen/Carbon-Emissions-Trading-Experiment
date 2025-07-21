@@ -209,13 +209,6 @@ class WaitForInstruction(Page):
     @staticmethod
     def is_displayed(player: Player):
         return player.round_number == C.NUM_ROUNDS
-    
-def _get_production_cost(player: Player) -> float:
-    """獲取生產成本"""
-    if player.field_maybe_none('total_cost') is not None:
-        return player.total_cost
-    else:
-        return calculate_production_cost(player, player.production)
 
 def _get_carbon_tax(player: Player) -> float:
     """獲取碳稅金額"""
