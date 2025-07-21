@@ -7,10 +7,9 @@ from typing import Dict, Any
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.shared_utils import (
     initialize_player_roles, 
-    calculate_control_payoffs,
+    calculate_general_payoff,
     get_production_template_vars,
     calculate_final_payoff_info,
-    _generate_market_price,
     get_parameter_set_for_round
 )
 from configs.config import config
@@ -114,7 +113,7 @@ class ProductionDecision(Page):
         return get_production_template_vars(player, treatment='control')
 
 class ResultsWaitPage(WaitPage):
-    after_all_players_arrive = calculate_control_payoffs
+    after_all_players_arrive = lambda group: calculate_general_payoff(group)
 
 class Results(Page):
     @staticmethod
@@ -181,14 +180,6 @@ class WaitForInstruction(Page):
     @staticmethod
     def is_displayed(player: Player):
         return player.round_number == C.NUM_ROUNDS
-    
-def _get_production_cost(player: Player) -> float:
-    """獲取生產成本"""
-    if player.field_maybe_none('total_cost') is not None:
-        return player.total_cost
-    else:
-        from utils.shared_utils import calculate_production_cost
-        return calculate_production_cost(player, player.production)
 
 def _calculate_group_emissions(player: Player) -> float:
     """計算組別總排放量"""

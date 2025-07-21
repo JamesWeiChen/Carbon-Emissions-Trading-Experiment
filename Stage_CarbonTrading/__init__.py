@@ -1,34 +1,16 @@
 from otree.api import *
 import random
-import json
-import math
-import time
 import sys
 import os
 import numpy as np
 from typing import Dict, Any, List, Tuple, Optional, Union
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.shared_utils import (
-    update_price_history,
-    record_trade,
-    cancel_player_orders,
-    _generate_market_price,
     initialize_player_roles,
-    get_parameter_set_for_round
+    get_parameter_set_for_round,
+    calculate_general_payoff,
 )
-from utils.trading_utils import (
-    parse_orders,
-    save_orders,
-    validate_order,
-    find_matching_orders,
-    execute_trade,
-    process_new_order,
-    process_accept_offer,
-    calculate_locked_resources,
-    TradingError,
-    InsufficientResourcesError,
-    InvalidOrderError
-)
+from utils.trading_utils import *
 from configs.config import config
 
 doc = """
@@ -310,372 +292,6 @@ class Player(BasePlayer):
     mkt_production = models.FloatField()  # 利潤極大化產量 q_mkt_i
     mkt_emissions = models.FloatField()   # 利潤極大化排放量 TE_mkt_i
 
-# ========== 輔助函數 ==========
-
-def _record_submitted_offer(player: Player, direction: str, price: int, quantity: int) -> None:
-    """記錄提交的訂單"""
-    try:
-        submitted_offers = json.loads(player.submitted_offers)
-    except json.JSONDecodeError:
-        submitted_offers = []
-    
-    # 計算時間戳（格式：MM:SS）
-    current_time = int(time.time())
-    if hasattr(player.subsession, 'start_time') and player.subsession.start_time:
-        elapsed_seconds = current_time - player.subsession.start_time
-        minutes = elapsed_seconds // 60
-        seconds = elapsed_seconds % 60
-        timestamp = f"{minutes:02d}:{seconds:02d}"
-    else:
-        timestamp = "00:00"
-    
-    submitted_offers.append({
-        'timestamp': timestamp,  # MM:SS 格式
-        'direction': direction,
-        'price': price,
-        'quantity': quantity
-    })
-    player.submitted_offers = json.dumps(submitted_offers)
-
-def _process_carbon_trading_order(
-    player: Player,
-    group: BaseGroup,
-    direction: str,
-    price: int,
-    quantity: int
-) -> Dict[int, Dict[str, Any]]:
-    """處理碳交易訂單"""
-    # 驗證訂單
-    try:
-        validate_order(player, direction, price, quantity, "碳權")
-    except TradingError as e:
-        return {player.id_in_group: {
-            'type': 'fail',
-            'message': str(e)
-        }}
-    
-    # 解析現有訂單
-    buy_orders, sell_orders = parse_orders(group)
-    
-    # 尋找匹配的訂單
-    if direction == 'buy':
-        # 尋找價格不高於出價且數量足夠的賣單
-        matching_orders = [
-            (i, order) for i, order in enumerate(sell_orders)
-            if int(order[0]) != player.id_in_group and 
-               float(order[1]) <= price and 
-               int(order[2]) >= quantity  # 賣單數量必須足夠
-        ]
-        
-        if matching_orders:
-            # 找到最低價格的匹配賣單
-            best_idx, best_order = min(matching_orders, key=lambda x: float(x[1][1]))
-            seller_id = int(best_order[0])
-            
-            try:
-                seller = group.get_player_by_id(seller_id)
-                execute_trade(group, player, seller, float(best_order[1]), quantity, 'current_permits')
-                
-                # 保留：交易成功時取消雙方其他訂單
-                cancel_player_orders(group, player.id_in_group, 'buy')
-                cancel_player_orders(group, seller_id, 'sell')
-                
-                # 移除已成交的訂單
-                buy_orders, sell_orders = parse_orders(group)
-                sell_orders = [o for o in sell_orders if not (
-                    int(o[0]) == seller_id and 
-                    float(o[1]) == float(best_order[1]) and 
-                    int(o[2]) == int(best_order[2])
-                )]
-                save_orders(group, buy_orders, sell_orders)
-                
-                # 創建通知
-                notifications = {
-                    player.id_in_group: f'交易成功：您以價格 {float(best_order[1])} 買入了 {quantity} 個碳權',
-                    seller_id: f'交易成功：您以價格 {float(best_order[1])} 賣出了 {quantity} 個碳權'
-                }
-                
-                return {'notifications': notifications, 'update_all': True}
-                
-            except Exception as e:
-                print(f"交易執行失敗: {e}")
-        
-        # 添加新買單
-        buy_orders.append([player.id_in_group, price, quantity])
-        buy_orders.sort(key=lambda x: (-float(x[1]), int(x[0])))
-        save_orders(group, buy_orders, sell_orders)
-        
-    else:  # sell
-        # 尋找價格不低於要價且數量足夠的買單
-        matching_orders = [
-            (i, order) for i, order in enumerate(buy_orders)
-            if int(order[0]) != player.id_in_group and 
-               float(order[1]) >= price and 
-               int(order[2]) >= quantity  # 買單數量必須足夠
-        ]
-        
-        if matching_orders:
-            # 找到最高價格的匹配買單
-            best_idx, best_order = max(matching_orders, key=lambda x: float(x[1][1]))
-            buyer_id = int(best_order[0])
-            
-            try:
-                buyer = group.get_player_by_id(buyer_id)
-                execute_trade(group, buyer, player, float(best_order[1]), quantity, 'current_permits')
-                
-                # 保留：交易成功時取消雙方其他訂單
-                cancel_player_orders(group, buyer_id, 'buy')
-                cancel_player_orders(group, player.id_in_group, 'sell')
-                
-                # 移除已成交的訂單
-                buy_orders, sell_orders = parse_orders(group)
-                buy_orders = [o for o in buy_orders if not (
-                    int(o[0]) == buyer_id and 
-                    float(o[1]) == float(best_order[1]) and 
-                    int(o[2]) == int(best_order[2])
-                )]
-                save_orders(group, buy_orders, sell_orders)
-                
-                # 創建通知
-                notifications = {
-                    player.id_in_group: f'交易成功：您以價格 {float(best_order[1])} 賣出了 {quantity} 個碳權',
-                    buyer_id: f'交易成功：您以價格 {float(best_order[1])} 買入了 {quantity} 個碳權'
-                }
-                
-                return {'notifications': notifications, 'update_all': True}
-                
-            except Exception as e:
-                print(f"交易執行失敗: {e}")
-        
-        # 添加新賣單
-        sell_orders.append([player.id_in_group, price, quantity])
-        sell_orders.sort(key=lambda x: (float(x[1]), int(x[0])))
-        save_orders(group, buy_orders, sell_orders)
-    
-    return {'update_all': True}
-
-#def before_next_round(subsession: Subsession):
-#    """每回合重新初始化 dominant firm、成本係數、碳排係數等屬性"""
-#    initialize_player_roles(subsession, initial_capital=C.INITIAL_CAPITAL)
-
-def _process_accept_carbon_offer(
-    player: Player,
-    group: BaseGroup,
-    offer_type: str,
-    target_id: int,
-    price: float,
-    quantity: int
-) -> Dict[int, Dict[str, Any]]:
-    """處理接受碳交易訂單"""
-    # 檢查是否嘗試與自己交易
-    if target_id == player.id_in_group:
-        return {player.id_in_group: {
-            'type': 'fail',
-            'message': '不能與自己交易'
-        }}
-    
-    # 解析現有訂單
-    buy_orders, sell_orders = parse_orders(group)
-    
-    try:
-        if offer_type == 'sell':
-            # 接受賣單（玩家是買方）
-            seller = group.get_player_by_id(target_id)
-            execute_trade(group, player, seller, price, quantity, 'current_permits')
-            
-            # 取消雙方其他訂單
-            cancel_player_orders(group, player.id_in_group, 'buy')
-            cancel_player_orders(group, target_id, 'sell')
-            
-            # 移除已成交的訂單
-            buy_orders, sell_orders = parse_orders(group)
-            sell_orders = [o for o in sell_orders if not (
-                int(o[0]) == target_id and 
-                float(o[1]) == price and 
-                int(o[2]) == quantity
-            )]
-            save_orders(group, buy_orders, sell_orders)
-            
-            notifications = {
-                player.id_in_group: f'交易成功：您以價格 {price} 買入了 {quantity} 個碳權',
-                target_id: f'交易成功：您以價格 {price} 賣出了 {quantity} 個碳權'
-            }
-            
-            return {'notifications': notifications, 'update_all': True}
-            
-        else:  # offer_type == 'buy'
-            # 接受買單（玩家是賣方）
-            # 檢查可用碳權
-            locked_permits = sum(
-                int(o[2]) for o in sell_orders 
-                if int(o[0]) == player.id_in_group
-            )
-            available_permits = player.current_permits - locked_permits
-            
-            if available_permits < quantity:
-                return {player.id_in_group: {
-                    'type': 'fail',
-                    'message': f'碳權不足！您已有掛單佔用碳權 {locked_permits}，'
-                              f'可用碳權只有 {available_permits}，但此交易需要 {quantity}'
-                }}
-            
-            buyer = group.get_player_by_id(target_id)
-            execute_trade(group, buyer, player, price, quantity, 'current_permits')
-            
-            # 取消雙方其他訂單
-            cancel_player_orders(group, target_id, 'buy')
-            cancel_player_orders(group, player.id_in_group, 'sell')
-            
-            # 移除已成交的訂單
-            buy_orders, sell_orders = parse_orders(group)
-            buy_orders = [o for o in buy_orders if not (
-                int(o[0]) == target_id and 
-                float(o[1]) == price and 
-                int(o[2]) == quantity
-            )]
-            save_orders(group, buy_orders, sell_orders)
-            
-            notifications = {
-                player.id_in_group: f'交易成功：您以價格 {price} 賣出了 {quantity} 個碳權',
-                target_id: f'交易成功：您以價格 {price} 買入了 {quantity} 個碳權'
-            }
-            
-            return {'notifications': notifications, 'update_all': True}
-            
-    except Exception as e:
-        print(f"接受訂單失敗: {e}")
-        return {player.id_in_group: {
-            'type': 'fail',
-            'message': '交易失敗：找不到交易對象'
-        }}
-
-def _cancel_specific_order(
-    group: BaseGroup,
-    player_id: int,
-    direction: str,
-    price: float,
-    quantity: int
-) -> None:
-    """取消特定訂單"""
-    buy_orders, sell_orders = parse_orders(group)
-    
-    if direction == 'buy':
-        buy_orders = [o for o in buy_orders if not (
-            int(o[0]) == player_id and
-            float(o[1]) == price and 
-            int(o[2]) == quantity
-        )]
-    else:
-        sell_orders = [o for o in sell_orders if not (
-            int(o[0]) == player_id and
-            float(o[1]) == price and 
-            int(o[2]) == quantity
-        )]
-    
-    save_orders(group, buy_orders, sell_orders)
-
-def _create_notification_states(
-    group: BaseGroup,
-    notifications: Dict[int, str]
-) -> Dict[int, Dict[str, Any]]:
-    """創建包含通知的市場狀態"""
-    market_states = {}
-    for p in group.get_players():
-        state = TradingMarket.market_state(p)
-        if p.id_in_group in notifications:
-            state['notification'] = {
-                'type': 'success',
-                'message': notifications[p.id_in_group]
-            }
-        market_states[p.id_in_group] = state
-    return market_states
-
-# 更新價格歷史的函數
-def update_price_history(subsession, trade_price, event='trade'):
-    try:
-        price_history = json.loads(subsession.price_history)
-    except json.JSONDecodeError:
-        price_history = []
-    
-    # 獲取當前時間
-    current_time = int(time.time())
-    # 使用相對時間格式 (當前時間 - 開始時間)
-    if hasattr(subsession, 'start_time') and subsession.start_time:
-        elapsed_seconds = current_time - subsession.start_time
-    else:
-        elapsed_seconds = 0  # 如果沒有開始時間，則使用0
-    
-    minutes = elapsed_seconds // 60
-    seconds = elapsed_seconds % 60
-    
-    price_record = {
-        'timestamp': f"{minutes:02d}:{seconds:02d}",  # 使用分:秒格式
-        'price': float(trade_price),
-        'event': event,
-        'market_price': float(subsession.market_price),
-        'round': subsession.round_number
-    }
-    
-    price_history.append(price_record)
-    subsession.price_history = json.dumps(price_history)
-    
-    return price_history
-
-# 使用共用的 record_trade 函數（已從 utils.shared_utils 匯入）
-
-# 新增函數：取消玩家所有同方向的掛單
-def cancel_player_orders(group, player_id, order_type):
-    if order_type == 'buy':
-        try:
-            buy_orders = json.loads(group.buy_orders)
-            # 計算取消數量
-            old_count = len([o for o in buy_orders if int(o[0]) == player_id])
-            # 過濾掉該玩家的所有買單
-            buy_orders = [o for o in buy_orders if int(o[0]) != player_id]
-            group.buy_orders = json.dumps(buy_orders)
-            print(f"已自動取消玩家 {player_id} 的 {old_count} 筆買單")
-        except json.JSONDecodeError:
-            pass
-    elif order_type == 'sell':
-        try:
-            sell_orders = json.loads(group.sell_orders)
-            # 計算取消數量
-            old_count = len([o for o in sell_orders if int(o[0]) == player_id])
-            # 過濾掉該玩家的所有賣單
-            sell_orders = [o for o in sell_orders if int(o[0]) != player_id]
-            group.sell_orders = json.dumps(sell_orders)
-            print(f"已自動取消玩家 {player_id} 的 {old_count} 筆賣單")
-        except json.JSONDecodeError:
-            pass
-
-def set_payoffs(group: BaseGroup):
-    for p in group.get_players():
-        # 預設生產為 0（如果尚未設值）
-        production = p.production or 0
-
-        # 計算成本（若生產量為 0，成本直接為 0）
-        if production > 0:
-            q = np.arange(1, production + 1)
-            dist = np.array(json.loads(p.disturbance_values))[:production]
-            mc = p.marginal_cost_coefficient
-            cost = float(np.sum(mc * q + dist))
-        else:
-            cost = 0.0
-
-        cost = round(cost, 2)
-        revenue = production * p.market_price
-
-        # 最終現金與利潤計算
-        final_cash = p.current_cash - cost + revenue
-        profit = final_cash - p.initial_capital
-
-        # 儲存結果
-        p.revenue = revenue
-        p.total_cost = cost
-        p.net_profit = float(profit)
-        p.final_cash = final_cash
-        p.payoff = profit
-
 class Introduction(Page):
     @staticmethod
     def is_displayed(player):
@@ -740,6 +356,8 @@ class TradingMarket(Page):
             profit_table = profit_table,
         )
 
+    # 在 live_method 中的修改部分
+    
     @staticmethod
     def live_method(player: Player, data: Dict[str, Any]) -> Dict[int, Dict[str, Any]]:
         """處理即時交易請求"""
@@ -756,23 +374,35 @@ class TradingMarket(Page):
             quantity = int(data.get('quantity', 0))
             
             # 記錄提交的訂單
-            _record_submitted_offer(player, direction, price, quantity)
+            record_submitted_offer(player, direction, price, quantity)
             
             print(f"玩家 {player.id_in_group} 提交{direction}單: "
                   f"價格={price}, 數量={quantity}, "
                   f"現金={player.current_cash}, 碳權={player.current_permits}")
             
-            # 使用新的處理函數
-            result = _process_carbon_trading_order(
-                player, group, direction, price, quantity
+            # 修改：使用統一的 process_new_order 函數
+            result = process_new_order(
+                player, group, direction, price, quantity, 
+                "碳權", 'current_permits'  # 使用碳權相關參數
             )
             
-            # 如果需要更新所有玩家
-            if result.get('update_all'):
-                return {p.id_in_group: TradingMarket.market_state(p) 
-                        for p in group.get_players()}
-            else:
-                return result
+            # 處理通知
+            if result.get('notifications'):
+                market_states = {}
+                for p in group.get_players():
+                    state = TradingMarket.market_state(p)
+                    if p.id_in_group in result['notifications']:
+                        # 修改：根據 result.type 決定通知類型
+                        notification_type = 'success'
+                        if result.get('type') == 'fail':
+                            notification_type = 'error'  # 前端會轉換為 danger
+                        
+                        state['notification'] = {
+                            'type': notification_type,
+                            'message': result['notifications'][p.id_in_group]
+                        }
+                    market_states[p.id_in_group] = state
+                return market_states
         
         # 處理接受訂單
         elif data.get('type') == 'accept_offer':
@@ -784,20 +414,30 @@ class TradingMarket(Page):
             print(f"玩家 {player.id_in_group} 接受{offer_type}單: "
                   f"對象玩家={target_id}, 價格={price}, 數量={quantity}")
             
-            # 使用新的處理函數
-            result = _process_accept_carbon_offer(
-                player, group, offer_type, target_id, price, quantity
+            # 修改：使用統一的 process_accept_offer 函數
+            result = process_accept_offer(
+                player, group, offer_type, target_id, price, quantity,
+                "碳權", 'current_permits'  # 使用碳權相關參數
             )
             
             # 處理通知
             if result.get('notifications'):
-                return _create_notification_states(group, result['notifications'])
+                market_states = {}
+                for p in group.get_players():
+                    state = TradingMarket.market_state(p)
+                    if p.id_in_group in result['notifications']:
+                        state['notification'] = {
+                            'type': 'success',
+                            'message': result['notifications'][p.id_in_group]
+                        }
+                    market_states[p.id_in_group] = state
+                return market_states
             elif result.get('update_all'):
                 return {p.id_in_group: TradingMarket.market_state(p) 
                         for p in group.get_players()}
             else:
                 return result
-
+    
         # 處理取消訂單
         elif data.get('type') == 'cancel_offer':
             direction = data.get('direction')
@@ -808,7 +448,7 @@ class TradingMarket(Page):
                   f"價格={price}, 數量={quantity}")
             
             # 取消訂單
-            _cancel_specific_order(group, player.id_in_group, direction, price, quantity)
+            cancel_specific_order(group, player.id_in_group, direction, price, quantity)
             
             return {p.id_in_group: TradingMarket.market_state(p) 
                     for p in group.get_players()}
@@ -836,38 +476,17 @@ class TradingMarket(Page):
             my_sell_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
                            for pid, price, qt in sell_sorted if int(pid) == player.id_in_group]
             
-            # 修改: 不排除自己的訂單，讓所有掛單參與最優價格競爭
-            all_buy_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
-                            for pid, price, qt in buy_sorted]
+            # 修改：使用新的過濾函數，每個數量級別顯示最好的3筆
+            display_buy_orders = filter_top_buy_orders_for_display(buy_sorted, max_per_quantity=3)
+            display_sell_orders = filter_top_sell_orders_for_display(sell_sorted, max_per_quantity=3)
             
-            all_sell_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
-                             for pid, price, qt in sell_sorted]
+            # 轉換為前端格式
+            public_buy_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
+                               for pid, price, qt in display_buy_orders]
+            public_sell_offers = [{'player_id': int(pid), 'price': int(float(price)), 'quantity': int(qt)} 
+                                for pid, price, qt in display_sell_orders]
             
-            # 合併顯示同單位掛單邏輯
-            public_buy_offers = []
-            public_sell_offers = []
-            
-            # 按數量分組，只保留每組中最高買價/最低賣價
-            qty_buy_map = {}
-            for offer in all_buy_offers:  # 修改: 使用all_buy_offers
-                qty = offer['quantity']
-                if qty not in qty_buy_map or offer['price'] > qty_buy_map[qty]['price']:
-                    qty_buy_map[qty] = offer
-            
-            qty_sell_map = {}
-            for offer in all_sell_offers:  # 修改: 使用all_sell_offers
-                qty = offer['quantity']
-                if qty not in qty_sell_map or offer['price'] < qty_sell_map[qty]['price']:
-                    qty_sell_map[qty] = offer
-            
-            # 將合併後的訂單添加到公共列表
-            for qty, offer in qty_buy_map.items():
-                public_buy_offers.append(offer)
-            
-            for qty, offer in qty_sell_map.items():
-                public_sell_offers.append(offer)
-            
-            # 排序
+            # 排序（保持原有的排序邏輯）
             public_buy_offers.sort(key=lambda x: (-x['price'], x['player_id']))
             public_sell_offers.sort(key=lambda x: (x['price'], x['player_id']))
             
@@ -881,7 +500,7 @@ class TradingMarket(Page):
         # 買單邏輯改為無限制掛單，不再鎖定現金
         locked_cash = 0  # sum(o['price'] * o['quantity'] for o in my_buy_offers)
         locked_permits = sum(o['quantity'] for o in my_sell_offers)
-
+    
         # 剩餘可用
         available_cash = int(player.current_cash)  # 保持原樣，允許負數
         available_permits = int(player.current_permits)
@@ -1028,7 +647,7 @@ class ProductionDecision(Page):
             # player.current_cash -= cost
 
 class ResultsWaitPage(WaitPage):
-    after_all_players_arrive = set_payoffs
+    after_all_players_arrive = lambda group: calculate_general_payoff(group, use_trading=True)
 
 # 碳交易組 Results 類
 class Results(Page):

@@ -5,11 +5,6 @@ from otree.api import *
 import json
 import time
 from typing import Dict, List, Any, Tuple, Optional
-from .shared_utils import (
-    update_price_history,
-    record_trade,
-    cancel_player_orders
-)
 
 class TradingError(Exception):
     """交易錯誤的基礎類別"""
@@ -22,6 +17,140 @@ class InsufficientResourcesError(TradingError):
 class InvalidOrderError(TradingError):
     """無效訂單錯誤"""
     pass
+
+class DuplicateOrderError(TradingError):
+    """重複訂單錯誤"""
+    pass
+
+def update_price_history(
+    subsession: BaseSubsession, 
+    trade_price: float, 
+    event: str = 'trade'
+) -> List[Dict[str, Any]]:
+    """
+    更新價格歷史記錄
+    
+    Args:
+        subsession: 子會話物件
+        trade_price: 交易價格
+        event: 事件類型
+        
+    Returns:
+        更新後的價格歷史列表
+    """
+    try:
+        price_history = json.loads(subsession.price_history)
+    except json.JSONDecodeError:
+        price_history = []
+    
+    # 計算時間戳
+    timestamp = _calculate_timestamp(subsession)
+    
+    # 獲取市場價格
+    market_price = _get_market_price(subsession)
+    
+    # 創建價格記錄
+    price_record = {
+        'timestamp': timestamp,
+        'price': float(trade_price),
+        'event': event,
+        'market_price': float(market_price),
+        'round': subsession.round_number
+    }
+    
+    price_history.append(price_record)
+    subsession.price_history = json.dumps(price_history)
+    
+    return price_history
+
+def _calculate_timestamp(subsession: BaseSubsession) -> str:
+    """計算時間戳（格式：MM:SS）"""
+    current_time = int(time.time())
+    if hasattr(subsession, 'start_time') and subsession.start_time:
+        elapsed_seconds = current_time - subsession.start_time
+    else:
+        elapsed_seconds = 0
+    
+    minutes = elapsed_seconds // 60
+    seconds = elapsed_seconds % 60
+    return f"{minutes:02d}:{seconds:02d}"
+
+def _get_market_price(subsession: BaseSubsession) -> Currency:
+    """獲取市場價格"""
+    return getattr(subsession, 'market_price', None) or getattr(subsession, 'item_market_price', 0)
+
+def record_trade(
+    group: BaseGroup, 
+    buyer_id: int, 
+    seller_id: int, 
+    price: float, 
+    quantity: int
+) -> List[Dict[str, Any]]:
+    """
+    記錄交易
+    
+    Args:
+        group: 組別物件
+        buyer_id: 買方ID
+        seller_id: 賣方ID
+        price: 交易價格
+        quantity: 交易數量
+        
+    Returns:
+        更新後的交易歷史列表
+    """
+    try:
+        trade_history = json.loads(group.trade_history)
+    except json.JSONDecodeError:
+        trade_history = []
+    
+    # 創建交易記錄
+    trade_record = {
+        'timestamp': _calculate_timestamp(group.subsession),
+        'buyer_id': int(buyer_id),
+        'seller_id': int(seller_id),
+        'price': float(price),
+        'quantity': int(quantity)
+    }
+    
+    trade_history.append(trade_record)
+    group.trade_history = json.dumps(trade_history)
+    
+    print(f"記錄交易: 買方{buyer_id} <- 賣方{seller_id}, 價格{price}, 數量{quantity}")
+    return trade_history
+
+def cancel_player_orders(group: BaseGroup, player_id: int, order_type: str) -> None:
+    """
+    取消玩家的所有指定類型訂單
+    
+    Args:
+        group: 組別物件
+        player_id: 玩家ID
+        order_type: 訂單類型 ('buy' 或 'sell')
+    """
+    if order_type not in ['buy', 'sell']:
+        print(f"無效的訂單類型: {order_type}")
+        return
+    
+    try:
+        # 獲取訂單列表
+        orders_field = f"{order_type}_orders"
+        orders = json.loads(getattr(group, orders_field))
+        
+        # 過濾掉該玩家的訂單
+        old_count = len([o for o in orders if int(o[0]) == player_id])
+        orders = [o for o in orders if int(o[0]) != player_id]
+        
+        # 更新訂單列表
+        setattr(group, orders_field, json.dumps(orders))
+        
+        if old_count > 0:
+            print(f"已自動取消玩家 {player_id} 的 {old_count} 筆{order_type}單")
+    except json.JSONDecodeError:
+        print(f"解析{order_type}單列表時發生錯誤")
+    except Exception as e:
+        print(f"取消訂單時發生錯誤: {e}")
+
 
 def parse_orders(group: BaseGroup) -> Tuple[List[List], List[List]]:
     """
@@ -51,6 +180,28 @@ def save_orders(group: BaseGroup, buy_orders: List[List], sell_orders: List[List
     """儲存買賣訂單"""
     group.buy_orders = json.dumps(buy_orders)
     group.sell_orders = json.dumps(sell_orders)
+
+def check_duplicate_order(
+    orders: List[List],
+    price: int,
+    quantity: int
+) -> bool:
+    """
+    檢查是否存在重複訂單（任何玩家的相同價格和數量）
+    
+    Args:
+        orders: 訂單列表
+        price: 價格
+        quantity: 數量
+        
+    Returns:
+        True 如果存在重複訂單，False 否則
+    """
+    for order in orders:
+        if (float(order[1]) == price and 
+            int(order[2]) == quantity):
+            return True
+    return False
 
 def validate_order(
     player: BasePlayer, 
@@ -123,11 +274,11 @@ def find_matching_orders(
         # 檢查價格匹配
         if is_buy_order:
             # 買單：尋找價格不高於出價的賣單
-            if order_price <= price and order_quantity >= quantity:
+            if order_price <= price and order_quantity == quantity:
                 matching_orders.append((i, order))
         else:
             # 賣單：尋找價格不低於要價的買單
-            if order_price >= price and order_quantity >= quantity:
+            if order_price >= price and order_quantity == quantity:
                 matching_orders.append((i, order))
     
     return matching_orders
@@ -151,6 +302,9 @@ def execute_trade(
         quantity: 交易數量
         item_field: 物品欄位名稱
     """
+    # 確保價格為整數
+    price = int(price)
+    
     # 更新現金
     buyer.current_cash -= price * quantity
     seller.current_cash += price * quantity
@@ -190,7 +344,7 @@ def execute_trade(
         'timestamp': timestamp,  # MM:SS 格式
         'buyer_id': buyer.id_in_group,
         'seller_id': seller.id_in_group,
-        'price': int(price),
+        'price': price,  # 已經轉換為整數
         'quantity': int(quantity)
     }
     
@@ -228,13 +382,33 @@ def process_new_order(
     try:
         validate_order(player, direction, price, quantity, item_name)
     except TradingError as e:
-        return {player.id_in_group: {
+        return {
             'type': 'fail',
-            'message': str(e)
-        }}
+            'notifications': {
+                player.id_in_group: str(e)
+            }
+        }
     
     # 解析現有訂單
     buy_orders, sell_orders = parse_orders(group)
+    
+    # 檢查重複訂單
+    if direction == 'buy':
+        if check_duplicate_order(buy_orders, price, quantity):
+            return {
+                'type': 'fail',
+                'notifications': {
+                    player.id_in_group: f'市場上已有價格 {price} 且數量 {quantity} 的買單！'
+                }
+            }
+    else:  # sell
+        if check_duplicate_order(sell_orders, price, quantity):
+            return {
+                'type': 'fail',
+                'notifications': {
+                    player.id_in_group: f'市場上已有價格 {price} 且數量 {quantity} 的賣單！'
+                }
+            }
     
     # 移除：不再自動取消之前的同方向訂單，允許掛多個買單/賣單
     # cancel_player_orders(group, player.id_in_group, direction)
@@ -252,7 +426,8 @@ def process_new_order(
             
             try:
                 seller = group.get_player_by_id(seller_id)
-                execute_trade(group, player, seller, float(best_order[1]), quantity, item_field)
+                trade_price = int(float(best_order[1]))  # 確保交易價格為整數
+                execute_trade(group, player, seller, trade_price, quantity, item_field)
                 
                 # 保留：交易成功時取消雙方其他訂單
                 cancel_player_orders(group, player.id_in_group, 'buy')
@@ -267,8 +442,15 @@ def process_new_order(
                 )]
                 save_orders(group, buy_orders, sell_orders)
                 
-                # 返回更新狀態（需要調用者提供 market_state 函數）
-                return {'type': 'trade_executed', 'update_all': True}
+                # 修改：添加自動交易成功通知，價格顯示為整數
+                return {
+                    'type': 'trade_executed', 
+                    'update_all': True,
+                    'notifications': {
+                        player.id_in_group: f'交易成功：您以價格 {trade_price} 買入了 {quantity} 個{item_name}',
+                        seller_id: f'交易成功：您以價格 {trade_price} 賣出了 {quantity} 個{item_name}'
+                    }
+                }
                 
             except Exception as e:
                 print(f"交易執行失敗: {e}")
@@ -290,7 +472,8 @@ def process_new_order(
             
             try:
                 buyer = group.get_player_by_id(buyer_id)
-                execute_trade(group, buyer, player, float(best_order[1]), quantity, item_field)
+                trade_price = int(float(best_order[1]))  # 確保交易價格為整數
+                execute_trade(group, buyer, player, trade_price, quantity, item_field)
                 
                 # 保留：交易成功時取消雙方其他訂單
                 cancel_player_orders(group, buyer_id, 'buy')
@@ -305,8 +488,15 @@ def process_new_order(
                 )]
                 save_orders(group, buy_orders, sell_orders)
                 
-                # 返回更新狀態
-                return {'type': 'trade_executed', 'update_all': True}
+                # 修改：添加自動交易成功通知，價格顯示為整數
+                return {
+                    'type': 'trade_executed', 
+                    'update_all': True,
+                    'notifications': {
+                        player.id_in_group: f'交易成功：您以價格 {trade_price} 賣出了 {quantity} 個{item_name}',
+                        buyer_id: f'交易成功：您以價格 {trade_price} 買入了 {quantity} 個{item_name}'
+                    }
+                }
                 
             except Exception as e:
                 print(f"交易執行失敗: {e}")
@@ -346,10 +536,15 @@ def process_accept_offer(
         需要廣播給所有玩家的狀態更新
     """
     if target_id == player.id_in_group:
-        return {player.id_in_group: {
+        return {
             'type': 'fail',
-            'message': '不能接受自己的訂單'
-        }}
+            'notifications': {
+                player.id_in_group: '不能接受自己的訂單'
+            }
+        }
+    
+    # 確保價格為整數
+    price = int(price)
     
     try:
         if offer_type == 'sell':
@@ -384,10 +579,12 @@ def process_accept_offer(
             # 先驗證賣方有足夠的物品
             current_items = getattr(player, item_field)
             if current_items < quantity:
-                return {player.id_in_group: {
+                return {
                     'type': 'fail',
-                    'message': f'您的{item_name}不足'
-                }}
+                    'notifications': {
+                        player.id_in_group: f'您的{item_name}不足'
+                    }
+                }
             
             buyer = group.get_player_by_id(target_id)
             execute_trade(group, buyer, player, price, quantity, item_field)
@@ -416,10 +613,12 @@ def process_accept_offer(
             
     except Exception as e:
         print(f"接受訂單失敗: {e}")
-        return {player.id_in_group: {
+        return {
             'type': 'fail',
-            'message': '交易失敗：找不到交易對象'
-        }}
+            'notifications': {
+                player.id_in_group: '交易失敗：找不到交易對象'
+            }
+        }
 
 def calculate_locked_resources(
     player: BasePlayer, 
@@ -454,4 +653,139 @@ def calculate_locked_resources(
         if int(order[0]) == player_id
     )
     
-    return locked_cash, locked_items 
+    return locked_cash, locked_items
+
+def filter_top_orders_for_display(orders: List[List], max_per_quantity: int = 3) -> List[List]:
+    """
+    為顯示過濾訂單，每個數量級別保留最好的幾筆
+    
+    Args:
+        orders: 訂單列表 [[player_id, price, quantity], ...]
+        max_per_quantity: 每個數量級別最多保留幾筆
+        
+    Returns:
+        過濾後的訂單列表
+    """
+    if not orders:
+        return []
+    
+    # 按數量分組
+    quantity_groups = {}
+    for order in orders:
+        quantity = int(order[2])
+        if quantity not in quantity_groups:
+            quantity_groups[quantity] = []
+        quantity_groups[quantity].append(order)
+    
+    # 對每個數量組排序並取前N筆
+    filtered_orders = []
+    for quantity, group in quantity_groups.items():
+        # 排序：買單按價格降序（高價優先），賣單按價格升序（低價優先）
+        # 這裡假設是買單，如果是賣單需要調整排序方向
+        sorted_group = sorted(group, key=lambda x: float(x[1]), reverse=True)
+        # 取前max_per_quantity筆
+        filtered_orders.extend(sorted_group[:max_per_quantity])
+    
+    return filtered_orders
+
+def filter_top_buy_orders_for_display(buy_orders: List[List], max_per_quantity: int = 3) -> List[List]:
+    """
+    為顯示過濾買單，每個數量級別保留價格最高的幾筆
+    """
+    if not buy_orders:
+        return []
+    
+    # 按數量分組
+    quantity_groups = {}
+    for order in buy_orders:
+        quantity = int(order[2])
+        if quantity not in quantity_groups:
+            quantity_groups[quantity] = []
+        quantity_groups[quantity].append(order)
+    
+    # 對每個數量組按價格降序排序並取前N筆
+    filtered_orders = []
+    for quantity, group in quantity_groups.items():
+        # 買單：價格高的優先
+        sorted_group = sorted(group, key=lambda x: float(x[1]), reverse=True)
+        filtered_orders.extend(sorted_group[:max_per_quantity])
+    
+    # 按價格降序排序最終結果
+    return sorted(filtered_orders, key=lambda x: float(x[1]), reverse=True)
+
+def filter_top_sell_orders_for_display(sell_orders: List[List], max_per_quantity: int = 3) -> List[List]:
+    """
+    為顯示過濾賣單，每個數量級別保留價格最低的幾筆
+    """
+    if not sell_orders:
+        return []
+    
+    # 按數量分組
+    quantity_groups = {}
+    for order in sell_orders:
+        quantity = int(order[2])
+        if quantity not in quantity_groups:
+            quantity_groups[quantity] = []
+        quantity_groups[quantity].append(order)
+    
+    # 對每個數量組按價格升序排序並取前N筆
+    filtered_orders = []
+    for quantity, group in quantity_groups.items():
+        # 賣單：價格低的優先
+        sorted_group = sorted(group, key=lambda x: float(x[1]))
+        filtered_orders.extend(sorted_group[:max_per_quantity])
+    
+    # 按價格升序排序最終結果
+    return sorted(filtered_orders, key=lambda x: float(x[1]))
+
+def record_submitted_offer(player, direction, price, quantity):
+    """記錄提交的訂單（共用）"""
+    try:
+        submitted_offers = json.loads(player.submitted_offers)
+    except Exception:
+        submitted_offers = []
+    
+    # 計算時間戳（格式：MM:SS）
+    current_time = int(time.time())
+    start_time = getattr(getattr(player, 'subsession', None), 'start_time', None)
+    if start_time:
+        elapsed_seconds = current_time - start_time
+        minutes = elapsed_seconds // 60
+        seconds = elapsed_seconds % 60
+        timestamp = f"{minutes:02d}:{seconds:02d}"
+    else:
+        timestamp = "00:00"
+    
+    submitted_offers.append({
+        'timestamp': timestamp,
+        'direction': direction,
+        'price': price,
+        'quantity': quantity
+    })
+    player.submitted_offers = json.dumps(submitted_offers)
+
+def cancel_specific_order(group, player_id, direction, price, quantity):
+    """取消特定訂單（共用）"""
+    def _parse_orders(orders_str):
+        try:
+            return json.loads(orders_str)
+        except Exception:
+            return []
+    buy_orders = _parse_orders(group.buy_orders)
+    sell_orders = _parse_orders(group.sell_orders)
+    
+    if direction == 'buy':
+        buy_orders = [o for o in buy_orders if not (
+            int(o[0]) == player_id and
+            float(o[1]) == price and 
+            int(o[2]) == quantity
+        )]
+    else:
+        sell_orders = [o for o in sell_orders if not (
+            int(o[0]) == player_id and
+            float(o[1]) == price and 
+            int(o[2]) == quantity
+        )]
+    
+    group.buy_orders = json.dumps(buy_orders)
+    group.sell_orders = json.dumps(sell_orders)
