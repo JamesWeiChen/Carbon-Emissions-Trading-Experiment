@@ -7,11 +7,10 @@ from typing import Dict, Any, Callable
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.shared_utils import (
     initialize_player_roles, 
-    calculate_carbon_tax_payoffs,
+    calculate_general_payoff,
     get_production_template_vars,
     calculate_final_payoff_info,
     calculate_production_cost,
-    _generate_market_price,
     get_parameter_set_for_round
 )
 from configs.config import config
@@ -135,7 +134,7 @@ class ProductionDecision(Page):
         )         
 
 class ResultsWaitPage(WaitPage):
-    after_all_players_arrive = calculate_carbon_tax_payoffs
+    after_all_players_arrive = lambda group: calculate_general_payoff(group, tax_rate=group.subsession.tax_rate, use_tax=True)
 
 class Results(Page):
     @staticmethod

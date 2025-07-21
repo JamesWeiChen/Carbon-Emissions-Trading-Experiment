@@ -7,7 +7,8 @@ from typing import Dict, Any, List, Tuple, Optional, Union
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.shared_utils import (
     initialize_player_roles,
-    get_parameter_set_for_round
+    get_parameter_set_for_round,
+    calculate_general_payoff,
 )
 from utils.trading_utils import *
 from configs.config import config
@@ -290,35 +291,6 @@ class Player(BasePlayer):
     optimal_emissions = models.FloatField()   # 社會最適排放量 TE_opt_i
     mkt_production = models.FloatField()  # 利潤極大化產量 q_mkt_i
     mkt_emissions = models.FloatField()   # 利潤極大化排放量 TE_mkt_i
-
-
-def set_payoffs(group: BaseGroup):
-    for p in group.get_players():
-        # 預設生產為 0（如果尚未設值）
-        production = p.production or 0
-
-        # 計算成本（若生產量為 0，成本直接為 0）
-        if production > 0:
-            q = np.arange(1, production + 1)
-            dist = np.array(json.loads(p.disturbance_values))[:production]
-            mc = p.marginal_cost_coefficient
-            cost = float(np.sum(mc * q + dist))
-        else:
-            cost = 0.0
-
-        cost = round(cost, 2)
-        revenue = production * p.market_price
-
-        # 最終現金與利潤計算
-        final_cash = p.current_cash - cost + revenue
-        profit = final_cash - p.initial_capital
-
-        # 儲存結果
-        p.revenue = revenue
-        p.total_cost = cost
-        p.net_profit = float(profit)
-        p.final_cash = final_cash
-        p.payoff = profit
 
 class Introduction(Page):
     @staticmethod
@@ -675,7 +647,7 @@ class ProductionDecision(Page):
             # player.current_cash -= cost
 
 class ResultsWaitPage(WaitPage):
-    after_all_players_arrive = set_payoffs
+    after_all_players_arrive = lambda group: calculate_general_payoff(group, use_trading=True)
 
 # 碳交易組 Results 類
 class Results(Page):

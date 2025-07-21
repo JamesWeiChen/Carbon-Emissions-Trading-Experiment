@@ -150,43 +150,44 @@ def calculate_production_cost(player: BasePlayer, production_quantity: int) -> f
     
     return total_cost
 
-def calculate_control_payoffs(group: BaseGroup) -> None:
-    """計算控制組的收益"""
-    for player in group.get_players():
-        _calculate_player_payoff(player, tax_rate=0)
+def calculate_general_payoff(
+    group: BaseGroup, 
+    tax_rate: float = 0, 
+    use_tax: bool = False,
+    use_trading: bool = False
+) -> None:
+    """
+    通用 payoff 計算，可處理控制組、碳稅組、碳交易組
+    - use_trading: True 則 payoff = current_cash - initial_capital
+    """
+    for p in group.get_players():
+        if p.production is None:
+            p.production = 0
 
-def calculate_carbon_tax_payoffs(group: BaseGroup) -> None:
-    """計算碳稅組的收益"""
-    tax_rate = group.subsession.tax_rate
-    for player in group.get_players():
-        _calculate_player_payoff(player, tax_rate=tax_rate)
+        # 計算生產成本
+        cost = calculate_production_cost(p, p.production)
+        revenue = p.production * p.market_price
 
-def _calculate_player_payoff(player: BasePlayer, tax_rate: Currency = 0) -> None:
-    """計算單個玩家的收益"""
-    if player.production is None:
-        player.production = 0
-    
-    # 計算成本和收入
-    cost = calculate_production_cost(player, player.production)
-    revenue = player.production * player.market_price
-    
-    # 計算碳稅（如果適用）
-    if tax_rate > 0:
-        emissions = player.production * player.carbon_emission_per_unit
-        tax = emissions * tax_rate
-        player.carbon_tax_paid = float(tax)
-    else:
+        # 計算碳稅
         tax = 0
-    
-    # 計算利潤
-    profit = revenue - cost - tax
-    
-    # 更新玩家屬性
-    player.revenue = revenue
-    player.total_cost = float(cost)
-    player.net_profit = float(profit)
-    player.final_cash = player.current_cash + profit
-    player.payoff = profit
+        if use_tax and tax_rate > 0:
+            emissions = p.production * p.carbon_emission_per_unit
+            tax = emissions * tax_rate
+            p.carbon_tax_paid = float(tax)
+
+        if use_trading:
+            # 加上生產階段的收入/成本
+            profit = (p.current_cash - p.initial_capital) + (revenue - cost - tax)
+            p.final_cash = p.current_cash - cost + revenue
+        else:
+            # 控制組/碳稅組 payoff = 生產收入 - 成本 - 稅
+            profit = revenue - cost - tax
+            p.final_cash = p.current_cash + profit
+
+        p.revenue = revenue
+        p.total_cost = float(cost)
+        p.net_profit = float(profit)
+        p.payoff = profit
 
 def calculate_final_payoff_info(
     player: BasePlayer, 

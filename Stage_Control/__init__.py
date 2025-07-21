@@ -7,10 +7,9 @@ from typing import Dict, Any
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.shared_utils import (
     initialize_player_roles, 
-    calculate_control_payoffs,
+    calculate_general_payoff,
     get_production_template_vars,
     calculate_final_payoff_info,
-    _generate_market_price,
     get_parameter_set_for_round
 )
 from configs.config import config
@@ -114,7 +113,7 @@ class ProductionDecision(Page):
         return get_production_template_vars(player, treatment='control')
 
 class ResultsWaitPage(WaitPage):
-    after_all_players_arrive = calculate_control_payoffs
+    after_all_players_arrive = lambda group: calculate_general_payoff(group)
 
 class Results(Page):
     @staticmethod
