@@ -160,7 +160,7 @@ class TradingMarket(Page):
             quantity = int(data.get('quantity', 0))
             
             # 記錄提交的訂單
-            _record_submitted_offer(player, direction, price, quantity)
+            record_submitted_offer(player, direction, price, quantity)
             
             print(f"玩家 {player.id_in_group} 提交{direction}單: "
                   f"價格={price}, 數量={quantity}, "
@@ -239,7 +239,7 @@ class TradingMarket(Page):
                   f"價格={price}, 數量={quantity}")
             
             # 取消訂單
-            _cancel_specific_order(group, player.id_in_group, direction, price, quantity)
+            cancel_specific_order(group, player.id_in_group, direction, price, quantity)
             
             return {p.id_in_group: TradingMarket.market_state(p) 
                     for p in group.get_players()}
@@ -332,55 +332,7 @@ class TradingMarket(Page):
             'start_time': player.subsession.start_time,
         }
 
-def _record_submitted_offer(player: Player, direction: str, price: int, quantity: int) -> None:
-    """記錄提交的訂單"""
-    try:
-        submitted_offers = json.loads(player.submitted_offers)
-    except json.JSONDecodeError:
-        submitted_offers = []
-    
-    # 計算時間戳（格式：MM:SS）
-    current_time = int(time.time())
-    if hasattr(player.subsession, 'start_time') and player.subsession.start_time:
-        elapsed_seconds = current_time - player.subsession.start_time
-        minutes = elapsed_seconds // 60
-        seconds = elapsed_seconds % 60
-        timestamp = f"{minutes:02d}:{seconds:02d}"
-    else:
-        timestamp = "00:00"
-    
-    submitted_offers.append({
-        'timestamp': timestamp,  # MM:SS 格式
-        'direction': direction,
-        'price': price,
-        'quantity': quantity
-    })
-    player.submitted_offers = json.dumps(submitted_offers)
 
-def _cancel_specific_order(
-    group: BaseGroup,
-    player_id: int,
-    direction: str,
-    price: float,
-    quantity: int
-) -> None:
-    """取消特定訂單"""
-    buy_orders, sell_orders = parse_orders(group)
-    
-    if direction == 'buy':
-        buy_orders = [o for o in buy_orders if not (
-            int(o[0]) == player_id and
-            float(o[1]) == price and 
-            int(o[2]) == quantity
-        )]
-    else:
-        sell_orders = [o for o in sell_orders if not (
-            int(o[0]) == player_id and
-            float(o[1]) == price and 
-            int(o[2]) == quantity
-        )]
-    
-    save_orders(group, buy_orders, sell_orders)
 
 class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs

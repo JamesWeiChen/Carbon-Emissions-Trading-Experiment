@@ -737,3 +737,55 @@ def filter_top_sell_orders_for_display(sell_orders: List[List], max_per_quantity
     
     # 按價格升序排序最終結果
     return sorted(filtered_orders, key=lambda x: float(x[1]))
+
+def record_submitted_offer(player, direction, price, quantity):
+    """記錄提交的訂單（共用）"""
+    try:
+        submitted_offers = json.loads(player.submitted_offers)
+    except Exception:
+        submitted_offers = []
+    
+    # 計算時間戳（格式：MM:SS）
+    current_time = int(time.time())
+    start_time = getattr(getattr(player, 'subsession', None), 'start_time', None)
+    if start_time:
+        elapsed_seconds = current_time - start_time
+        minutes = elapsed_seconds // 60
+        seconds = elapsed_seconds % 60
+        timestamp = f"{minutes:02d}:{seconds:02d}"
+    else:
+        timestamp = "00:00"
+    
+    submitted_offers.append({
+        'timestamp': timestamp,
+        'direction': direction,
+        'price': price,
+        'quantity': quantity
+    })
+    player.submitted_offers = json.dumps(submitted_offers)
+
+def cancel_specific_order(group, player_id, direction, price, quantity):
+    """取消特定訂單（共用）"""
+    def _parse_orders(orders_str):
+        try:
+            return json.loads(orders_str)
+        except Exception:
+            return []
+    buy_orders = _parse_orders(group.buy_orders)
+    sell_orders = _parse_orders(group.sell_orders)
+    
+    if direction == 'buy':
+        buy_orders = [o for o in buy_orders if not (
+            int(o[0]) == player_id and
+            float(o[1]) == price and 
+            int(o[2]) == quantity
+        )]
+    else:
+        sell_orders = [o for o in sell_orders if not (
+            int(o[0]) == player_id and
+            float(o[1]) == price and 
+            int(o[2]) == quantity
+        )]
+    
+    group.buy_orders = json.dumps(buy_orders)
+    group.sell_orders = json.dumps(sell_orders)

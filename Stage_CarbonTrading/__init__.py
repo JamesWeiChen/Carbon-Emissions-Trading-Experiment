@@ -1,15 +1,11 @@
 from otree.api import *
 import random
-import json
-import math
-import time
 import sys
 import os
 import numpy as np
 from typing import Dict, Any, List, Tuple, Optional, Union
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.shared_utils import (
-    _generate_market_price,
     initialize_player_roles,
     get_parameter_set_for_round
 )
@@ -295,131 +291,6 @@ class Player(BasePlayer):
     mkt_production = models.FloatField()  # 利潤極大化產量 q_mkt_i
     mkt_emissions = models.FloatField()   # 利潤極大化排放量 TE_mkt_i
 
-# ========== 輔助函數 ==========
-
-def _record_submitted_offer(player: Player, direction: str, price: int, quantity: int) -> None:
-    """記錄提交的訂單"""
-    try:
-        submitted_offers = json.loads(player.submitted_offers)
-    except json.JSONDecodeError:
-        submitted_offers = []
-    
-    # 計算時間戳（格式：MM:SS）
-    current_time = int(time.time())
-    if hasattr(player.subsession, 'start_time') and player.subsession.start_time:
-        elapsed_seconds = current_time - player.subsession.start_time
-        minutes = elapsed_seconds // 60
-        seconds = elapsed_seconds % 60
-        timestamp = f"{minutes:02d}:{seconds:02d}"
-    else:
-        timestamp = "00:00"
-    
-    submitted_offers.append({
-        'timestamp': timestamp,  # MM:SS 格式
-        'direction': direction,
-        'price': price,
-        'quantity': quantity
-    })
-    player.submitted_offers = json.dumps(submitted_offers)
-
-def _cancel_specific_order(
-    group: BaseGroup,
-    player_id: int,
-    direction: str,
-    price: float,
-    quantity: int
-) -> None:
-    """取消特定訂單"""
-    buy_orders, sell_orders = parse_orders(group)
-    
-    if direction == 'buy':
-        buy_orders = [o for o in buy_orders if not (
-            int(o[0]) == player_id and
-            float(o[1]) == price and 
-            int(o[2]) == quantity
-        )]
-    else:
-        sell_orders = [o for o in sell_orders if not (
-            int(o[0]) == player_id and
-            float(o[1]) == price and 
-            int(o[2]) == quantity
-        )]
-    
-    save_orders(group, buy_orders, sell_orders)
-
-def _create_notification_states(
-    group: BaseGroup,
-    notifications: Dict[int, str]
-) -> Dict[int, Dict[str, Any]]:
-    """創建包含通知的市場狀態"""
-    market_states = {}
-    for p in group.get_players():
-        state = TradingMarket.market_state(p)
-        if p.id_in_group in notifications:
-            state['notification'] = {
-                'type': 'success',
-                'message': notifications[p.id_in_group]
-            }
-        market_states[p.id_in_group] = state
-    return market_states
-
-# 更新價格歷史的函數
-def update_price_history(subsession, trade_price, event='trade'):
-    try:
-        price_history = json.loads(subsession.price_history)
-    except json.JSONDecodeError:
-        price_history = []
-    
-    # 獲取當前時間
-    current_time = int(time.time())
-    # 使用相對時間格式 (當前時間 - 開始時間)
-    if hasattr(subsession, 'start_time') and subsession.start_time:
-        elapsed_seconds = current_time - subsession.start_time
-    else:
-        elapsed_seconds = 0  # 如果沒有開始時間，則使用0
-    
-    minutes = elapsed_seconds // 60
-    seconds = elapsed_seconds % 60
-    
-    price_record = {
-        'timestamp': f"{minutes:02d}:{seconds:02d}",  # 使用分:秒格式
-        'price': float(trade_price),
-        'event': event,
-        'market_price': float(subsession.market_price),
-        'round': subsession.round_number
-    }
-    
-    price_history.append(price_record)
-    subsession.price_history = json.dumps(price_history)
-    
-    return price_history
-
-# 使用共用的 record_trade 函數（已從 utils.shared_utils 匯入）
-
-# 新增函數：取消玩家所有同方向的掛單
-def cancel_player_orders(group, player_id, order_type):
-    if order_type == 'buy':
-        try:
-            buy_orders = json.loads(group.buy_orders)
-            # 計算取消數量
-            old_count = len([o for o in buy_orders if int(o[0]) == player_id])
-            # 過濾掉該玩家的所有買單
-            buy_orders = [o for o in buy_orders if int(o[0]) != player_id]
-            group.buy_orders = json.dumps(buy_orders)
-            print(f"已自動取消玩家 {player_id} 的 {old_count} 筆買單")
-        except json.JSONDecodeError:
-            pass
-    elif order_type == 'sell':
-        try:
-            sell_orders = json.loads(group.sell_orders)
-            # 計算取消數量
-            old_count = len([o for o in sell_orders if int(o[0]) == player_id])
-            # 過濾掉該玩家的所有賣單
-            sell_orders = [o for o in sell_orders if int(o[0]) != player_id]
-            group.sell_orders = json.dumps(sell_orders)
-            print(f"已自動取消玩家 {player_id} 的 {old_count} 筆賣單")
-        except json.JSONDecodeError:
-            pass
 
 def set_payoffs(group: BaseGroup):
     for p in group.get_players():
@@ -531,7 +402,7 @@ class TradingMarket(Page):
             quantity = int(data.get('quantity', 0))
             
             # 記錄提交的訂單
-            _record_submitted_offer(player, direction, price, quantity)
+            record_submitted_offer(player, direction, price, quantity)
             
             print(f"玩家 {player.id_in_group} 提交{direction}單: "
                   f"價格={price}, 數量={quantity}, "
@@ -605,7 +476,7 @@ class TradingMarket(Page):
                   f"價格={price}, 數量={quantity}")
             
             # 取消訂單
-            _cancel_specific_order(group, player.id_in_group, direction, price, quantity)
+            cancel_specific_order(group, player.id_in_group, direction, price, quantity)
             
             return {p.id_in_group: TradingMarket.market_state(p) 
                     for p in group.get_players()}
