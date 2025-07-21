@@ -150,172 +150,44 @@ def calculate_production_cost(player: BasePlayer, production_quantity: int) -> f
     
     return total_cost
 
-def calculate_control_payoffs(group: BaseGroup) -> None:
-    """計算控制組的收益"""
-    for player in group.get_players():
-        _calculate_player_payoff(player, tax_rate=0)
-
-def calculate_carbon_tax_payoffs(group: BaseGroup) -> None:
-    """計算碳稅組的收益"""
-    tax_rate = group.subsession.tax_rate
-    for player in group.get_players():
-        _calculate_player_payoff(player, tax_rate=tax_rate)
-
-def _calculate_player_payoff(player: BasePlayer, tax_rate: Currency = 0) -> None:
-    """計算單個玩家的收益"""
-    if player.production is None:
-        player.production = 0
-    
-    # 計算成本和收入
-    cost = calculate_production_cost(player, player.production)
-    revenue = player.production * player.market_price
-    
-    # 計算碳稅（如果適用）
-    if tax_rate > 0:
-        emissions = player.production * player.carbon_emission_per_unit
-        tax = emissions * tax_rate
-        player.carbon_tax_paid = float(tax)
-    else:
-        tax = 0
-    
-    # 計算利潤
-    profit = revenue - cost - tax
-    
-    # 更新玩家屬性
-    player.revenue = revenue
-    player.total_cost = float(cost)
-    player.net_profit = float(profit)
-    player.final_cash = player.current_cash + profit
-    player.payoff = profit
-
-def update_price_history(
-    subsession: BaseSubsession, 
-    trade_price: float, 
-    event: str = 'trade'
-) -> List[Dict[str, Any]]:
-    """
-    更新價格歷史記錄
-    
-    Args:
-        subsession: 子會話物件
-        trade_price: 交易價格
-        event: 事件類型
-        
-    Returns:
-        更新後的價格歷史列表
-    """
-    try:
-        price_history = json.loads(subsession.price_history)
-    except json.JSONDecodeError:
-        price_history = []
-    
-    # 計算時間戳
-    timestamp = _calculate_timestamp(subsession)
-    
-    # 獲取市場價格
-    market_price = _get_market_price(subsession)
-    
-    # 創建價格記錄
-    price_record = {
-        'timestamp': timestamp,
-        'price': float(trade_price),
-        'event': event,
-        'market_price': float(market_price),
-        'round': subsession.round_number
-    }
-    
-    price_history.append(price_record)
-    subsession.price_history = json.dumps(price_history)
-    
-    return price_history
-
-def _calculate_timestamp(subsession: BaseSubsession) -> str:
-    """計算時間戳（格式：MM:SS）"""
-    current_time = int(time.time())
-    if hasattr(subsession, 'start_time') and subsession.start_time:
-        elapsed_seconds = current_time - subsession.start_time
-    else:
-        elapsed_seconds = 0
-    
-    minutes = elapsed_seconds // 60
-    seconds = elapsed_seconds % 60
-    return f"{minutes:02d}:{seconds:02d}"
-
-def _get_market_price(subsession: BaseSubsession) -> Currency:
-    """獲取市場價格"""
-    return getattr(subsession, 'market_price', None) or getattr(subsession, 'item_market_price', 0)
-
-def record_trade(
+def calculate_general_payoff(
     group: BaseGroup, 
-    buyer_id: int, 
-    seller_id: int, 
-    price: float, 
-    quantity: int
-) -> List[Dict[str, Any]]:
+    tax_rate: float = 0, 
+    use_tax: bool = False,
+    use_trading: bool = False
+) -> None:
     """
-    記錄交易
-    
-    Args:
-        group: 組別物件
-        buyer_id: 買方ID
-        seller_id: 賣方ID
-        price: 交易價格
-        quantity: 交易數量
-        
-    Returns:
-        更新後的交易歷史列表
+    通用 payoff 計算，可處理控制組、碳稅組、碳交易組
+    - use_trading: True 則 payoff = current_cash - initial_capital
     """
-    try:
-        trade_history = json.loads(group.trade_history)
-    except json.JSONDecodeError:
-        trade_history = []
-    
-    # 創建交易記錄
-    trade_record = {
-        'timestamp': _calculate_timestamp(group.subsession),
-        'buyer_id': int(buyer_id),
-        'seller_id': int(seller_id),
-        'price': float(price),
-        'quantity': int(quantity)
-    }
-    
-    trade_history.append(trade_record)
-    group.trade_history = json.dumps(trade_history)
-    
-    print(f"記錄交易: 買方{buyer_id} <- 賣方{seller_id}, 價格{price}, 數量{quantity}")
-    return trade_history
+    for p in group.get_players():
+        if p.production is None:
+            p.production = 0
 
-def cancel_player_orders(group: BaseGroup, player_id: int, order_type: str) -> None:
-    """
-    取消玩家的所有指定類型訂單
-    
-    Args:
-        group: 組別物件
-        player_id: 玩家ID
-        order_type: 訂單類型 ('buy' 或 'sell')
-    """
-    if order_type not in ['buy', 'sell']:
-        print(f"無效的訂單類型: {order_type}")
-        return
-    
-    try:
-        # 獲取訂單列表
-        orders_field = f"{order_type}_orders"
-        orders = json.loads(getattr(group, orders_field))
-        
-        # 過濾掉該玩家的訂單
-        old_count = len([o for o in orders if int(o[0]) == player_id])
-        orders = [o for o in orders if int(o[0]) != player_id]
-        
-        # 更新訂單列表
-        setattr(group, orders_field, json.dumps(orders))
-        
-        if old_count > 0:
-            print(f"已自動取消玩家 {player_id} 的 {old_count} 筆{order_type}單")
-    except json.JSONDecodeError:
-        print(f"解析{order_type}單列表時發生錯誤")
-    except Exception as e:
-        print(f"取消訂單時發生錯誤: {e}")
+        # 計算生產成本
+        cost = calculate_production_cost(p, p.production)
+        revenue = p.production * p.market_price
+
+        # 計算碳稅
+        tax = 0
+        if use_tax and tax_rate > 0:
+            emissions = p.production * p.carbon_emission_per_unit
+            tax = emissions * tax_rate
+            p.carbon_tax_paid = float(tax)
+
+        if use_trading:
+            # 加上生產階段的收入/成本
+            profit = (p.current_cash - p.initial_capital) + (revenue - cost - tax)
+            p.final_cash = p.current_cash - cost + revenue
+        else:
+            # 控制組/碳稅組 payoff = 生產收入 - 成本 - 稅
+            profit = revenue - cost - tax
+            p.final_cash = p.current_cash + profit
+
+        p.revenue = revenue
+        p.total_cost = float(cost)
+        p.net_profit = float(profit)
+        p.payoff = profit
 
 def calculate_final_payoff_info(
     player: BasePlayer, 
