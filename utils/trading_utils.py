@@ -789,3 +789,15 @@ def cancel_specific_order(group, player_id, direction, price, quantity):
     
     group.buy_orders = json.dumps(buy_orders)
     group.sell_orders = json.dumps(sell_orders)
+
+
+class CommonReadyWaitPage(WaitPage):
+    wait_for_all_groups = True
+
+    @staticmethod
+    def after_all_players_arrive(subsession):
+        import time
+        # 只在 start_time 尚未設定時才設定
+        if subsession.field_maybe_none('start_time') is None:
+            subsession.start_time = int(time.time() + 2)
+            print(f"所有人準備就緒，start_time 設為 {subsession.start_time}")

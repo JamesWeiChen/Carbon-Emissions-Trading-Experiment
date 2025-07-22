@@ -306,13 +306,8 @@ class Introduction(Page):
             reset_cash=C.RESET_CASH_EACH_ROUND,
         )
 
-class ReadyWaitPage(WaitPage):
-    wait_for_all_groups = True
-
-    @staticmethod
-    def after_all_players_arrive(subsession: Subsession):
-        subsession.start_time = int(time.time()+2) #延遲 2 秒配合下一頁開始時間
-        print(f"碳權交易 所有人準備就緒，start_time 設為 {subsession.start_time}")
+class ReadyWaitPage(CommonReadyWaitPage):
+    pass
 
 class TradingMarket(Page):
     timeout_seconds = C.TRADING_TIME
