@@ -10,7 +10,6 @@ from utils.shared_utils import (
     calculate_general_payoff,
     get_production_template_vars,
     calculate_final_payoff_info,
-    calculate_production_cost,
     get_parameter_set_for_round
 )
 from configs.config import config
