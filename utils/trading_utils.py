@@ -796,7 +796,6 @@ class CommonReadyWaitPage(WaitPage):
 
     @staticmethod
     def after_all_players_arrive(subsession):
-        import time
         # 只在 start_time 尚未設定時才設定
         if subsession.field_maybe_none('start_time') is None:
             subsession.start_time = int(time.time() + 2)

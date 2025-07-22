@@ -1,7 +1,6 @@
 from otree.api import *
 import random
 import json
-import time
 import sys
 import os
 from typing import Dict, Any, List
