@@ -130,12 +130,12 @@
                                                         <td>{{ final_payoff_info.permits_used }} 單位</td>
                                                     </tr>
                                                     <tr class="table-success">
-                                                        <td><strong>淨利潤：</strong></td>
+                                                        <td><strong>淨利：</strong></td>
                                                         <td><strong>{{ final_payoff_info.profit_formatted }} 法幣</strong></td>
                                                     </tr>
                                                 </table>
                                                 <small class="text-muted">
-                                                    利潤計算：最終總資金({{ final_payoff_info.total_final_value_formatted }}法幣) - 初始資金({{ final_payoff_info.initial_capital_formatted }}法幣) = {{ final_payoff_info.profit_formatted }}法幣
+                                                    淨利計算：最終總資金({{ final_payoff_info.total_final_value_formatted }}法幣) - 初始資金({{ final_payoff_info.initial_capital_formatted }}法幣) = {{ final_payoff_info.profit_formatted }}法幣
                                                 </small>
                                             </div>
                                         </div>
@@ -177,7 +177,7 @@
                                     <p class="mb-0">
                                         您的最終經濟報酬為 <strong>{{ final_payoff_info.profit_formatted }} 法幣</strong>，
                                         這是您在第 <strong>{{ final_payoff_info.selected_round }}</strong> 輪中通過生產和交易策略獲得的利潤。
-                                        利潤計算方式：最終總資金({{ final_payoff_info.total_final_value_formatted }}法幣) - 初始資金({{ final_payoff_info.initial_capital_formatted }}法幣) = 利潤({{ final_payoff_info.profit_formatted }}法幣)。
+                                        淨利計算方式：最終總資金({{ final_payoff_info.total_final_value_formatted }}法幣) - 初始資金({{ final_payoff_info.initial_capital_formatted }}法幣) = 淨利({{ final_payoff_info.profit_formatted }}法幣)。
                                         同時您產生了 <strong>{{ final_payoff_info.emissions_formatted }} 單位</strong>的碳排放，
                                         使用了 <strong>{{ final_payoff_info.permits_used }} 單位</strong>的碳權。
                                         這個結果將作為您本次實驗的最終成果。
