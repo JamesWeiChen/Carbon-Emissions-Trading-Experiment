@@ -763,7 +763,7 @@ class Results(Page):
                 'group_emissions': selected_group_emissions,
                 'permits_used': selected_emissions,
                 'profit_formatted': f"{int(round(selected_profit))}",
-                'cost_formatted': f"{int(round(selected_cost))}",
+                'cost_formatted': f"{selected_cost}",
                 'revenue_formatted': f"{int(round(selected_revenue))}",
                 'emissions_formatted': f"{int(round(selected_emissions))}",
                 'group_emissions_formatted': f"{int(round(selected_group_emissions))}",
