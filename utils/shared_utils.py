@@ -238,7 +238,7 @@ def calculate_final_payoff_info(
         'emissions': emissions,
         'group_emissions': group_emissions,
         'profit_formatted': f"{int(round(profit))}",
-        'cost_formatted': f"{int(round(cost))}",
+        'cost_formatted': f"{cost}",
         'revenue_formatted': f"{int(round(revenue))}",
         'emissions_formatted': f"{int(round(emissions))}",
         'group_emissions_formatted': f"{int(round(group_emissions))}"
