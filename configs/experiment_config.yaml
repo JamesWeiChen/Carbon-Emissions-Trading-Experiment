@@ -8,8 +8,8 @@
 # ====================================
 experiment_mode:
   # 主開關：true = 測試模式, false = 正式模式
-  # test_mode_enabled: false
-  test_mode_enabled: True
+  test_mode_enabled: false
+  # test_mode_enabled: True
   
   # 模式說明
   # - 測試模式：2人一組，3回合，簡化參數，方便快速測試
