@@ -259,6 +259,7 @@ def creating_session(subsession: Subsession) -> None:
 class Group(BaseGroup):
     buy_orders = models.LongStringField(initial='[]')
     sell_orders = models.LongStringField(initial='[]')
+    emission = models.FloatField(initial=0)  # 記錄整個組的總排放量
 
 class Player(BasePlayer):
     # 添加這個欄位
@@ -284,6 +285,9 @@ class Player(BasePlayer):
     total_sold = models.IntegerField(default=0)     # 總賣出數量：玩家在本回合賣出的碳權總數
     total_spent = models.CurrencyField(default=0)   # 總支出金額：玩家在本回合買入碳權花費的總金額
     total_earned = models.CurrencyField(default=0)  # 總收入金額：玩家在本回合賣出碳權獲得的總金額
+    
+    # 碳排放記錄
+    emission = models.FloatField(initial=0)  # 記錄實際產生的排放量
     
     selected_round = models.IntegerField()  # 新增：隨機選中的回合用於最終報酬
     # 新增：社會最適產量相關欄位
@@ -642,7 +646,19 @@ class ProductionDecision(Page):
             # player.current_cash -= cost
 
 class ResultsWaitPage(WaitPage):
-    after_all_players_arrive = lambda group: calculate_general_payoff(group, use_trading=True)
+    @staticmethod
+    def after_all_players_arrive(group):
+        # 先計算一般payoff
+        calculate_general_payoff(group, use_trading=True)
+        
+        # 然後記錄每個player的實際排放量和組總排放量
+        group_total_emission = 0
+        for player in group.get_players():
+            player.emission = player.production * player.carbon_emission_per_unit
+            group_total_emission += player.emission
+        
+        # 記錄組總排放量
+        group.emission = group_total_emission
 
 # 碳交易組 Results 類
 class Results(Page):
