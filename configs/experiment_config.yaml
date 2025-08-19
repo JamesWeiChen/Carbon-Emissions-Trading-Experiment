@@ -171,6 +171,11 @@ stages:
     display_name: "問卷"
     description: "實驗後問卷"
 
+  wait_start:
+    name_in_url: 'wait_start'
+    display_name: "初始等待頁面"
+    description: "初始等待頁面"
+
 # ====================================
 # 12 組隨機參數組合
 # ====================================
