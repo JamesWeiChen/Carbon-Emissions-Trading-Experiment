@@ -172,7 +172,7 @@ stages:
     description: "實驗後問卷"
 
   wait_start:
-    name_in_url: 'wait_start'
+    name_in_url: 'Wait_Start'
     display_name: "初始等待頁面"
     description: "初始等待頁面"
 
