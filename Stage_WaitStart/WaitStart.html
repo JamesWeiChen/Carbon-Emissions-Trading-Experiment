@@ -1,0 +1,11 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+{% block title %}請等待{% endblock %}
+
+{% block content %}
+  <div class="otree-body" style="text-align:center; padding: 2rem 0;">
+    <h3>請等待主試者的下一步指示</h3>
+    <p>此頁不需操作。請保持此畫面，直到主試者通知。</p>
+  </div>
+  {# 刻意不放 {{ next_button }}，使參與者無法自行前進 #}
+{% endblock %}
