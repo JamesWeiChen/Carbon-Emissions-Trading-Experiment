@@ -46,6 +46,12 @@ SESSION_CONFIGS = [
         'display_name': "問卷",
     },
 
+    {
+        'name': 'Wait_Start',
+        'app_sequence': [config.get_stage_name_in_url('wait_start')],
+        'num_demo_participants': config.players_per_group,
+        'display_name': "初始等待頁面",
+    },
     
     {
         'name': 'Experiment_Carbon_Grandfathering',
