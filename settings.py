@@ -49,7 +49,7 @@ SESSION_CONFIGS = [
     
     {
         'name': 'Experiment_Carbon_Grandfathering',
-        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'),config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
+        'app_sequence': [wait_start, config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'),config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
         'display_name': "正式實驗：祖父權力",
         'allocation_method': 'grandfathering',
@@ -57,7 +57,7 @@ SESSION_CONFIGS = [
 
     {
         'name': 'Experiment_Carbon_Equal',
-        'app_sequence': [config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'),config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
+        'app_sequence': [wait_start, config.get_stage_name_in_url('control'), config.get_stage_name_in_url('carbon_tax'), config.get_stage_name_in_url('muda'), config.get_stage_name_in_url('carbon_trading'),config.get_stage_name_in_url('payment_info'), config.get_stage_name_in_url('survey')],
         'num_demo_participants': config.players_per_group,
         'display_name': "正式實驗：平均分配",
         'allocation_method': 'equal',
