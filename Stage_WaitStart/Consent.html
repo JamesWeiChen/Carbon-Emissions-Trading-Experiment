@@ -10,13 +10,20 @@
         padding-left: 0;
         padding-right: 0;
     }
+    .consent-box {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 16px;
+        background: #fafafa;
+        white-space: pre-line;
+    }
+    h3 { margin-top: 1rem; }
 </style>
 
 <div class="consent-box">
   <h3>知情同意書</h3>
 
   <p><strong>台灣社會科學實驗室經濟學實驗規範：</strong></p>
-
   <p>
 請在按下「我同意」之前詳閱以下資訊：  
 •  研究參與者在網站上註冊後得參與台灣社會科學實驗室（TASSEL）的經濟學實驗。這些實驗的目的是透過觀察您的決定幫助社會科學家了解人類的決策過程。本同意書允許您註冊本網站以便收到實驗公告通知，據以登記參加特定實驗。除非您許可或法令要求，我們不會揭露可供辨識您身份的資訊。  
@@ -36,8 +43,7 @@
   <h3>您是否已詳細瞭解並同意上述資訊及條款？</h3>
 
   <form method="post">
-    {% csrf_token %}
-    <button class="btn btn-primary btn-lg" type="submit">我同意</button>
+    {% next_button %}
   </form>
 </div>
 {% endblock %}
