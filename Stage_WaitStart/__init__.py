@@ -12,14 +12,18 @@ class Group(BaseGroup):
     pass
 
 class Player(BasePlayer):
-    pass
+    consent = models.BooleanField(label="本人已閱讀並同意上述資訊與條款", blank=False)
+
+class Consent(Page):
+    form_model = 'player'
+    form_fields = ['consent']
 
 class WaitStart(Page):
-    # 顯示一個純訊息頁，無表單、無按鈕
     form_model = None
 
     @staticmethod
     def is_displayed(player: Player):
-        return True
+        # 僅在已同意時顯示
+        return player.consent is True
 
-page_sequence = [WaitStart]
+page_sequence = [Consent, WaitStart]
