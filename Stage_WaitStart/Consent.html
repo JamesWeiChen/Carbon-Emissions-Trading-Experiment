@@ -3,80 +3,41 @@
 
 {% block content %}
 <style>
-    .otree-body {
-        max-width: 60vw !important;
-        padding-left: 0;
-        padding-right: 0;
-    }
-    .consent-container {
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background: #fafafa;
-        margin: 0 auto;
-    }
-    .consent-header {
-        background: #673ab7;
-        color: white;
-        font-weight: bold;
-        padding: 10px 16px;
-        border-radius: 8px 8px 0 0;
-        font-size: 1.5rem;
-    }
-    .consent-body {
-        padding: 20px;
-        line-height: 1.6;
-        font-size: 0.95rem;
-    }
-    .title-large {
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
-    }
-    .subtitle-mid {
-        font-size: 1.1rem;
-        font-weight: bold;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
-    }
-    .agree-box {
-        background: #ede7f6;
-        padding: 12px;
-        border-radius: 6px;
-        margin-top: 20px;
-        font-weight: bold;
-    }
-    .btn-agree {
-        display: block;
-        margin: 20px auto;
-        font-size: 1.1rem;
-        padding: 10px 30px;
-    }
-    .text-red {
-        color: red;
-    }
+  .otree-body { max-width: 60vw !important; }
+  .consent-box { border:1px solid #ccc; border-radius:8px; background:#fafafa; }
+  .consent-header { background:#673ab7; color:white; font-weight:bold; padding:10px; border-radius:8px 8px 0 0; font-size:1.5rem; }
+  .consent-body { padding:20px; line-height:1.6; font-size:0.95rem; }
+  .agree-box { background:#ede7f6; padding:10px; margin-top:15px; font-weight:bold; }
+  .btn-agree { display:block; margin:20px auto; font-size:1.1rem; padding:8px 24px; }
 </style>
 
-<div class="consent-container">
+<div class="consent-box">
   <div class="consent-header">知情同意書</div>
   <div class="consent-body">
 
-    <div class="title-large">台灣社會科學實驗室經濟學實驗規範：</div>
+    <div style="font-size:1.5rem; font-weight:bold; margin-bottom:1rem;">
+      台灣社會科學實驗室經濟學實驗規範：
+    </div>
 
-    <div class="subtitle-mid">請在按下「我同意」之前詳閱以下資訊：</div>
+    <div style="font-weight:bold; margin:1rem 0 0.5rem;">
+      請在按下「我同意」之前詳閱以下資訊：
+    </div>
     <p>
-    • 研究參與者在網站上註冊後得參與台灣社會科學實驗室（TASSEL）的經濟學實驗。這些實驗的目的是透過觀察您的決定幫助社會科學家了解人類的決策過程。本同意書允許您註冊本網站以便收到實驗公告通知，據以登記參加特定實驗。除非您許可或法令要求，我們不會揭露可供辨識您身份的資訊。<br>
-    • 您可以在網站的日程表上登記參與特定場次實驗。日程表上會顯示實驗開始與結束的時間及定額車馬費金額。如果某些場次有特定的參與資格或額外的同意事項，我們會在登記過程中詳述。<br>
-    • 您若選擇參加某場實驗，在其中您會做一些決定，據以領取報酬。所有互動均匿名，實驗結束後將立即以現金支付。<br>
-    • 選擇參與實驗為自願行為，且不因此放棄任何法律權益。您可在任何時間退出參與，不需負擔任何義務。是否參與不會影響您與學校或任何組織的關係。若有問題可聯絡台大經濟系王道一教授（電話：02-3366-8411，信箱：josephw “@” ntu.edu.tw），或國立台灣大學研究倫理中心（02-3366-9956、02-3366-9980）。
+    • 研究參與者在網站上註冊後得參與台灣社會科學實驗室（TASSEL）的經濟學實驗…<br>
+    • 您可以在網站的日程表上登記參與特定場次實驗…<br>
+    • 您若選擇參加某場實驗，在其中您會做一些決定…<br>
+    • 選擇參與實驗為自願行為…若有問題可聯絡台大經濟系王道一教授…
     </p>
 
-    <div class="subtitle-mid">個資收集條款</div>
+    <div style="font-weight:bold; margin:1rem 0 0.5rem;">
+      個資收集條款
+    </div>
     <p>
-    • 每個人都會個別領取並簽收實驗報酬，領據上的個資僅供會計報帳使用，不會與實驗中決策連結。<br>
-    • 實驗資料在去連結後才會提供研究者分析，僅有授權行政人員可經手。<br>
-    • 研究衍生的論文均不會揭露身分，若因校方或審查需要揭露，也僅限於確認研究正確執行，且審查單位亦會保密。<br>
+    • 每個人都會個別領取並簽收實驗報酬…<br>
+    • 實驗資料在去連結後才會提供研究者分析…<br>
+    • 研究衍生的論文均不會揭露身分…<br>
     • 若您未滿十八歲，需由法定代理人同意。<br>
-    • <span class="text-red">本研究經費來源：國家科學及技術委員會，計畫主持人：台灣大學農業經濟學系助理教授陳暐。聯絡信箱：jamesweichen “@” ntu.edu.tw，電話：02-3366-2668。</span>
+    • <span style="color:red;">本研究經費來源：國家科學及技術委員會，計畫主持人：台灣大學農業經濟學系助理教授陳暐。聯絡信箱：jamesweichen “@” ntu.edu.tw，電話：02-3366-2668。</span>
     </p>
 
     <div class="agree-box">
@@ -84,7 +45,7 @@
     </div>
 
     <form method="post">
-      <button class="btn btn-primary btn-lg btn-agree" type="submit">我同意</button>
+      <button class="btn btn-primary btn-agree" type="submit">我同意</button>
     </form>
 
   </div>
