@@ -1,7 +1,6 @@
 from otree.api import *
 import random
 import json
-import time
 import sys
 import os
 from typing import Dict, Any, List
@@ -113,13 +112,8 @@ class Introduction(Page):
             'initial_capital': C.INITIAL_CAPITAL,
         }
 
-class ReadyWaitPage(WaitPage):
-    wait_for_all_groups = True
-    
-    @staticmethod
-    def after_all_players_arrive(subsession: Subsession):
-        subsession.start_time = int(time.time()+2) #延遲兩秒
-        print(f"[MUDA] 所有人準備就緒，start_time 設為 {subsession.start_time}")
+class ReadyWaitPage(CommonReadyWaitPage):
+    pass
 
 class TradingMarket(Page):
     form_model = 'player'

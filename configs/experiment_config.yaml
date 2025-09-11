@@ -8,8 +8,8 @@
 # ====================================
 experiment_mode:
   # 主開關：true = 測試模式, false = 正式模式
-  # test_mode_enabled: false
-  test_mode_enabled: True
+  test_mode_enabled: false
+  # test_mode_enabled: True
   
   # 模式說明
   # - 測試模式：2人一組，3回合，簡化參數，方便快速測試
@@ -170,6 +170,11 @@ stages:
     name_in_url: 'Stage_Survey'
     display_name: "問卷"
     description: "實驗後問卷"
+
+  wait_start:
+    name_in_url: 'Stage_WaitStart'
+    display_name: "初始等待頁面"
+    description: "初始等待頁面"
 
 # ====================================
 # 12 組隨機參數組合

@@ -10,7 +10,6 @@ from utils.shared_utils import (
     calculate_general_payoff,
     get_production_template_vars,
     calculate_final_payoff_info,
-    calculate_production_cost,
     get_parameter_set_for_round
 )
 from configs.config import config
@@ -56,7 +55,7 @@ def creating_session(subsession: Subsession) -> None:
         player.selected_round = subsession.session.vars["selected_round"]
 
 class Group(BaseGroup):
-    pass
+    emission = models.FloatField(initial=0)  # 記錄整個組的總排放量
 
 class Player(BasePlayer):
     # 企業特性
@@ -78,6 +77,9 @@ class Player(BasePlayer):
     initial_capital = models.CurrencyField()
     current_cash = models.CurrencyField()
     final_cash = models.CurrencyField()
+    
+    # 碳排放記錄
+    emission = models.FloatField(initial=0)  # 記錄實際產生的排放量
     
     # 新增：記錄生產成本表
     # production_cost_table = models.LongStringField(initial='[]')
@@ -134,7 +136,19 @@ class ProductionDecision(Page):
         )         
 
 class ResultsWaitPage(WaitPage):
-    after_all_players_arrive = lambda group: calculate_general_payoff(group, tax_rate=group.subsession.tax_rate, use_tax=True)
+    @staticmethod
+    def after_all_players_arrive(group):
+        # 先計算一般payoff
+        calculate_general_payoff(group, tax_rate=group.subsession.tax_rate, use_tax=True)
+        
+        # 然後記錄每個player的實際排放量和組總排放量
+        group_total_emission = 0
+        for player in group.get_players():
+            player.emission = player.production * player.carbon_emission_per_unit
+            group_total_emission += player.emission
+        
+        # 記錄組總排放量
+        group.emission = group_total_emission
 
 class Results(Page):
     @staticmethod
@@ -190,7 +204,7 @@ class Results(Page):
             'marginal_cost_coefficient': player.marginal_cost_coefficient,
             
             # 格式化數值
-            'production_cost_formatted': f"{int(round(production_cost))} 法幣",
+            'production_cost_formatted': f"{production_cost} 法幣",
             'carbon_tax_formatted': f"{int(round(carbon_tax))} 法幣",
             'revenue_formatted': f"{int(round(float(player.revenue)))}",
             'net_profit_formatted': f"{int(round(player.net_profit))} 法幣",
@@ -227,7 +241,7 @@ def _calculate_group_emissions(player: Player) -> float:
 
 def _carbon_tax_cost_calculator(selected_player: Player) -> float:
     """計算包含碳稅的總成本"""
-    base_cost = selected_player.totoal_cost
+    base_cost = selected_player.total_cost
     emissions = selected_player.production * selected_player.carbon_emission_per_unit
     tax = emissions * selected_player.subsession.tax_rate
     return base_cost + tax

@@ -1,0 +1,36 @@
+{% extends "global/Page.html" %}
+
+{% block title %}
+歡迎來到台灣社會科學實驗室 (TASSEL) 參與今天的實驗
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .welcome-card {
+        background: linear-gradient(135deg, #3b82f6, #10b981); /* 藍到綠漸層 */
+        color: white;
+        border-radius: 12px;
+        padding: 3rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        max-width: 700px;
+        margin: 3rem auto;
+    }
+    .welcome-card h2 {
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    .welcome-card p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+</style>
+
+<div class="welcome-card text-center">
+    <h2>請稍後主試者的下一步指示</h2>
+    <p>我們等等會開始進行實驗說明</p>
+</div>
+
+{% endblock %}
+
+
