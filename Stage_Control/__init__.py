@@ -36,9 +36,10 @@ def creating_session(subsession: Subsession) -> None:
     
     subsession.set_group_matrix([subsession.get_players()]) # 設定分組
 
-    # 選擇報酬回合（僅第 1 輪）
-    if "selected_round" not in subsession.session.vars:
-        subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
+    # 選擇報酬回合（僅第 1 輪）- 各子 app 獨立抽取
+    session_key = "selected_round__Stage_Control"
+    if session_key not in subsession.session.vars:
+        subsession.session.vars[session_key] = random.randint(1, C.NUM_ROUNDS)
     
     param = get_parameter_set_for_round(subsession.session, subsession.round_number) # 抓參數組合
 
@@ -50,9 +51,9 @@ def creating_session(subsession: Subsession) -> None:
 
     initialize_roles(subsession)
 
-    # 將 selected_round 指派給所有玩家
+    # 將 selected_round 指派給所有玩家（存到 Player 欄位）
     for player in subsession.get_players():
-        player.selected_round = subsession.session.vars["selected_round"]
+        player.selected_round = subsession.session.vars[session_key]
 
 class Group(BaseGroup):
     emission = models.FloatField(initial=0)  # 記錄整個組的總排放量

@@ -30,10 +30,11 @@ def creating_session(subsession: Subsession) -> None:
     # 讓所有人進入同一組
     subsession.set_group_matrix([subsession.get_players()])
 
-    # 所有人共用 selected_round
-    if "selected_round" not in subsession.session.vars:
-        subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
-        print(f"[MUDA] 共用的 selected_round 抽中第 {subsession.session.vars['selected_round']} 輪")
+    # 為 MUDA 單獨抽取 selected_round（與其他 app 獨立）
+    session_key = "selected_round__Stage_MUDA"
+    if session_key not in subsession.session.vars:
+        subsession.session.vars[session_key] = random.randint(1, C.NUM_ROUNDS)
+        print(f"[MUDA] 本 app 的 selected_round 抽中第 {subsession.session.vars[session_key]} 輪")
     
     # 設定參考價格
     reference_price = random.choice(config.muda_item_price_options)
@@ -42,7 +43,7 @@ def creating_session(subsession: Subsession) -> None:
     
     # 初始化玩家
     for p in subsession.get_players():
-        p.selected_round = subsession.session.vars["selected_round"]
+        p.selected_round = subsession.session.vars[session_key]
         _initialize_player(p)
 
 def _initialize_player(player: BasePlayer) -> None:

@@ -87,12 +87,12 @@ def initialize_roles(subsession: Subsession, allocation_method) -> None:
         p.mkt_emissions = allowance_allocation['firm_details'][i]['TE_mkt']
         
         # 為每個玩家設置selected_round
+        # 在第一輪設定，後續回合保持相同
+        session_key = "selected_round__Stage_CarbonTrading"
         if p.round_number == 1:
-            # 在第一輪隨機選擇一個回合用於最終報酬
-            p.selected_round = subsession.session.vars["selected_round"]
+            p.selected_round = subsession.session.vars[session_key]
         else:
-            # 在後續回合中保持與第一輪相同的selected_round
-            p.selected_round = subsession.session.vars["selected_round"]
+            p.selected_round = subsession.session.vars[session_key]
 
     
     # 根據配置檔案決定是否輸出詳細資訊
@@ -239,9 +239,10 @@ def creating_session(subsession: Subsession) -> None:
     # 設定分組
     subsession.set_group_matrix([subsession.get_players()])
 
-    # 選擇報酬回合（僅第 1 輪）
-    if "selected_round" not in subsession.session.vars:
-        subsession.session.vars["selected_round"] = random.randint(1, C.NUM_ROUNDS)
+    # 選擇報酬回合（僅第 1 輪）- 各子 app 獨立抽取
+    session_key = "selected_round__Stage_CarbonTrading"
+    if session_key not in subsession.session.vars:
+        subsession.session.vars[session_key] = random.randint(1, C.NUM_ROUNDS)
 
     param = get_parameter_set_for_round(subsession.session, subsession.round_number)
 

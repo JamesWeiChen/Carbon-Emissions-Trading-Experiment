@@ -208,8 +208,10 @@ def calculate_final_payoff_info(
     if player.round_number != config.num_rounds:
         return None
     
-    # 選擇隨機回合
-    selected_round = _get_or_set_selected_round(player)
+    # 選擇隨機回合（優先使用各子 app 先行設定在 Player 的欄位，其次使用「依 app 名稱」的 session key）
+    selected_round = getattr(player, 'selected_round', None)
+    if selected_round in (None, 0):
+        selected_round = _get_or_set_selected_round(player)
     player.selected_round = selected_round
     selected_round_player = player.in_round(selected_round)
     
@@ -251,9 +253,19 @@ def calculate_final_payoff_info(
     return final_payoff_info
 
 def _get_or_set_selected_round(player: BasePlayer) -> int:
-    if "selected_round" not in player.session.vars:
-        player.session.vars["selected_round"] = random.randint(1, config.num_rounds)
-    return player.session.vars["selected_round"]
+    """
+    依「子 app」各自抽取支付回合：
+    - 使用 session.vars 中以 app 標籤區分的 key，例如：selected_round__Stage_Control
+    - 預設回合數使用 config.num_rounds（此函式目前僅由控制組/碳稅組呼叫）
+    """
+    # 以 Player 所屬模組名稱推斷 app 標籤，例如 'Stage_Control.__init__' -> 'Stage_Control'
+    module_name = getattr(player, '__module__', '')
+    app_label = module_name.split('.')[0] if module_name else 'unknown_app'
+    session_key = f"selected_round__{app_label}"
+
+    if session_key not in player.session.vars:
+        player.session.vars[session_key] = random.randint(1, config.num_rounds)
+    return player.session.vars[session_key]
 
 def _calculate_cost_for_round(player: BasePlayer, cost_calculator_func: Optional[callable]) -> float:
     """計算指定回合的成本"""
