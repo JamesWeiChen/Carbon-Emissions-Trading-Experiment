@@ -32,6 +32,10 @@ class C(BaseConstants):
 
 class Subsession(BaseSubsession):
     market_price = models.IntegerField()
+    tax_rate = models.IntegerField()
+    carbon_multiplier = models.FloatField()
+    dominant_mc = models.IntegerField()
+    non_dominant_mc = models.IntegerField()
     price_history = models.LongStringField(initial='[]')
     start_time = models.IntegerField()  # 新增：記錄開始時間
     # 新增：社會最適產量和配額分配相關欄位
@@ -39,10 +43,6 @@ class Subsession(BaseSubsession):
     cap_total = models.IntegerField() # 發出的碳排放權總量
     allocation_details = models.LongStringField(initial='[]')  # 儲存分配詳細資訊
     executed_trades = models.LongStringField(initial='[]')  # 新增：記錄成交的訂單
-    carbon_multiplier = models.FloatField()
-    tax_rate = models.IntegerField()
-    dominant_mc = models.IntegerField()
-    non_dominant_mc = models.IntegerField()
     allocation_method = models.StringField()
 
 def initialize_roles(subsession: Subsession, allocation_method) -> None:
@@ -262,27 +262,31 @@ def creating_session(subsession: Subsession) -> None:
     initialize_roles(subsession, allocation_method)
 
 class Group(BaseGroup):
+    emission = models.FloatField(initial=0)  # 記錄整個組的總排放量
     buy_orders = models.LongStringField(initial='[]')
     sell_orders = models.LongStringField(initial='[]')
-    emission = models.FloatField(initial=0)  # 記錄整個組的總排放量
 
 class Player(BasePlayer):
-    # 添加這個欄位
+    # 企業特性
     is_dominant = models.BooleanField()
-    
-    # 其他現有欄位
     marginal_cost_coefficient = models.IntegerField()
-    disturbance_values = models.LongStringField()
     carbon_emission_per_unit = models.IntegerField()
+    max_production = models.IntegerField()
+
+    # 市場和生產
     market_price = models.CurrencyField()
     production = models.IntegerField(min=0, max=C.MAX_PRODUCTION)
+    disturbance_values = models.LongStringField()
+
+    # 財務相關
     revenue = models.CurrencyField()
     total_cost = models.FloatField()  # 改為FloatField以保持浮點數精度
     net_profit = models.FloatField()  # 改為FloatField以保持浮點數精度
     initial_capital = models.CurrencyField()
-    final_cash = models.CurrencyField()
-    max_production = models.IntegerField()
     current_cash = models.CurrencyField()
+    final_cash = models.CurrencyField()
+
+    # 交易相關
     permits = models.IntegerField()  # 初始分配的碳權數量
     current_permits = models.IntegerField()  # 當前碳權餘額
     submitted_offers = models.LongStringField(initial='[]')
@@ -290,12 +294,12 @@ class Player(BasePlayer):
     total_sold = models.IntegerField(default=0)     # 總賣出數量：玩家在本回合賣出的碳權總數
     total_spent = models.CurrencyField(default=0)   # 總支出金額：玩家在本回合買入碳權花費的總金額
     total_earned = models.CurrencyField(default=0)  # 總收入金額：玩家在本回合賣出碳權獲得的總金額
-    
+
     # 碳排放記錄
     emission = models.FloatField(initial=0)  # 記錄實際產生的排放量
-    
+
+    # 回合與最適資訊
     selected_round = models.IntegerField()  # 新增：隨機選中的回合用於最終報酬
-    # 新增：社會最適產量相關欄位
     optimal_production = models.FloatField()  # 社會最適產量 q_opt_i
     optimal_emissions = models.FloatField()   # 社會最適排放量 TE_opt_i
     mkt_production = models.FloatField()  # 利潤極大化產量 q_mkt_i

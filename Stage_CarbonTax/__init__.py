@@ -68,12 +68,12 @@ class Player(BasePlayer):
     marginal_cost_coefficient = models.IntegerField()
     carbon_emission_per_unit = models.FloatField()
     max_production = models.IntegerField()
-    
+
     # 市場和生產
     market_price = models.CurrencyField()
     production = models.IntegerField(min=0, max=C.MAX_PRODUCTION)
     disturbance_values = models.LongStringField()
-    
+
     # 財務相關
     revenue = models.CurrencyField()
     total_cost = models.FloatField()
@@ -82,14 +82,11 @@ class Player(BasePlayer):
     initial_capital = models.CurrencyField()
     current_cash = models.CurrencyField()
     final_cash = models.CurrencyField()
-    
+
     # 碳排放記錄
     emission = models.FloatField(initial=0)  # 記錄實際產生的排放量
-    
-    # 新增：記錄生產成本表
-    # production_cost_table = models.LongStringField(initial='[]')
-    
-    # 隨機選中的回合用於最終報酬
+
+    # 回合資訊
     selected_round = models.IntegerField()
 
 def initialize_roles(subsession: Subsession) -> None:
