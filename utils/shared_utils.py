@@ -159,12 +159,66 @@ def calculate_production_cost(player: BasePlayer, production_quantity: int) -> f
 
     total_cost = float(np.sum(a * q + dist))
     total_cost = round(total_cost, 2)
-    
+
     return total_cost
 
+def calculate_player_production_benchmarks(
+    player: BasePlayer,
+    social_cost_per_unit_carbon: float = 6.0
+) -> Dict[str, float]:
+    """計算玩家在不同情境下的基準產量、利潤與排放"""
+
+    try:
+        disturbance_values = json.loads(player.disturbance_values)
+    except (TypeError, json.JSONDecodeError):
+        disturbance_values = []
+
+    disturbances = np.array(disturbance_values, dtype=float)
+    max_q = int(getattr(player, 'max_production', len(disturbances) or 0))
+    if len(disturbances) > 0:
+        max_q = min(max_q, len(disturbances))
+    else:
+        max_q = 0
+
+    price = float(player.market_price) if player.market_price is not None else 0
+    a = float(getattr(player, 'marginal_cost_coefficient', 0) or 0)
+    emission_per_unit = float(getattr(player, 'carbon_emission_per_unit', 0) or 0)
+    social_cost_per_output = emission_per_unit * social_cost_per_unit_carbon
+
+    q_mkt = 0
+    q_soc = 0
+
+    for idx in range(max_q):
+        q = idx + 1
+        marginal_cost = a * q + disturbances[idx]
+        if price > marginal_cost:
+            q_mkt = q
+        if price > marginal_cost + social_cost_per_output:
+            q_soc = q
+
+    revenue_mkt = price * q_mkt
+    revenue_soc = price * q_soc
+    cost_mkt = calculate_production_cost(player, q_mkt)
+    cost_soc = calculate_production_cost(player, q_soc)
+
+    profit_mkt = round(revenue_mkt - cost_mkt, 2)
+    profit_soc = round(revenue_soc - cost_soc, 2)
+
+    emissions_mkt = round(emission_per_unit * q_mkt, 2)
+    emissions_soc = round(emission_per_unit * q_soc, 2)
+
+    return {
+        'q_soc': int(q_soc),
+        'q_mkt': int(q_mkt),
+        'pi_soc': float(profit_soc),
+        'pi_mkt': float(profit_mkt),
+        'e_soc': float(emissions_soc),
+        'e_mkt': float(emissions_mkt),
+    }
+
 def calculate_general_payoff(
-    group: BaseGroup, 
-    tax_rate: float = 0, 
+    group: BaseGroup,
+    tax_rate: float = 0,
     use_tax: bool = False,
     use_trading: bool = False
 ) -> None:
@@ -172,6 +226,15 @@ def calculate_general_payoff(
     通用 payoff 計算，可處理控制組、碳稅組、碳交易組
     - use_trading: True 則 payoff = current_cash - initial_capital
     """
+    totals = {
+        'Q_soc': 0.0,
+        'Q_mkt': 0.0,
+        'Pi_soc': 0.0,
+        'Pi_mkt': 0.0,
+        'E_soc': 0.0,
+        'E_mkt': 0.0,
+    }
+
     for p in group.get_players():
         if p.production is None:
             p.production = 0
@@ -200,6 +263,25 @@ def calculate_general_payoff(
         p.total_cost = float(cost)
         p.net_profit = float(profit)
         p.payoff = profit
+
+        benchmarks = calculate_player_production_benchmarks(p)
+        for field, value in benchmarks.items():
+            setattr(p, field, value)
+
+        totals['Q_soc'] += benchmarks['q_soc']
+        totals['Q_mkt'] += benchmarks['q_mkt']
+        totals['Pi_soc'] += benchmarks['pi_soc']
+        totals['Pi_mkt'] += benchmarks['pi_mkt']
+        totals['E_soc'] += benchmarks['e_soc']
+        totals['E_mkt'] += benchmarks['e_mkt']
+
+    _update_group_benchmarks(group, totals)
+
+def _update_group_benchmarks(group: BaseGroup, totals: Dict[str, float]) -> None:
+    """更新群組層級的基準統計值"""
+    for field, value in totals.items():
+        if hasattr(group, field):
+            setattr(group, field, float(round(value, 2)))
 
 def calculate_final_payoff_info(
     player: BasePlayer, 
