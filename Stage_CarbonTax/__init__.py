@@ -41,7 +41,11 @@ def creating_session(subsession: Subsession) -> None:
     if session_key not in subsession.session.vars:
         subsession.session.vars[session_key] = random.randint(1, C.NUM_ROUNDS)
     
-    param = get_parameter_set_for_round(subsession.session, subsession.round_number) # 抓參數組合
+    param = get_parameter_set_for_round(
+        subsession.session,
+        subsession.round_number,
+        stage_key='carbon_tax'
+    ) # 抓參數組合
 
     subsession.market_price = param['market_price']
     subsession.tax_rate = param['tax_rate']
