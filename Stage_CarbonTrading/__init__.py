@@ -263,6 +263,12 @@ def creating_session(subsession: Subsession) -> None:
 
 class Group(BaseGroup):
     emission = models.FloatField(initial=0)  # 記錄整個組的總排放量
+    Q_soc = models.FloatField(initial=0)
+    Q_mkt = models.FloatField(initial=0)
+    Pi_soc = models.FloatField(initial=0)
+    Pi_mkt = models.FloatField(initial=0)
+    E_soc = models.FloatField(initial=0)
+    E_mkt = models.FloatField(initial=0)
     buy_orders = models.LongStringField(initial='[]')
     sell_orders = models.LongStringField(initial='[]')
 
@@ -304,6 +310,14 @@ class Player(BasePlayer):
     optimal_emissions = models.FloatField()   # 社會最適排放量 TE_opt_i
     mkt_production = models.FloatField()  # 利潤極大化產量 q_mkt_i
     mkt_emissions = models.FloatField()   # 利潤極大化排放量 TE_mkt_i
+
+    # 基準情境與社會最適指標
+    q_soc = models.IntegerField(initial=0)
+    q_mkt = models.IntegerField(initial=0)
+    pi_soc = models.FloatField(initial=0)
+    pi_mkt = models.FloatField(initial=0)
+    e_soc = models.FloatField(initial=0)
+    e_mkt = models.FloatField(initial=0)
 
 class Introduction(Page):
     @staticmethod
