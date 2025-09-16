@@ -15,7 +15,11 @@ from configs.config import config, ConfigConstants
 
 CommonConstants = ConfigConstants
 
-def get_parameter_set_for_round(session: Any, round_number: int) -> Dict[str, Any]:
+def get_parameter_set_for_round(
+    session: Any,
+    round_number: int,
+    stage_key: Optional[str] = None
+) -> Dict[str, Any]:
     """
     根據 session 與 round number，決定本回合使用哪一組參數。
 
@@ -25,6 +29,7 @@ def get_parameter_set_for_round(session: Any, round_number: int) -> Dict[str, An
     Args:
         session: oTree session 物件
         round_number: 當前回合數（從 1 開始）
+        stage_key: 用於辨識不同階段的鍵值。若為 None，則所有階段共用同一順序。
 
     Returns:
         Dict[str, Any]: 對應本回合的參數設定
@@ -32,10 +37,17 @@ def get_parameter_set_for_round(session: Any, round_number: int) -> Dict[str, An
     all_sets = config.parameter_sets
     num_sets = len(all_sets)
 
-    if 'parameter_order' not in session.vars:
-        session.vars['parameter_order'] = random.sample(range(num_sets), num_sets)
+    # 每個 stage_key 單獨儲存一組隨機順序，避免不同階段使用相同排序
+    stage_identifier = stage_key or 'default'
+    parameter_orders = session.vars.setdefault('parameter_orders', {})
 
-    order = session.vars['parameter_order']
+    if (
+        stage_identifier not in parameter_orders
+        or len(parameter_orders.get(stage_identifier, [])) != num_sets
+    ):
+        parameter_orders[stage_identifier] = random.sample(range(num_sets), num_sets)
+
+    order = parameter_orders[stage_identifier]
     if round_number < 1 or round_number > len(order):
         raise ValueError(f"Invalid round_number {round_number}: must be between 1 and {len(order)}")
 
