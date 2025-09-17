@@ -9,6 +9,7 @@ from utils.shared_utils import (
     initialize_player_roles,
     get_parameter_set_for_round,
     calculate_general_payoff,
+    calculate_player_production_benchmarks,
 )
 from utils.trading_utils import *
 from configs.config import config
@@ -104,22 +105,33 @@ def initialize_roles(subsession: Subsession, allocation_method) -> None:
             print("\n" + "="*60)
             print("社會最適產量與碳權分配計算結果")
             print("="*60)
-            
+
             for i, details in enumerate(allowance_allocation['firm_details']):
-                print(f"Firm {i+1}: a = {details['a']}, b = {details['b']}, "
-                      f"q_opt = {details['q_opt']:.{decimal_places}f}, TE_opt = {details['TE_opt']:.{decimal_places}f}, "
-                      f"allocated_allowance = {allowance_allocation['allocations'][i]}")
-            
+                print(
+                    f"Firm {i+1}: a = {details['a']}, b = {details['b']}, "
+                    f"q_opt = {details['q_opt']:.{decimal_places}f}, TE_opt = {details['TE_opt']:.{decimal_places}f}, "
+                    f"q_tax = {details['q_subopt']}, TE_tax = {details['TE_subopt']}, "
+                    f"allocated_allowance = {allowance_allocation['allocations'][i]}"
+                )
+
             print(f"\nTotal optimal emissions = {allowance_allocation['TE_opt_total']:.{decimal_places}f}")
             print(f"Cap multiplier = {allowance_allocation['r']}")
             print(f"Cap total = {allowance_allocation['cap_total']}")
+            print(
+                f"Total tax-benchmark emissions = {allowance_allocation['TE_tax_total']}"
+            )
+            print(
+                "Cap equals tax benchmark? "
+                f"{allowance_allocation['cap_total'] == allowance_allocation['TE_tax_total']}"
+            )
             print(f"Parameters: p = {allowance_allocation['config']['market_price']}, "
                   f"c = {allowance_allocation['config']['social_cost_per_unit_carbon']}")
             print("="*60 + "\n")
-        
+
         elif output_format == "simple":
             print(f"碳權分配完成：總排放={allowance_allocation['TE_opt_total']:.{decimal_places}f}, "
-                  f"配額倍率={allowance_allocation['r']}, 總配額={allowance_allocation['cap_total']}")
+                  f"配額倍率={allowance_allocation['r']}, 總配額={allowance_allocation['cap_total']}, "
+                  f"稅制基準排放={allowance_allocation['TE_tax_total']}")
     
     # 簡化版玩家資訊輸出
     for i, p in enumerate(players):
@@ -161,16 +173,32 @@ def calculate_optimal_allowance_allocation(
     TE_opts = []
     TE_subopts = []
     TE_mkts = []
+    TE_tax_total = 0
+    tax_rate = r * c
 
     for player in players:
         a_i = float(player.marginal_cost_coefficient)
         b_i = float(player.carbon_emission_per_unit)
         q_opt_i = int((p - b_i * c) / a_i)
-        q_subopt_i = int((p - b_i * c * r) / a_i)
         q_mkt_i = int( p  / a_i)
         TE_opt_i = int(b_i * q_opt_i)
-        TE_subopt_i = int(b_i * q_subopt_i)
         TE_mkt_i = int(b_i * q_mkt_i)
+
+        benchmarks = calculate_player_production_benchmarks(
+            player,
+            social_cost_per_unit_carbon=c,
+            tax_rate=tax_rate,
+        )
+
+        max_q = int(getattr(player, 'max_production', config.max_production) or 0)
+        q_tax_raw = int(benchmarks.get('q_tax', 0))
+        q_subopt_i = max(0, min(q_tax_raw, max_q))
+
+        max_emissions = float(b_i * max_q)
+        TE_subopt_raw = float(b_i * q_subopt_i)
+        TE_subopt_i = int(round(max(0.0, min(TE_subopt_raw, max_emissions))))
+
+        TE_tax_total += TE_subopt_i
 
         firm_details.append({
             'a': a_i,
@@ -225,6 +253,7 @@ def calculate_optimal_allowance_allocation(
         'r': r,
         'cap_total': cap_total_int,
         'TE_mkt_total': TE_mkt_total,
+        'TE_tax_total': TE_tax_total,
         'allocations': allocations,
         'config': {
             'market_price': p,
