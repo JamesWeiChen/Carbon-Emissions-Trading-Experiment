@@ -108,9 +108,10 @@ def _assign_player_attributes(player: BasePlayer, is_dominant: bool, initial_cap
 
     player.is_dominant = is_dominant
     player.marginal_cost_coefficient = ss.dominant_mc if is_dominant else ss.non_dominant_mc
-    player.carbon_emission_per_unit = (
+    emission_per_unit = (
         config.dominant_emission_per_unit if is_dominant else config.non_dominant_emission_per_unit
     )
+    player.carbon_emission_per_unit = int(round(emission_per_unit))
     player.max_production = (
         config.dominant_max_production if is_dominant else config.non_dominant_max_production
     )
@@ -248,9 +249,9 @@ def calculate_general_payoff(
         'Pi_soc': 0.0,
         'Pi_mkt': 0.0,
         'Pi_tax': 0.0,
-        'E_soc': 0.0,
-        'E_mkt': 0.0,
-        'E_tax': 0.0,
+        'E_soc': 0,
+        'E_mkt': 0,
+        'E_tax': 0,
     }
 
     for p in group.get_players():
@@ -302,7 +303,10 @@ def _update_group_benchmarks(group: BaseGroup, totals: Dict[str, float]) -> None
     """更新群組層級的基準統計值"""
     for field, value in totals.items():
         if hasattr(group, field):
-            setattr(group, field, float(round(value, 2)))
+            if field.startswith('E_'):
+                setattr(group, field, int(round(value)))
+            else:
+                setattr(group, field, float(round(value, 2)))
 
 def calculate_final_payoff_info(
     player: BasePlayer, 
@@ -334,8 +338,10 @@ def calculate_final_payoff_info(
     cost = selected_round_player.total_cost
     revenue = selected_round_player.production * selected_round_player.market_price
     profit = revenue - cost
-    emissions = selected_round_player.production * selected_round_player.carbon_emission_per_unit
-    
+    emissions = int(round(
+        selected_round_player.production * selected_round_player.carbon_emission_per_unit
+    ))
+
     # 計算組別總排放
     group_emissions = _calculate_group_emissions(selected_round_player)
 
@@ -389,14 +395,14 @@ def _calculate_cost_for_round(player: BasePlayer, cost_calculator_func: Optional
     else:
         return calculate_production_cost(player, player.production)
 
-def _calculate_group_emissions(player: BasePlayer) -> float:
+def _calculate_group_emissions(player: BasePlayer) -> int:
     """計算組別總排放量"""
     group_emissions = 0
     for p in player.group.get_players():
         p_in_round = p.in_round(player.round_number)
-        p_emissions = p_in_round.production * p_in_round.carbon_emission_per_unit
+        p_emissions = int(round(p_in_round.production * p_in_round.carbon_emission_per_unit))
         group_emissions += p_emissions
-    return group_emissions
+    return int(round(group_emissions))
 
 def get_production_template_vars(
     player: BasePlayer, 
