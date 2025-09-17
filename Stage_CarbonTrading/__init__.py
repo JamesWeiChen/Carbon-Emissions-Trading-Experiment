@@ -54,7 +54,13 @@ def initialize_roles(subsession: Subsession, allocation_method) -> None:
 
     # 計算社會最適產量和碳權分配
     players = subsession.get_players()
-    allowance_allocation = calculate_optimal_allowance_allocation(players, subsession.market_price, subsession.carbon_multiplier, allocation_method)
+    allowance_allocation = calculate_optimal_allowance_allocation(
+        players,
+        subsession.market_price,
+        subsession.tax_rate,
+        subsession.carbon_multiplier,
+        allocation_method,
+    )
     
     # 儲存結果到 subsession
     subsession.total_optimal_emissions = allowance_allocation['TE_opt_total']
@@ -142,8 +148,9 @@ def initialize_roles(subsession: Subsession, allocation_method) -> None:
     print(f"碳交易組初始化完成")
 
 def calculate_optimal_allowance_allocation(
-    players: List[BasePlayer], 
+    players: List[BasePlayer],
     market_price: float,
+    tax_rate: float,
     carbon_multiplier: float,
     allocation_method: str,
 ) -> Dict[str, Any]:
@@ -168,14 +175,13 @@ def calculate_optimal_allowance_allocation(
     N = len(players)
     decimal_places = config.carbon_trading_decimal_places
     r = carbon_multiplier
+    tax_rate_value = float(tax_rate)
 
     firm_details = []
     TE_opts = []
     TE_subopts = []
     TE_mkts = []
     TE_tax_total = 0
-    tax_rate = r * c
-
     for player in players:
         a_i = float(player.marginal_cost_coefficient)
         b_i = float(player.carbon_emission_per_unit)
@@ -187,16 +193,11 @@ def calculate_optimal_allowance_allocation(
         benchmarks = calculate_player_production_benchmarks(
             player,
             social_cost_per_unit_carbon=c,
-            tax_rate=tax_rate,
+            tax_rate=tax_rate_value,
         )
 
-        max_q = int(getattr(player, 'max_production', config.max_production) or 0)
-        q_tax_raw = int(benchmarks.get('q_tax', 0))
-        q_subopt_i = max(0, min(q_tax_raw, max_q))
-
-        max_emissions = float(b_i * max_q)
-        TE_subopt_raw = float(b_i * q_subopt_i)
-        TE_subopt_i = int(round(max(0.0, min(TE_subopt_raw, max_emissions))))
+        q_subopt_i = max(0, int(benchmarks.get('q_tax', 0)))
+        TE_subopt_i = max(0, int(benchmarks.get('e_tax', 0)))
 
         TE_tax_total += TE_subopt_i
 
