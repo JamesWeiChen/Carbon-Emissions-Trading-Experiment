@@ -265,10 +265,13 @@ class Group(BaseGroup):
     emission = models.FloatField(initial=0)  # 記錄整個組的總排放量
     Q_soc = models.FloatField(initial=0)
     Q_mkt = models.FloatField(initial=0)
+    Q_tax = models.FloatField(initial=0)
     Pi_soc = models.FloatField(initial=0)
     Pi_mkt = models.FloatField(initial=0)
+    Pi_tax = models.FloatField(initial=0)
     E_soc = models.FloatField(initial=0)
     E_mkt = models.FloatField(initial=0)
+    E_tax = models.FloatField(initial=0)
     buy_orders = models.LongStringField(initial='[]')
     sell_orders = models.LongStringField(initial='[]')
 
@@ -314,10 +317,13 @@ class Player(BasePlayer):
     # 基準情境與社會最適指標
     q_soc = models.IntegerField(initial=0)
     q_mkt = models.IntegerField(initial=0)
+    q_tax = models.IntegerField(initial=0)
     pi_soc = models.FloatField(initial=0)
     pi_mkt = models.FloatField(initial=0)
+    pi_tax = models.FloatField(initial=0)
     e_soc = models.FloatField(initial=0)
     e_mkt = models.FloatField(initial=0)
+    e_tax = models.FloatField(initial=0)
 
 class Introduction(Page):
     @staticmethod
