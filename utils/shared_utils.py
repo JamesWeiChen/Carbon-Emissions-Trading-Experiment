@@ -164,7 +164,8 @@ def calculate_production_cost(player: BasePlayer, production_quantity: int) -> f
 
 def calculate_player_production_benchmarks(
     player: BasePlayer,
-    social_cost_per_unit_carbon: float = 6.0
+    social_cost_per_unit_carbon: float = 6.0,
+    tax_rate: float = 0.0
 ) -> Dict[str, float]:
     """計算玩家在不同情境下的基準產量、利潤與排放"""
 
@@ -187,6 +188,9 @@ def calculate_player_production_benchmarks(
 
     q_mkt = 0
     q_soc = 0
+    q_tax = 0
+
+    unit_tax = emission_per_unit * float(tax_rate)
 
     for idx in range(max_q):
         q = idx + 1
@@ -195,25 +199,36 @@ def calculate_player_production_benchmarks(
             q_mkt = q
         if price > marginal_cost + social_cost_per_output:
             q_soc = q
+        if price > marginal_cost + unit_tax:
+            q_tax = q
 
     revenue_mkt = price * q_mkt
     revenue_soc = price * q_soc
+    revenue_tax = price * q_tax
     cost_mkt = calculate_production_cost(player, q_mkt)
     cost_soc = calculate_production_cost(player, q_soc)
+    cost_tax = calculate_production_cost(player, q_tax)
 
-    profit_mkt = round(revenue_mkt - cost_mkt, 2)
-    profit_soc = round(revenue_soc - cost_soc, 2)
+    tax_payment = unit_tax * q_tax
+
+    profit_mkt = int(round(revenue_mkt - cost_mkt))
+    profit_soc = int(round(revenue_soc - cost_soc))
+    profit_tax = int(round(revenue_tax - cost_tax - tax_payment))
 
     emissions_mkt = round(emission_per_unit * q_mkt, 2)
     emissions_soc = round(emission_per_unit * q_soc, 2)
+    emissions_tax = round(emission_per_unit * q_tax, 2)
 
     return {
         'q_soc': int(q_soc),
         'q_mkt': int(q_mkt),
-        'pi_soc': float(profit_soc),
-        'pi_mkt': float(profit_mkt),
+        'q_tax': int(q_tax),
+        'pi_soc': int(profit_soc),
+        'pi_mkt': int(profit_mkt),
+        'pi_tax': int(profit_tax),
         'e_soc': float(emissions_soc),
         'e_mkt': float(emissions_mkt),
+        'e_tax': float(emissions_tax),
     }
 
 def calculate_general_payoff(
@@ -229,10 +244,13 @@ def calculate_general_payoff(
     totals = {
         'Q_soc': 0.0,
         'Q_mkt': 0.0,
+        'Q_tax': 0.0,
         'Pi_soc': 0.0,
         'Pi_mkt': 0.0,
+        'Pi_tax': 0.0,
         'E_soc': 0.0,
         'E_mkt': 0.0,
+        'E_tax': 0.0,
     }
 
     for p in group.get_players():
@@ -264,16 +282,19 @@ def calculate_general_payoff(
         p.net_profit = float(profit)
         p.payoff = profit
 
-        benchmarks = calculate_player_production_benchmarks(p)
+        benchmarks = calculate_player_production_benchmarks(p, tax_rate=tax_rate)
         for field, value in benchmarks.items():
             setattr(p, field, value)
 
         totals['Q_soc'] += benchmarks['q_soc']
         totals['Q_mkt'] += benchmarks['q_mkt']
+        totals['Q_tax'] += benchmarks['q_tax']
         totals['Pi_soc'] += benchmarks['pi_soc']
         totals['Pi_mkt'] += benchmarks['pi_mkt']
+        totals['Pi_tax'] += benchmarks['pi_tax']
         totals['E_soc'] += benchmarks['e_soc']
         totals['E_mkt'] += benchmarks['e_mkt']
+        totals['E_tax'] += benchmarks['e_tax']
 
     _update_group_benchmarks(group, totals)
 
