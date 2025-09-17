@@ -24,15 +24,16 @@ class OptimalAllowanceAllocationTests(unittest.TestCase):
             DummyPlayer(market_price, marginal_cost=5, emission_per_unit=3, max_production=10),
         ]
 
+        social_cost = config.carbon_trading_social_cost_per_unit_carbon
+        tax_rate = carbon_multiplier * social_cost
+
         allocation = calculate_optimal_allowance_allocation(
             players,
             market_price=market_price,
+            tax_rate=tax_rate,
             carbon_multiplier=carbon_multiplier,
             allocation_method="equal",
         )
-
-        social_cost = config.carbon_trading_social_cost_per_unit_carbon
-        tax_rate = carbon_multiplier * social_cost
 
         expected_totals = 0
         for player, firm_details in zip(players, allocation["firm_details"]):
