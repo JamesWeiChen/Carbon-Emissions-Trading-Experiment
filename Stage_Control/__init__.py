@@ -60,22 +60,22 @@ def creating_session(subsession: Subsession) -> None:
         player.selected_round = subsession.session.vars[session_key]
 
 class Group(BaseGroup):
-    emission = models.FloatField(initial=0)  # 記錄整個組的總排放量
+    emission = models.IntegerField(initial=0)  # 記錄整個組的總排放量
     Q_soc = models.FloatField(initial=0)
     Q_mkt = models.FloatField(initial=0)
     Q_tax = models.FloatField(initial=0)
     Pi_soc = models.FloatField(initial=0)
     Pi_mkt = models.FloatField(initial=0)
     Pi_tax = models.FloatField(initial=0)
-    E_soc = models.FloatField(initial=0)
-    E_mkt = models.FloatField(initial=0)
-    E_tax = models.FloatField(initial=0)
+    E_soc = models.IntegerField(initial=0)
+    E_mkt = models.IntegerField(initial=0)
+    E_tax = models.IntegerField(initial=0)
 
 class Player(BasePlayer):
     # 企業特性
     is_dominant = models.BooleanField()
     marginal_cost_coefficient = models.IntegerField()
-    carbon_emission_per_unit = models.FloatField()
+    carbon_emission_per_unit = models.IntegerField()
     max_production = models.IntegerField()
 
     # 市場和生產
@@ -92,7 +92,7 @@ class Player(BasePlayer):
     final_cash = models.CurrencyField()
 
     # 碳排放記錄
-    emission = models.FloatField(initial=0)  # 記錄實際產生的排放量
+    emission = models.IntegerField(initial=0)  # 記錄實際產生的排放量
 
     # 基準情境與社會最適指標
     q_soc = models.IntegerField(initial=0)
@@ -101,9 +101,9 @@ class Player(BasePlayer):
     pi_soc = models.FloatField(initial=0)
     pi_mkt = models.FloatField(initial=0)
     pi_tax = models.FloatField(initial=0)
-    e_soc = models.FloatField(initial=0)
-    e_mkt = models.FloatField(initial=0)
-    e_tax = models.FloatField(initial=0)
+    e_soc = models.IntegerField(initial=0)
+    e_mkt = models.IntegerField(initial=0)
+    e_tax = models.IntegerField(initial=0)
 
     # 回合資訊
     selected_round = models.IntegerField()
@@ -146,18 +146,18 @@ class ResultsWaitPage(WaitPage):
         # 然後記錄每個player的實際排放量和組總排放量
         group_total_emission = 0
         for player in group.get_players():
-            player.emission = player.production * player.carbon_emission_per_unit
+            player.emission = int(round(player.production * player.carbon_emission_per_unit))
             group_total_emission += player.emission
-        
+
         # 記錄組總排放量
-        group.emission = group_total_emission
+        group.emission = int(round(group_total_emission))
 
 class Results(Page):
     @staticmethod
     def vars_for_template(player: Player) -> Dict[str, Any]:
         # 計算基本數據
         production_cost = player.total_cost
-        total_emissions = player.production * player.carbon_emission_per_unit
+        total_emissions = int(round(player.production * player.carbon_emission_per_unit))
         group_emissions = _calculate_group_emissions(player)
         
         # 計算最終報酬資訊
@@ -219,12 +219,12 @@ class WaitForInstruction(Page):
     def is_displayed(player: Player):
         return player.round_number == C.NUM_ROUNDS
 
-def _calculate_group_emissions(player: Player) -> float:
+def _calculate_group_emissions(player: Player) -> int:
     """計算組別總排放量"""
     group_emissions = 0
     for p in player.group.get_players():
-        p_emissions = p.production * p.carbon_emission_per_unit
+        p_emissions = int(round(p.production * p.carbon_emission_per_unit))
         group_emissions += p_emissions
-    return group_emissions
+    return int(round(group_emissions))
 
 page_sequence = [Introduction, ReadyWaitPage, ProductionDecision, ResultsWaitPage, Results, WaitForInstruction]

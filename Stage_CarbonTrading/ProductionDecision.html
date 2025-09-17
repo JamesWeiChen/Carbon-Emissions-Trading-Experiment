@@ -129,16 +129,20 @@
                 </div>
             </form>
 
+            {% if show_debug_info %}
             <!-- 調試按鈕 -->
             <div class="text-center mt-4">
                 <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('debug-container').style.display='block';">
                     顯示調試信息
                 </button>
             </div>
+            {% endif %}
+
         </div>
     </div>
 </div>
 
+{% if show_debug_info %}
 <!-- 添加調試信息區域 -->
 <div class="container mt-3" id="debug-container" style="display: none;">
     <div class="card">
@@ -152,6 +156,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <script>
 // 更新生產量顯示
@@ -291,13 +296,14 @@ function updateEmissionsTable() {
     console.log('表格更新完成，行數:', emissionsTb.children.length);
 }
 
+{% if show_debug_info %}
 // 顯示調試信息
 function showDebug(message, data) {
     const debugInfo = document.getElementById('debug-info');
     const now = new Date().toLocaleTimeString();
     const msgElement = document.createElement('div');
     msgElement.innerHTML = `<strong>[${now}]</strong> ${message}`;
-    
+
     if (data) {
         const dataElement = document.createElement('pre');
         dataElement.textContent = JSON.stringify(data, null, 2);
@@ -306,7 +312,7 @@ function showDebug(message, data) {
         dataElement.style.marginTop = '4px';
         msgElement.appendChild(dataElement);
     }
-    
+
     debugInfo.appendChild(msgElement);
     document.getElementById('debug-container').style.display = 'block';
 }
@@ -314,12 +320,12 @@ function showDebug(message, data) {
 // 測試表格生成
 function testTableGeneration() {
     const table = document.getElementById('emissions-table');
-    
+
     try {
         const marginalCostCoef = parseFloat(table.getAttribute('data-marginal-cost'));
         const carbonEmission = parseFloat(table.getAttribute('data-carbon-emission'));
         const maxProd = parseInt(table.getAttribute('data-max-production'));
-        
+
         showDebug('從表格屬性讀取的值:', {
             marginalCostCoef,
             carbonEmission,
@@ -327,33 +333,34 @@ function testTableGeneration() {
             table_id: table.id,
             has_tbody: !!table.querySelector('tbody')
         });
-        
+
         // 嘗試手動生成一行
         const tbody = table.querySelector('tbody');
         const row = document.createElement('tr');
-        
+
         // 生產數量
         const cell1 = document.createElement('td');
         cell1.textContent = '測試數量';
         row.appendChild(cell1);
-        
+
         // 每單位生產成本
         const cell2 = document.createElement('td');
         cell2.textContent = '測試成本';
         row.appendChild(cell2);
-        
+
         // 碳排放
         const cell3 = document.createElement('td');
         cell3.textContent = '測試排放';
         row.appendChild(cell3);
-        
+
         tbody.appendChild(row);
-        
+
         showDebug('測試行已添加到表格中');
     } catch (error) {
         showDebug('表格生成測試錯誤:', { error: error.message, stack: error.stack });
     }
 }
+{% endif %}
 
 // 頁面加載後立即填充表格
 document.addEventListener('DOMContentLoaded', function() {

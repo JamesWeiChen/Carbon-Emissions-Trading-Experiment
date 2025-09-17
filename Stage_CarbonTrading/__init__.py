@@ -262,16 +262,16 @@ def creating_session(subsession: Subsession) -> None:
     initialize_roles(subsession, allocation_method)
 
 class Group(BaseGroup):
-    emission = models.FloatField(initial=0)  # 記錄整個組的總排放量
+    emission = models.IntegerField(initial=0)  # 記錄整個組的總排放量
     Q_soc = models.FloatField(initial=0)
     Q_mkt = models.FloatField(initial=0)
     Q_tax = models.FloatField(initial=0)
     Pi_soc = models.FloatField(initial=0)
     Pi_mkt = models.FloatField(initial=0)
     Pi_tax = models.FloatField(initial=0)
-    E_soc = models.FloatField(initial=0)
-    E_mkt = models.FloatField(initial=0)
-    E_tax = models.FloatField(initial=0)
+    E_soc = models.IntegerField(initial=0)
+    E_mkt = models.IntegerField(initial=0)
+    E_tax = models.IntegerField(initial=0)
     buy_orders = models.LongStringField(initial='[]')
     sell_orders = models.LongStringField(initial='[]')
 
@@ -305,7 +305,7 @@ class Player(BasePlayer):
     total_earned = models.CurrencyField(default=0)  # 總收入金額：玩家在本回合賣出碳權獲得的總金額
 
     # 碳排放記錄
-    emission = models.FloatField(initial=0)  # 記錄實際產生的排放量
+    emission = models.IntegerField(initial=0)  # 記錄實際產生的排放量
 
     # 回合與最適資訊
     selected_round = models.IntegerField()  # 新增：隨機選中的回合用於最終報酬
@@ -321,9 +321,9 @@ class Player(BasePlayer):
     pi_soc = models.FloatField(initial=0)
     pi_mkt = models.FloatField(initial=0)
     pi_tax = models.FloatField(initial=0)
-    e_soc = models.FloatField(initial=0)
-    e_mkt = models.FloatField(initial=0)
-    e_tax = models.FloatField(initial=0)
+    e_soc = models.IntegerField(initial=0)
+    e_mkt = models.IntegerField(initial=0)
+    e_tax = models.IntegerField(initial=0)
 
 class Introduction(Page):
     @staticmethod
@@ -664,6 +664,7 @@ class ProductionDecision(Page):
             price_history=price_history,
             reset_cash=C.RESET_CASH_EACH_ROUND,
             disturbance_values=json.loads(player.disturbance_values),  # 新增：固定的擾動值列表
+            show_debug_info=config.test_mode,
         )
 
 #    @staticmethod
@@ -683,11 +684,11 @@ class ResultsWaitPage(WaitPage):
         # 然後記錄每個player的實際排放量和組總排放量
         group_total_emission = 0
         for player in group.get_players():
-            player.emission = player.production * player.carbon_emission_per_unit
+            player.emission = int(round(player.production * player.carbon_emission_per_unit))
             group_total_emission += player.emission
-        
+
         # 記錄組總排放量
-        group.emission = group_total_emission
+        group.emission = int(round(group_total_emission))
 
 # 碳交易組 Results 類
 class Results(Page):
@@ -707,13 +708,14 @@ class Results(Page):
 #            random.seed()  # 重置隨機種子
         
         # 計算個人碳排放量
-        total_emissions = player.production * player.carbon_emission_per_unit
-        
+        total_emissions = int(round(player.production * player.carbon_emission_per_unit))
+
         # 計算全體玩家的碳排放量
         group_emissions = 0
         for p in player.group.get_players():
-            p_emissions = p.production * p.carbon_emission_per_unit
+            p_emissions = int(round(p.production * p.carbon_emission_per_unit))
             group_emissions += p_emissions
+        group_emissions = int(round(group_emissions))
         
         # 計算進度條百分比
         progress_percentage = round((player.round_number / C.NUM_ROUNDS) * 100)
@@ -779,7 +781,9 @@ class Results(Page):
             selected_round_player = player.in_round(selected_round)
             
             selected_revenue = selected_round_player.production * selected_round_player.market_price
-            selected_emissions = selected_round_player.production * selected_round_player.carbon_emission_per_unit
+            selected_emissions = int(round(
+                selected_round_player.production * selected_round_player.carbon_emission_per_unit
+            ))
             
             # 修改：使用新的利潤計算方式
             # 計算被選中回合的最終總資金
@@ -791,8 +795,9 @@ class Results(Page):
             # 計算被選中回合全體玩家的碳排放量
             selected_group_emissions = 0
             for p in selected_round_player.group.get_players():
-                p_emissions = p.production * p.carbon_emission_per_unit
+                p_emissions = int(round(p.production * p.carbon_emission_per_unit))
                 selected_group_emissions += p_emissions
+            selected_group_emissions = int(round(selected_group_emissions))
             
             final_payoff_info = {
                 'selected_round': selected_round,
