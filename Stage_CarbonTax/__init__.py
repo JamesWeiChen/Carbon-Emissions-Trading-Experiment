@@ -102,9 +102,9 @@ class Player(BasePlayer):
     pi_soc = models.FloatField(initial=0)
     pi_mkt = models.FloatField(initial=0)
     pi_tax = models.FloatField(initial=0)
-    e_soc = models.FloatField(initial=0)
-    e_mkt = models.FloatField(initial=0)
-    e_tax = models.FloatField(initial=0)
+    e_soc = models.IntegerField(initial=0)
+    e_mkt = models.IntegerField(initial=0)
+    e_tax = models.IntegerField(initial=0)
 
     # 回合資訊
     selected_round = models.IntegerField()
