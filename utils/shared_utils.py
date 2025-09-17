@@ -215,9 +215,9 @@ def calculate_player_production_benchmarks(
     profit_soc = int(round(revenue_soc - cost_soc))
     profit_tax = int(round(revenue_tax - cost_tax - tax_payment))
 
-    emissions_mkt = round(emission_per_unit * q_mkt, 2)
-    emissions_soc = round(emission_per_unit * q_soc, 2)
-    emissions_tax = round(emission_per_unit * q_tax, 2)
+    emissions_mkt = int(round(emission_per_unit * q_mkt))
+    emissions_soc = int(round(emission_per_unit * q_soc))
+    emissions_tax = int(round(emission_per_unit * q_tax))
 
     return {
         'q_soc': int(q_soc),
@@ -226,9 +226,9 @@ def calculate_player_production_benchmarks(
         'pi_soc': int(profit_soc),
         'pi_mkt': int(profit_mkt),
         'pi_tax': int(profit_tax),
-        'e_soc': float(emissions_soc),
-        'e_mkt': float(emissions_mkt),
-        'e_tax': float(emissions_tax),
+        'e_soc': emissions_soc,
+        'e_mkt': emissions_mkt,
+        'e_tax': emissions_tax,
     }
 
 def calculate_general_payoff(

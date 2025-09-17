@@ -321,9 +321,9 @@ class Player(BasePlayer):
     pi_soc = models.FloatField(initial=0)
     pi_mkt = models.FloatField(initial=0)
     pi_tax = models.FloatField(initial=0)
-    e_soc = models.FloatField(initial=0)
-    e_mkt = models.FloatField(initial=0)
-    e_tax = models.FloatField(initial=0)
+    e_soc = models.IntegerField(initial=0)
+    e_mkt = models.IntegerField(initial=0)
+    e_tax = models.IntegerField(initial=0)
 
 class Introduction(Page):
     @staticmethod
@@ -664,6 +664,7 @@ class ProductionDecision(Page):
             price_history=price_history,
             reset_cash=C.RESET_CASH_EACH_ROUND,
             disturbance_values=json.loads(player.disturbance_values),  # 新增：固定的擾動值列表
+            show_debug_info=config.test_mode,
         )
 
 #    @staticmethod
