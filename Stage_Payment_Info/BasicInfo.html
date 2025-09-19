@@ -8,11 +8,58 @@
         敬請放心作答，由衷感謝您的幫忙與支持！<br>
     </P>
 
-    {{ formfields }}
+    {{ formfield 'name' }}
+    {{ formfield 'student_id' }}
+    {{ formfield 'id_number' }}
+    {{ formfield 'address' }}
+    {{ formfield 'address_code' }}
+    {{ formfield 'is_foreign' }}
+
+    <div id="foreign-student-section" style="display: none;">
+        <hr>
+        <p>請提供以下外籍生資訊：</p>
+        {{ formfield 'arc' }}
+        {{ formfield 'passport' }}
+        {{ formfield 'nation' }}
+        {{ formfield 'stay' }}
+    </div>
     <a href="https://www.post.gov.tw/post/internet/Postal/index.jsp?ID=208" target="_blank">郵遞區號查詢</a>
     <br>
     <br>
 
     {{ next_button }}
 
+    <script>
+        (function () {
+            const foreignSection = document.getElementById('foreign-student-section');
+            const foreignRadios = document.querySelectorAll('input[name="is_foreign"]');
+            const extraInputs = foreignSection.querySelectorAll('input');
+
+            function clearExtraInputs() {
+                extraInputs.forEach((input) => {
+                    if (input.type === 'radio') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
+                });
+            }
+
+            function toggleForeignSection() {
+                const selected = document.querySelector('input[name="is_foreign"]:checked');
+                if (selected && selected.value === '是') {
+                    foreignSection.style.display = '';
+                } else {
+                    foreignSection.style.display = 'none';
+                    clearExtraInputs();
+                }
+            }
+
+            foreignRadios.forEach((radio) => {
+                radio.addEventListener('change', toggleForeignSection);
+            });
+
+            toggleForeignSection();
+        })();
+    </script>
 {{ endblock }}
