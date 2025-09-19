@@ -25,6 +25,20 @@ class Player(BasePlayer):
     id_number = models.StringField(label="您的身份證字號")
     address = models.StringField(label="您的戶籍地址（含鄰里，需與身分證一致）")
     address_code = models.StringField(label="戶籍地址郵遞區號（3碼即可）")
+    is_foreign = models.StringField(
+        label="您是否為外籍生？",
+        choices=[('是', '是'), ('否', '否')],
+        widget=widgets.RadioSelect
+    )
+    arc = models.StringField(label="居留證號碼", blank=True)
+    passport = models.StringField(label="護照號碼", blank=True)
+    nation = models.StringField(label="國籍", blank=True)
+    stay = models.StringField(
+        label="是否在台滿 183 天",
+        choices=[('是', '是'), ('否', '否')],
+        widget=widgets.RadioSelect,
+        blank=True
+    )
 
     @staticmethod
     def calculate_payment_info(player):
@@ -89,7 +103,18 @@ class PaymentInfo(Page):
 
 class BasicInfo(Page):
     form_model = 'player'
-    form_fields = ['name', 'student_id', 'id_number', 'address', 'address_code']
+    form_fields = [
+        'name',
+        'student_id',
+        'id_number',
+        'address',
+        'address_code',
+        'is_foreign',
+        'arc',
+        'passport',
+        'nation',
+        'stay'
+    ]
 
     @staticmethod
     def error_message(player: Player, values):
@@ -109,6 +134,15 @@ class BasicInfo(Page):
             return '身份證字號格式不正確'
         if len(values['address_code']) != 3 or not values['address_code'].isnumeric():
             return '戶籍地址郵遞區號應為 3 碼數字'
+        if values['is_foreign'] == '是':
+            if not values['arc']:
+                return '請填寫居留證號碼'
+            if not values['passport']:
+                return '請填寫護照號碼'
+            if not values['nation']:
+                return '請填寫國籍'
+            if not values['stay']:
+                return '請選擇是否在台滿 183 天'
 
 class WaitForInstruction(Page):
     pass
