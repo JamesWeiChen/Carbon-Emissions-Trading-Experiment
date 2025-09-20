@@ -133,7 +133,7 @@ stages:
     item_price_options: [50, 100, 150, 0, 1, 2]  # 回退使用的碳權價格選項
     item_price_option_sets:
       high: [50, 100, 150]
-      low: [0, 1, 2]
+      low: [5, 10, 15]
     
   carbon_trading:
     name_in_url: 'Stage_CarbonTrading'
