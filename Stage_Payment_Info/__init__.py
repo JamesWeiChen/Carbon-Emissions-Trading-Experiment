@@ -31,7 +31,7 @@ class Player(BasePlayer):
             ('國立臺北教育大學', '國立臺北教育大學'),
             ('國立臺灣科技大學', '國立臺灣科技大學'),
         ],
-        widget=widgets.Dropdown,
+        widget=widgets.RadioSelectHorizontal,
         initial='國立臺灣大學',
     )
     student_id = models.StringField(label="您的學號")
@@ -159,3 +159,4 @@ class WaitForInstruction(Page):
     pass
 
 page_sequence = [PaymentInfo, BasicInfo, WaitForInstruction]
+
