@@ -14,7 +14,7 @@ class Subsession(BaseSubsession):
     pass
 
 class Group(BaseGroup):
-    pass
+    real_emission = models.FloatField()
 
 class Player(BasePlayer):
 
@@ -24,7 +24,6 @@ class Player(BasePlayer):
     student_id = models.StringField(label="您的學號")
     id_number = models.StringField(label="您的身份證字號")
     address = models.StringField(label="您的戶籍地址（含鄰里，需與身分證一致）")
-    address_code = models.StringField(label="戶籍地址郵遞區號（3碼即可）")
     is_foreign = models.StringField(
         label="您是否為外籍生？",
         choices=[('是', '是'), ('否', '否')],
@@ -100,6 +99,7 @@ class PaymentInfo(Page):
         info = Player.calculate_payment_info(player)
         player.payoff = cu(info['total_profit'])  # 必須是 cu() 才會統計進 payoff
         player.total_payment = info['total_payment']
+        player.group.real_emission = info['real_emission']
 
 class BasicInfo(Page):
     form_model = 'player'
@@ -108,7 +108,6 @@ class BasicInfo(Page):
         'student_id',
         'id_number',
         'address',
-        'address_code',
         'is_foreign',
         'arc',
         'passport',
@@ -132,8 +131,6 @@ class BasicInfo(Page):
             return '身份證字號第 1 碼應為英文字母'
         if not values['id_number'][1:9].isnumeric():
             return '身份證字號格式不正確'
-        if len(values['address_code']) != 3 or not values['address_code'].isnumeric():
-            return '戶籍地址郵遞區號應為 3 碼數字'
         if values['is_foreign'] == '是':
             if not values['arc']:
                 return '請填寫居留證號碼'
