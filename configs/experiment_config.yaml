@@ -130,7 +130,10 @@ stages:
     reset_cash_each_round: true
     description: "MUDA：純交易練習回合，讓受試者熟悉交易市場介面操作"
     # 碳權價格隨機抽取設定
-    item_price_options: [25, 30, 35, 40]  # 碳權價格選項
+    item_price_options: [50, 100, 150, 0, 1, 2]  # 回退使用的碳權價格選項
+    item_price_option_sets:
+      high: [50, 100, 150]
+      low: [0, 1, 2]
     
   carbon_trading:
     name_in_url: 'Stage_CarbonTrading'
