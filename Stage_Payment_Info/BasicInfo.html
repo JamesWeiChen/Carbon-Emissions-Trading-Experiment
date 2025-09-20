@@ -11,9 +11,13 @@
     {{ formfield 'name' }}
     {{ formfield 'school' }}
     {{ formfield 'student_id' }}
-    {{ formfield 'id_number' }}
-    {{ formfield 'address' }}
     {{ formfield 'is_foreign' }}
+
+    <div id="id-number-section">
+        {{ formfield 'id_number' }}
+    </div>
+
+    {{ formfield 'address' }}
 
     <div id="foreign-student-section" style="display: none;">
         <hr>
@@ -30,6 +34,8 @@
             const foreignSection = document.getElementById('foreign-student-section');
             const foreignRadios = document.querySelectorAll('input[name="is_foreign"]');
             const extraInputs = foreignSection.querySelectorAll('input');
+            const idSection = document.getElementById('id-number-section');
+            const idInput = idSection.querySelector('input');
 
             function clearExtraInputs() {
                 extraInputs.forEach((input) => {
@@ -45,9 +51,14 @@
                 const selected = document.querySelector('input[name="is_foreign"]:checked');
                 if (selected && selected.value === '是') {
                     foreignSection.style.display = '';
+                    idSection.style.display = 'none';
+                    if (idInput) {
+                        idInput.value = '';
+                    }
                 } else {
                     foreignSection.style.display = 'none';
                     clearExtraInputs();
+                    idSection.style.display = '';
                 }
             }
 
