@@ -175,7 +175,6 @@
 | `student_id` | StringField | 學號 |
 | `id_number` | StringField | 身份證字號 |
 | `address` | StringField | 戶籍地址 |
-| `address_code` | StringField | 戶籍地址郵遞區號 |
 
 #### 背景資訊
 | 變數名稱 | 資料類型 | 說明 |
