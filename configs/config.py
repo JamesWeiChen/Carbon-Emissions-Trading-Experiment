@@ -247,7 +247,12 @@ class ExperimentConfig:
     def muda_item_price_options(self) -> List[int]:
         """MUDA物品價格選項"""
         return self.get('stages.muda.item_price_options', [25, 30, 35, 40])
-    
+
+    @property
+    def muda_item_price_option_sets(self) -> Dict[str, List[int]]:
+        """MUDA物品價格選項組"""
+        return self.get('stages.muda.item_price_option_sets', {})
+
     @property
     def muda_item_name(self) -> str:
         """MUDA物品名稱"""

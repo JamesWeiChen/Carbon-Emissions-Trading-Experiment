@@ -24,6 +24,7 @@ class Subsession(BaseSubsession):
     price_history = models.LongStringField(initial='[]')
     start_time = models.IntegerField()
     executed_trades = models.LongStringField(initial='[]')
+    price_option_set = models.StringField(initial='')
 
 def creating_session(subsession: Subsession) -> None:
     """創建會話時的初始化"""
@@ -36,24 +37,56 @@ def creating_session(subsession: Subsession) -> None:
         subsession.session.vars[session_key] = random.randint(1, C.NUM_ROUNDS)
         print(f"[MUDA] 本 app 的 selected_round 抽中第 {subsession.session.vars[session_key]} 輪")
     
+    # 設定本輪使用的價格組
+    price_option_sets = config.muda_item_price_option_sets
+    price_options = config.muda_item_price_options
+    selected_set_name = ''
+
+    if price_option_sets:
+        schedule_key = 'muda_price_option_schedule'
+        if schedule_key not in subsession.session.vars:
+            set_names = list(price_option_sets.keys())
+            schedule: List[str] = []
+            if set_names:
+                rounds_per_set = C.NUM_ROUNDS // len(set_names)
+                remainder = C.NUM_ROUNDS % len(set_names)
+
+                for name in set_names:
+                    schedule.extend([name] * rounds_per_set)
+
+                if remainder > 0:
+                    schedule.extend(random.sample(set_names, k=remainder))
+
+                random.shuffle(schedule)
+
+            subsession.session.vars[schedule_key] = schedule
+
+        schedule = subsession.session.vars.get(schedule_key, [])
+        if schedule and subsession.round_number <= len(schedule):
+            selected_set_name = schedule[subsession.round_number - 1]
+            price_options = price_option_sets.get(selected_set_name, price_options)
+
+    subsession.price_option_set = selected_set_name
+
     # 設定參考價格
-    reference_price = random.choice(config.muda_item_price_options)
+    reference_price = random.choice(price_options)
     subsession.item_market_price = reference_price
-    print(f"第{subsession.round_number}輪 - MUDA參考碳權價格: {reference_price}")
-    
+    print(f"第{subsession.round_number}輪 - MUDA參考碳權價格: {reference_price} "
+          f"(價格組: {selected_set_name or 'default'})")
+
     # 初始化玩家
     for p in subsession.get_players():
         p.selected_round = subsession.session.vars[session_key]
-        _initialize_player(p)
+        _initialize_player(p, price_options)
 
-def _initialize_player(player: BasePlayer) -> None:
+def _initialize_player(player: BasePlayer, price_options: List[int]) -> None:
     """初始化單個玩家"""
     player.current_cash = C.INITIAL_CAPITAL
     player.initial_capital = C.INITIAL_CAPITAL
     player.current_items = random.randint(3, 8)
-        
+
     # 設定個人碳權價值
-    player.personal_item_value = random.choice(config.muda_item_price_options)
+    player.personal_item_value = random.choice(price_options)
     print(f"玩家 {player.id_in_group} 的碳權價值: {player.personal_item_value} "
           f"(持有數量: {player.current_items})")
 
