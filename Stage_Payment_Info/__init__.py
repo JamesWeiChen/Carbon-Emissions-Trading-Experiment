@@ -35,7 +35,7 @@ class Player(BasePlayer):
         initial='國立臺灣大學',
     )
     student_id = models.StringField(label="您的學號")
-    id_number = models.StringField(label="您的身份證字號")
+    id_number = models.StringField(label="您的身份證字號", blank=True)
     address = models.StringField(label="您的戶籍地址（含鄰里，需與身分證一致）")
     is_foreign = models.StringField(
         label="您是否為外籍生？",
@@ -120,9 +120,9 @@ class BasicInfo(Page):
         'name',
         'school',
         'student_id',
+        'is_foreign',
         'id_number',
         'address',
-        'is_foreign',
         'arc',
         'passport',
         'nation',
@@ -131,20 +131,16 @@ class BasicInfo(Page):
 
     @staticmethod
     def error_message(player: Player, values):
-        if len(values['student_id']) != 9:
-            return '學號長度不正確'
-        if not values['student_id'][0].isalpha():
-            return '學號第 1 碼應為英文字母'
-        if not values['student_id'][1:2].isnumeric():
-            return '學號格式不正確'
-        if not values['student_id'][4:8].isnumeric():
-            return '學號格式不正確'
-        if len(values['id_number']) != 10:
-            return '身份證字號長度不正確'
-        if not values['id_number'][0].isalpha():
-            return '身份證字號第 1 碼應為英文字母'
-        if not values['id_number'][1:9].isnumeric():
-            return '身份證字號格式不正確'
+        if values['is_foreign'] == '否':
+            id_number = (values['id_number'] or '').strip()
+            if not id_number:
+                return '請填寫身份證字號'
+            if len(id_number) != 10:
+                return '身份證字號長度不正確'
+            if not id_number[0].isalpha():
+                return '身份證字號第 1 碼應為英文字母'
+            if not id_number[1:9].isnumeric():
+                return '身份證字號格式不正確'
         if values['is_foreign'] == '是':
             if not values['arc']:
                 return '請填寫居留證號碼'
