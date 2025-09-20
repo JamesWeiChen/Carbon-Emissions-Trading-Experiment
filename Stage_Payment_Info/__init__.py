@@ -21,6 +21,19 @@ class Player(BasePlayer):
     total_payment = models.IntegerField()
     # === 基本資料 ===
     name = models.StringField(label="您的名字")
+    school = models.StringField(
+        label="您的學校",
+        choices=[
+            ('國立臺灣大學', '國立臺灣大學'),
+            ('國立政治大學', '國立政治大學'),
+            ('國立臺北大學', '國立臺北大學'),
+            ('國立臺灣師範大學', '國立臺灣師範大學'),
+            ('國立臺北教育大學', '國立臺北教育大學'),
+            ('國立臺灣科技大學', '國立臺灣科技大學'),
+        ],
+        widget=widgets.Dropdown,
+        initial='國立臺灣大學',
+    )
     student_id = models.StringField(label="您的學號")
     id_number = models.StringField(label="您的身份證字號")
     address = models.StringField(label="您的戶籍地址（含鄰里，需與身分證一致）")
@@ -105,6 +118,7 @@ class BasicInfo(Page):
     form_model = 'player'
     form_fields = [
         'name',
+        'school',
         'student_id',
         'id_number',
         'address',
