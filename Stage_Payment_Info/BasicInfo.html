@@ -13,7 +13,7 @@
     {{ formfield 'student_id' }}
     {{ formfield 'is_foreign' }}
 
-    <div id="id-number-section">
+    <div id="id-number-section" style="display: none;">
         {{ formfield 'id_number' }}
     </div>
 
@@ -49,7 +49,18 @@
 
             function toggleForeignSection() {
                 const selected = document.querySelector('input[name="is_foreign"]:checked');
-                if (selected && selected.value === '是') {
+
+                if (!selected) {
+                    foreignSection.style.display = 'none';
+                    clearExtraInputs();
+                    idSection.style.display = 'none';
+                    if (idInput) {
+                        idInput.value = '';
+                    }
+                    return;
+                }
+
+                if (selected.value === '是') {
                     foreignSection.style.display = '';
                     idSection.style.display = 'none';
                     if (idInput) {
