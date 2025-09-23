@@ -30,6 +30,7 @@ class Player(BasePlayer):
             ('國立臺灣師範大學', '國立臺灣師範大學'),
             ('國立臺北教育大學', '國立臺北教育大學'),
             ('國立臺灣科技大學', '國立臺灣科技大學'),
+            ('國立成功大學', '國立成功大學'),
         ],
         widget=widgets.RadioSelectHorizontal,
         initial='國立臺灣大學',
@@ -155,4 +156,5 @@ class WaitForInstruction(Page):
     pass
 
 page_sequence = [PaymentInfo, BasicInfo, WaitForInstruction]
+
 
